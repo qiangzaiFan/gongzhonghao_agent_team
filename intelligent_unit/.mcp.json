@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "wenyan-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "YOUR_WENYAN_MCP_PATH/dist/index.js"
+      ],
+      "env": {
+        "WECHAT_APP_ID": "YOUR_APP_ID",
+        "WECHAT_APP_SECRET": "YOUR_APP_SECRET"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--isolated",
+        "--headless"
+      ],
+      "env": {}
+    },
+    "arxiv": {
+      "type": "stdio",
+      "command": "arxiv-mcp-server",
+      "args": [],
+      "env": {}
+    }
+  }
+}
