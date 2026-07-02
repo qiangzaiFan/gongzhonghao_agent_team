@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3 install *)",
+      "Bash(python3 -m pip install --quiet pytz)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -m pip install --user pytz -q)",
+      "Bash(timeout 600 python3 daily_ai_news.py --now --count 1)",
+      "Bash(python3 daily_ai_news.py --now --count 1)",
+      "Bash(python3 -)"
+    ]
+  }
+}
