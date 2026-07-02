@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(gh repo *)",
+      "Bash(curl -sL --max-time 30 https://api.github.com/repos/qiangzaiFan/gongzhonghao_agent_team)",
+      "Bash(curl -sL --max-time 30 \"https://api.github.com/repos/qiangzaiFan/gongzhonghao_agent_team/git/trees/master?recursive=1\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('\\\\n'.join\\(t['path'] for t in d.get\\('tree',[]\\)\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); p=d.get\\('parent'\\); print\\('parent:', p['full_name'] if p else None\\); print\\('default_branch:', d.get\\('default_branch'\\)\\)\")",
+      "Bash(curl -sL --max-time 30 \"https://api.github.com/repos/qiangzaiFan/gongzhonghao_agent_team/git/trees/main?recursive=1\")",
+      "Bash(gh api *)",
+      "Bash(npm view *)",
+      "Bash(npm install *)",
+      "Bash(npx -y playwright install chromium)",
+      "Bash(pkill -f \"playwright\")",
+      "Bash(pkill -f \"oopBrowserDownload\")",
+      "Read(//Users/wangqiang/**)",
+      "Bash(npx -y playwright@latest install chromium)",
+      "Bash(echo \"=== EXIT $? ===\")",
+      "Bash(node pw_test.mjs)"
+    ]
+  }
+}
