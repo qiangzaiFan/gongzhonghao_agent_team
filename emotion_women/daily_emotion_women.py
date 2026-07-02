@@ -15,6 +15,8 @@ from zoneinfo import ZoneInfo
 # 配置日志
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
+MCP_CONFIG = Path(__file__).parent / ".mcp.json"
+PUBLISH_THEME = "agentera-rose"
 
 
 def get_beijing_time():
@@ -37,14 +39,34 @@ logger = logging.getLogger(__name__)
 class EmotionWomenAutomation:
     """情感女性公众号自动化处理类"""
 
-    def __init__(self, working_dir: str = None, article_count: int = 3, verbose: bool = False):
+    def __init__(
+        self,
+        working_dir: str = None,
+        article_count: int = 3,
+        verbose: bool = False,
+        publish: bool = False,
+    ):
         self.working_dir = working_dir or str(Path(__file__).parent)
         self.article_count = article_count
         self.verbose = verbose
+        self.publish = publish
         self.prompt_template = self._load_prompt_template()
 
     def _load_prompt_template(self) -> str:
         """加载 prompt 模板"""
+        if self.publish:
+            publish_step = f"""5. 使用 `mcp__wenyan-mcp__publish_article_from_file` 发布到微信公众号草稿箱：
+   - `file_path` 传文章 Markdown 的本地绝对路径
+   - `theme_id` 传 `{PUBLISH_THEME}`
+   - 不要直接群发，只进入草稿箱
+   - 发布失败时记录错误原因，继续处理其他文章"""
+            publish_summary = "、草稿箱 media_id 或发布失败原因"
+            publish_note = "- 本次需要发布到微信公众号草稿箱，但不直接群发，最终由人工在公众号后台审核后发布。"
+        else:
+            publish_step = "5. 不发布到公众号，只保存本地 Markdown 草稿"
+            publish_summary = ""
+            publish_note = "- 本次只生成本地草稿，不调用 wenyan-mcp，不触碰微信公众号。"
+
         return f"""# 情感女性公众号内容生成任务
 
 ## 第一步：搜索情感热点话题
@@ -94,7 +116,7 @@ class EmotionWomenAutomation:
 2. 从 Unsplash/Pexels 下载 3-5 张氛围配图到 `./images/`
 3. 写一篇 1200-1800 字的情感深度文章
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`
-5. 使用 `mcp__wenyan-mcp__publish_article_from_file` 发布到草稿箱（theme: agentera-rose）
+{publish_step}
 
 **文章要求**：
 - 标题有情绪张力（反常识/金句式/悬念）
@@ -112,7 +134,14 @@ class EmotionWomenAutomation:
 - "讨好型人格的人，在爱情里有多累"
 - "分手后还做朋友，是成熟还是不甘心"
 
-**重要**：不要询问确认，直接执行所有步骤。并行运行所有 agent 提高效率。"""
+## 第五步：汇总结果
+
+所有 agent 完成后，汇报每篇文章的标题、文件路径、一句话摘要{publish_summary}。
+
+**重要**：
+{publish_note}
+- 不要询问确认，直接执行所有步骤。
+- 并行运行所有 agent 提高效率。"""
 
     def generate_prompt(self) -> str:
         """生成当天的 prompt（使用北京时间）"""
@@ -125,6 +154,7 @@ class EmotionWomenAutomation:
             logger.info("=" * 60)
             logger.info(f"开始执行 情感女性公众号 自动化任务 - {get_beijing_time()}")
             logger.info(f"文章数量: {self.article_count} 篇")
+            logger.info(f"发布模式: {'发布到公众号草稿箱' if self.publish else '仅生成本地草稿'}")
             logger.info("=" * 60)
 
             prompt = self.generate_prompt()
@@ -140,6 +170,12 @@ class EmotionWomenAutomation:
 
             if self.verbose:
                 cmd.append('--verbose')
+
+            if self.publish:
+                cmd.extend([
+                    '--mcp-config', str(MCP_CONFIG),
+                    '--strict-mcp-config'
+                ])
 
             cmd.extend([
                 '--permission-mode', 'bypassPermissions',
@@ -192,10 +228,10 @@ class EmotionWomenAutomation:
             return False
 
 
-def run_now(article_count: int, verbose: bool = False):
+def run_now(article_count: int, verbose: bool = False, publish: bool = False):
     """立即执行任务"""
     logger.info("🚀 立即执行模式")
-    automation = EmotionWomenAutomation(article_count=article_count, verbose=verbose)
+    automation = EmotionWomenAutomation(article_count=article_count, verbose=verbose, publish=publish)
     success = automation.run_claude_code()
     return 0 if success else 1
 
@@ -207,7 +243,7 @@ def beijing_to_utc(beijing_time_str: str) -> str:
     return f"{utc_hour:02d}:{minute:02d}"
 
 
-def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool = False):
+def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool = False, publish: bool = False):
     """定时执行任务（支持多个时间点）- 使用北京时间"""
     import schedule
     import time
@@ -219,13 +255,14 @@ def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool
     logger.info(f"调度时间: 每天 {', '.join(schedule_times)} 北京时间")
     logger.info(f"文章数量: {article_count} 篇")
     logger.info(f"实时输出: {'开启' if verbose else '关闭'}")
+    logger.info(f"发布模式: {'发布到公众号草稿箱' if publish else '仅生成本地草稿'}")
 
     beijing_now = get_beijing_time()
     logger.info(f"当前北京时间: {beijing_now.strftime('%Y-%m-%d %H:%M:%S')}")
 
     def job():
         logger.info(f"🚀 定时任务触发 - 北京时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
-        automation = EmotionWomenAutomation(article_count=article_count, verbose=verbose)
+        automation = EmotionWomenAutomation(article_count=article_count, verbose=verbose, publish=publish)
         automation.run_claude_code()
 
     for beijing_time_str in schedule_times:
@@ -259,6 +296,9 @@ def main():
 
   # 立即生成 3 篇文章
   python daily_emotion_women.py --now --count 3
+
+  # 立即生成 1 篇并发布到公众号草稿箱
+  python daily_emotion_women.py --now --count 1 --publish
 
   # 定时每天 09:00 和 21:00 各生成 3 篇文章
   python daily_emotion_women.py --time 09:00 21:00 --count 3
@@ -295,6 +335,12 @@ def main():
         help='实时显示 Claude 执行过程'
     )
 
+    parser.add_argument(
+        '--publish',
+        action='store_true',
+        help='成稿后通过 wenyan-mcp 发布到微信公众号草稿箱（需配置 emotion_women/.mcp.json）'
+    )
+
     args = parser.parse_args()
 
     logger.info("=" * 60)
@@ -307,12 +353,13 @@ def main():
         times_str = ', '.join(args.time) if isinstance(args.time, list) else args.time
         logger.info(f"执行模式: 定时执行 ({times_str})")
     logger.info(f"实时输出: {'开启' if args.verbose else '关闭'}")
+    logger.info(f"发布模式: {'发布到公众号草稿箱' if args.publish else '仅生成本地草稿'}")
     logger.info("=" * 60)
 
     if args.now:
-        return run_now(args.count, args.verbose)
+        return run_now(args.count, args.verbose, args.publish)
     else:
-        return run_scheduled(args.count, args.time, args.verbose)
+        return run_scheduled(args.count, args.time, args.verbose, args.publish)
 
 
 if __name__ == "__main__":

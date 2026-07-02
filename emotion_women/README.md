@@ -20,6 +20,23 @@ python daily_emotion_women.py --now --count 1
 python daily_emotion_women.py --now --count 3 -v
 ```
 
+默认只生成本地 Markdown 草稿，不会碰微信公众号。
+
+### 发布到公众号草稿箱
+
+发布前先从模板生成 `emotion_women/.mcp.json`，填好 `wenyan-mcp` 路径和情感女性公众号的 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`。
+
+```bash
+cp .mcp.example.json .mcp.json
+```
+
+```bash
+# 生成 1 篇，并推送到微信公众号草稿箱
+python daily_emotion_women.py --now --count 1 --publish -v
+```
+
+发布只进入微信公众号**草稿箱**，不会直接群发。成功后去微信公众平台后台：内容与互动 → 草稿箱，人工预览、检查排版和封面后再发布。
+
 ### 定时生成
 
 ```bash
@@ -28,6 +45,9 @@ python daily_emotion_women.py --time 09:00 --count 3
 
 # 每天早晚各生成 2 篇
 python daily_emotion_women.py --time 09:00 21:00 --count 2
+
+# 每天 21:00 生成 1 篇，并推送到草稿箱
+python daily_emotion_women.py --time 21:00 --count 1 --publish
 ```
 
 ### 在 Claude Code 中直接使用
@@ -44,6 +64,7 @@ Claude 会调用 `emotion-writer` agent 完成研究、撰写和发布。
 
 1. 编辑 `.mcp.json`，填入你的公众号 wenyan-mcp 路径和凭证
 2. 确保已安装 `schedule` 库（定时模式需要）：`pip install schedule`
+3. 只有带 `--publish` 时才会加载 `.mcp.json` 并推送草稿箱
 
 ## 目录结构
 
