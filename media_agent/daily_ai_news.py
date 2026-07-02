@@ -105,7 +105,7 @@ def build_prompt(count: int, publish: bool = False) -> str:
         publish_block = f"""### 第四步：发布到公众号草稿箱
 每篇文章成稿并保存后，用 `wenyan-mcp` 的 `publish_article` 工具把它发布到微信公众号**草稿箱**：
   - 传 `file` 参数为该文章的本地绝对路径（省 token，且 frontmatter 会被正确解析）。
-  - 传 `theme_id`，推荐用 `lapis` 或 `default`（简洁，适合科技资讯）。
+  - 传 `theme_id` 为 `{PUBLISH_THEME}`（本项目指定的排版主题）。
   - **不要**传 `app_id` 参数（本地模式下传它会报错；AppID 已通过环境变量配置）。
   - 若某篇发布失败，记录错误原因并继续处理其余文章，不要中断整批。
 

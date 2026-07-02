@@ -62,6 +62,9 @@ nohup python daily_ai_news.py --time 09:00 --count 5 > output.log 2>&1 &
 | `--count N` | 每次执行生成 N 篇文章（默认 1） |
 | `--time HH:MM [HH:MM ...]` | 设定每日执行的北京时间，可多个 |
 | `-v` / `--verbose` | 输出详细日志（stream-json） |
+| `--publish` | 成稿后通过 wenyan-mcp 发布到微信公众号草稿箱 |
+
+> 完整使用说明见 [使用说明.md](使用说明.md)。
 
 ## 工作流程
 
@@ -80,10 +83,23 @@ nohup python daily_ai_news.py --time 09:00 --count 5 > output.log 2>&1 &
    git clone https://github.com/floodsung/wenyan-mcp.git
    cd wenyan-mcp && npm install && npm run build
    ```
-2. 编辑 `.mcp.json`，把 `YOUR_WENYAN_MCP_PATH` 换成 `dist/index.js` 的实际路径，填入微信公众号 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`（微信公众平台 → 开发 → 基本配置）。
-3. 在 `daily_ai_news.py` 的 `ALLOWED_TOOLS` 中加入 wenyan-mcp 的发布工具，并在 Prompt 第四步要求写手/编辑调用它发布到草稿箱。
+2. 编辑 `.mcp.json`，把 `wenyan-mcp` 的 `args` 指向 `dist/index.js` 的实际路径，填入微信公众号 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`（微信公众平台 → 开发 → 基本配置）。
+3. 运行时加 `--publish` 即可：脚本会自动放开 wenyan-mcp 发布工具、加载 `.mcp.json`，并在 Prompt 中追加发布步骤。无需手动改代码。
+   ```bash
+   python daily_ai_news.py --now --count 1 --publish
+   ```
 
 微信公众号发布默认进入**草稿箱**，需人工在后台审核后才正式群发，安全可控。
+
+### 切换排版主题
+
+排版主题由 `daily_ai_news.py` 顶部的常量 `PUBLISH_THEME` 控制（默认 `lapis`），该值会注入主编 Prompt 并传给 wenyan-mcp。换主题只改这一行：
+
+```python
+PUBLISH_THEME = "lapis"   # 可选：default / orangeheart / rainbow / pie / maize / purple / phycat 等
+```
+
+想确认本地这版实际支持哪些主题，可在发布模式下让主编调 `list_themes` 工具列出。详见 `使用说明.md`。
 
 ## 设计说明
 
