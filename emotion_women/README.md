@@ -37,6 +37,12 @@ python daily_emotion_women.py --now --count 1 --publish -v
 
 发布只进入微信公众号**草稿箱**，不会直接群发。成功后去微信公众平台后台：内容与互动 → 草稿箱，人工预览、检查排版和封面后再发布。
 
+如果提示 `IP 白名单限制`，把日志里的 IP 加到微信公众平台：设置与开发 → 基本配置 → IP 白名单，然后重试发布已有文章：
+
+```bash
+python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v
+```
+
 ### 定时生成
 
 ```bash
@@ -75,6 +81,7 @@ emotion_women/
 ├── .mcp.json                # MCP 工具配置
 ├── CLAUDE.md                # 主编指令
 ├── daily_emotion_women.py   # 自动化脚本
+├── publish_existing_article.py # 重试发布已有文章到草稿箱
 ├── README.md                # 本文件
 ├── articles/                # 生成的文章
 ├── images/                  # 文章配图

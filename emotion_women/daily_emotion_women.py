@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 MCP_CONFIG = Path(__file__).parent / ".mcp.json"
-PUBLISH_THEME = "agentera-rose"
+PUBLISH_THEME = "purple"
 
 
 def get_beijing_time():
