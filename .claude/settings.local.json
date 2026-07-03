@@ -13,7 +13,11 @@
       "Bash(git checkout *)",
       "Bash(git check-ignore *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/**)",
+      "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/src/**)",
+      "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/dist/**)",
+      "Bash(python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v)"
     ]
   }
 }

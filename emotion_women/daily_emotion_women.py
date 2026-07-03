@@ -113,7 +113,7 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 使用 WebSearch 深入研究该话题（心理学背景、真实案例、社会讨论）
-2. 从 Unsplash/Pexels 下载 3-5 张氛围配图到 `./images/`
+2. 准备至少 4 张 Unsplash 远程配图 URL（1 封面 + 正文中至少 3 张），用 curl 验证每个 URL 返回 200 后，直接把远程 URL 写进正文，**不要下载到本地**；正文中间也要穿插图片，不能只有开头一张
 3. 写一篇 1200-1800 字的情感深度文章
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`
 {publish_step}
@@ -126,6 +126,7 @@ class EmotionWomenAutomation:
 - 观点犀利但有温度
 - 结尾有力量，不烂尾
 - 无AI鸡汤味
+- 正文配图至少 4 张（含封面），且图片要分散穿插在正文中间，不能只有开头一张；frontmatter 只写 title，不写 cover
 
 **选题示例**（仅参考风格，不要直接使用）：
 - "那些在朋友圈秀恩爱的人，后来都怎么样了"

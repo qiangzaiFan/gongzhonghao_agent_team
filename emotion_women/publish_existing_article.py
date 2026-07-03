@@ -8,13 +8,40 @@ WeChat Official Account IP allowlist.
 """
 
 import argparse
+import json
+import os
 import subprocess
+import tempfile
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).parent
 MCP_CONFIG = BASE_DIR / ".mcp.json"
 DEFAULT_THEME = "purple"
+NODE_CANDIDATES = [
+    Path("/Users/xiao/.nvm/versions/node/v22.22.1/bin/node"),
+    Path("/opt/homebrew/bin/node"),
+    Path("/usr/local/bin/node"),
+]
+
+
+def find_node() -> str:
+    for candidate in NODE_CANDIDATES:
+        if candidate.exists():
+            return str(candidate)
+    return "node"
+
+
+def load_wenyan_config() -> tuple[str, dict[str, str]]:
+    with MCP_CONFIG.open("r", encoding="utf-8") as fh:
+        config = json.load(fh)
+    server = config["mcpServers"]["wenyan-mcp"]
+    index_path = server["args"][0]
+    env = server.get("env", {})
+    return index_path, {
+        "WECHAT_APP_ID": env["WECHAT_APP_ID"],
+        "WECHAT_APP_SECRET": env["WECHAT_APP_SECRET"],
+    }
 
 
 def main() -> int:
@@ -27,12 +54,7 @@ def main() -> int:
         default=DEFAULT_THEME,
         help=f"wenyan-mcp 排版主题，默认 {DEFAULT_THEME}",
     )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="显示 Claude Code 详细执行过程",
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="显示详细执行过程")
     args = parser.parse_args()
 
     article_path = Path(args.file)
@@ -47,34 +69,40 @@ def main() -> int:
         print(f"错误：找不到 MCP 配置：{MCP_CONFIG}")
         return 1
 
-    prompt = f"""请使用 wenyan-mcp 将已有 Markdown 文章发布到微信公众号草稿箱。
+    wenyan_index, wechat_env = load_wenyan_config()
+    # publishArticle 从 dist/publish.js 导出（dist/index.js 只是 MCP server 入口）
+    wenyan_module = Path(wenyan_index).resolve().with_name("publish.js")
+    if not wenyan_module.exists():
+        wenyan_module = Path(wenyan_index).resolve()
+    script = f"""
+import {{ publishArticle }} from {json.dumps(str(wenyan_module))};
 
-文章路径：{article_path}
-排版主题：{args.theme}
+const file = {json.dumps(str(article_path))};
+const theme = {json.dumps(args.theme)};
 
-要求：
-1. 调用 `mcp__wenyan-mcp__publish_article_from_file`。
-2. 文件路径使用上面的绝对路径。
-3. theme_id 使用 `{args.theme}`。
-4. 只发布到草稿箱，不直接群发。
-5. 成功后输出草稿箱 media_id；失败则输出完整失败原因。"""
+try {{
+  const res = await publishArticle("", file, "", theme, undefined, "direct-cli");
+  console.log(JSON.stringify(res, null, 2));
+}} catch (err) {{
+  console.error(err && err.stack ? err.stack : err);
+  process.exit(1);
+}}
+"""
 
-    cmd = [
-        "claude",
-        "-p",
-        prompt,
-        "--mcp-config",
-        str(MCP_CONFIG),
-        "--strict-mcp-config",
-        "--permission-mode",
-        "bypassPermissions",
-        "--output-format",
-        "text",
-    ]
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False, encoding="utf-8") as fh:
+        fh.write(script)
+        temp_script = fh.name
+
+    env = os.environ.copy()
+    env.update(wechat_env)
+    cmd = [find_node(), temp_script]
     if args.verbose:
-        cmd.append("--verbose")
-
-    result = subprocess.run(cmd, cwd=BASE_DIR)
+        print(f"发布文件：{article_path}")
+        print(f"排版主题：{args.theme}")
+    try:
+        result = subprocess.run(cmd, cwd=BASE_DIR, env=env)
+    finally:
+        Path(temp_script).unlink(missing_ok=True)
     return result.returncode
 
 

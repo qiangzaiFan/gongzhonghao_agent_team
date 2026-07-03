@@ -74,26 +74,25 @@ color: pink
    - 小红书/抖音热门情感话题
 3. 结合热点确定文章切入角度
 
-### Step 2: 素材收集与配图
+### Step 2: 配图（正文必须有图）
 
-**MANDATORY**: 下载至少3张配图。
+**MANDATORY**: 每篇文章至少准备 **4 张**配图 URL——1 张封面 + **正文里至少 3 张**。正文不能只有开头一张图，必须把图片分散插入到各个小标题之间。
 
-1. **用 WebFetch 找图片 URL**：
-   - 从 Unsplash、Pexels 等免费图库找与情感主题匹配的图片
-   - 优先选择：女性独处、城市生活、情侣场景、自然风光等意境图
-   - 避免：过于商业化的图片、明显的摆拍
+**做法：直接使用 Unsplash 远程图片 URL，不要下载到本地。**
+wenyan-mcp 发布时会自动抓取 `http` 开头的远程图片并上传到微信，所以正文里直接写远程 URL 即可，省去下载/压缩/验证本地文件这一步（本地下载经常失败，导致正文没图）。
 
-2. **用 curl 下载**：
+1. **挑选与情感主题匹配的图片**：
+   - **🔴 铁律：只用明亮、温暖、通透的图片。绝对禁止阴暗、压抑、黑底、冷色调、黑白（灰度）的图片。**
+   - 优先：自然光/阳光、暖色调、明快的生活场景、鲜花绿植、晴朗的城市与自然风光、微笑或放松的女性
+   - 避免：黑色/深色背景、夜晚昏暗、阴郁天气（浓云/大雾）、黑白照片、哭泣或痛苦的人物特写、恐怖或压抑的画面
+   - 即使文章主题是分手、内耗、疼痛等负面情绪，配图也要用明亮温暖的意境图来中和，不要用阴暗图去强化负面情绪
+   - 可用 Unsplash 图片直链格式：`https://images.unsplash.com/photo-XXXXXXXXXXXXX?w=900`
+
+2. **每个 URL 必须先用 curl 验证可访问**（避免正文出现坏图导致发布失败）：
    ```bash
-   curl -o "./images/descriptive-name.jpg" "https://example.com/image.jpg"
+   curl -s -o /dev/null -w "%{http_code} %{content_type}\n" "https://images.unsplash.com/photo-XXXX?w=900"
    ```
-
-3. **用 Read 验证每张图片**
-
-4. **压缩大图**（>1MB）：
-   ```bash
-   convert original.jpg -resize 1200x -quality 85 compressed.jpg
-   ```
+   必须返回 `200 image/jpeg`（或其它 `image/*`）才可使用。返回 404/403 的直接换一张。
 
 ### Step 3: 文章撰写
 
@@ -101,17 +100,20 @@ color: pink
 ```markdown
 ---
 title: 文章标题
-cover: ./images/cover-image.jpg
 ---
 ```
+
+- 只写 `title` 一个字段。**不要写 `cover` 字段**——wenyan 会自动把正文第一张图当作封面。
+- `cover` 绝对不能填图片的文字描述（例如"昏暗客厅里两人各自看手机"），那样发布必定报错。
 
 **文章结构模板**：
 
 ```markdown
 ---
 title: [标题]
-cover: ./images/[cover].jpg
 ---
+
+![](https://images.unsplash.com/photo-封面图ID?w=900)
 
 > [开篇金句或场景描写，1-2句，制造代入感]
 
@@ -120,10 +122,9 @@ cover: ./images/[cover].jpg
 [用一个真实/虚构的故事场景开篇，让读者产生"这说的就是我"的感觉]
 [故事要有具体细节：时间、地点、对话、心理活动]
 
-![Image](./images/image1.jpg)
-*[简短文艺感的图片说明]*
-
 ## [小标题2：洞察与分析]
+
+![](https://images.unsplash.com/photo-配图1ID?w=900)
 
 [从故事中提炼出底层逻辑或心理模式]
 [用类比、反问、对比等方式，让观点更有冲击力]
@@ -131,16 +132,22 @@ cover: ./images/[cover].jpg
 
 ## [小标题3：给出方向]
 
+![](https://images.unsplash.com/photo-配图2ID?w=900)
+
 [不是给"建议"，而是提供一个新的视角或思考方式]
 [结尾要有力量感，让读者合上文章时觉得"被点醒了"]
-
-![Image](./images/image2.jpg)
-*[呼应主题的图片说明]*
 
 ---
 
 [互动引导：提一个让读者想留言的问题]
 ```
+
+**配图放置铁律**：
+- 正文第一张图放在 frontmatter 之后、正文开头（充当封面）。
+- **每隔 1-2 个小标题就插入一张配图**，让正文中间也有图，而不是只有开头一张。
+- 每张图独占一行，图片前后各留一个空行。
+- 图片 URL 必须是 Step 2 里 curl 验证过返回 `200` 的远程链接。
+- 所有配图必须明亮温暖，不得使用阴暗、黑底、冷色调或黑白图片。
 
 ### Step 4: 写作风格细则
 
@@ -198,7 +205,10 @@ cover: ./images/[cover].jpg
 - [ ] 字数 1200-1800 字（手机阅读最佳区间）
 - [ ] 至少1个完整故事/场景
 - [ ] 至少3个值得截图的金句
-- [ ] 3-5张高质量配图（已验证）
+- [ ] 至少4张配图（1封面 + 正文中至少3张），且正文中间穿插了图片，不是只有开头一张
+- [ ] 所有图片 URL 已用 curl 验证返回 200
+- [ ] 所有配图都是明亮温暖的，无阴暗/黑底/冷色调/黑白图片
+- [ ] frontmatter 只有 title，没有 cover 字段
 - [ ] 无AI鸡汤味（检查是否有上面列出的禁忌表达）
 - [ ] 标题有吸引力（反常识/具体/有情绪张力）
 - [ ] 观点清晰鲜明，不和稀泥
@@ -261,12 +271,10 @@ cover: ./images/[cover].jpg
 **Required Tools**:
 1. `Bash` with `date` - 确认当前日期
 2. `WebSearch` - 搜索情感热点、社会话题
-3. `WebFetch` - 获取素材来源、提取图片URL
-4. `Bash` with `curl` - 下载配图
-5. `Read` - 验证图片
-6. `Bash` with `convert` - 压缩大图
-7. `Write` - 保存文章
-8. `mcp__wenyan-mcp__publish_article_from_file` - 发布到草稿箱（必须执行）
+3. `WebFetch` - 获取素材来源
+4. `Bash` with `curl` - 验证配图 URL 可访问（返回 200）
+5. `Write` - 保存文章
+6. `mcp__wenyan-mcp__publish_article_from_file` - 发布到草稿箱（必须执行）
 
 ## 🎯 成功标准
 
