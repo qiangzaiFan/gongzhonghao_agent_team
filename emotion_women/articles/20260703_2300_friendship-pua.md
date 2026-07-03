@@ -2,7 +2,7 @@
 title: "最懂你的那个闺蜜，可能正在悄悄拆掉你"
 ---
 
-![](https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=900)
+![](https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900)
 
 我认识小满七年了。
 
@@ -28,7 +28,7 @@ title: "最懂你的那个闺蜜，可能正在悄悄拆掉你"
 
 可没有人告诉我们：有些「了解」，是为了更精准地伤害你。
 
-![](https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=900)
+![](https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=900)
 
 ## 友情PUA长什么样？它从不掀桌子，只慢慢抽你的骨头
 

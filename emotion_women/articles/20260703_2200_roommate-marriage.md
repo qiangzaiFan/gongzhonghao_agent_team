@@ -2,7 +2,7 @@
 title: "我们住在同一张床上，却隔着一整个银河系"
 ---
 
-![](https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=900)
+![](https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=900)
 
 昨晚十一点半，我的朋友林微给我发了一条消息：
 
@@ -92,7 +92,7 @@ title: "我们住在同一张床上，却隔着一整个银河系"
 
 ## 最后说几句真心话
 
-![](https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=900)
+![](https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900)
 
 如果你正在经历这种"室友式婚姻"，我不会告诉你"沟通很重要""要学会表达"这种正确的废话。
 
