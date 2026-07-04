@@ -17,7 +17,13 @@
       "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/**)",
       "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/src/**)",
       "Read(//Users/xiao/codeworkspace/自媒体/wenyan/wenyan-mcp/dist/**)",
-      "Bash(python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v)"
+      "Bash(python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v)",
+      "Bash(git diff *)",
+      "Bash(curl *)",
+      "Bash(grep -n \"结尾设计\\\\|结尾$\\\\|标题方法论\\\\|### Step 5\" emotion-writer.md)",
+      "Bash(awk NR>=382 && NR<=384 {printf \"%d[%s]\\\\n\", NR, $0} *)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m ' *)"
     ]
   }
 }
