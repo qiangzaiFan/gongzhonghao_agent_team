@@ -43,6 +43,33 @@ python daily_emotion_women.py --now --count 1 --publish -v
 python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v
 ```
 
+### 发布到小红书（图文笔记）
+
+小红书没有官方发文 API，也**没有草稿箱**，这里通过本地运行的
+[`xiaohongshu-mcp`](https://github.com/xpzouying/xiaohongshu-mcp)（浏览器自动化）发布。
+详细步骤见 `使用说明.md` 的「发布到小红书」一节，概览：
+
+1. 用 Docker 启动 xiaohongshu-mcp（服务在 `http://localhost:18060/mcp`）：
+
+   ```bash
+   cd /Users/xiao/codeworkspace/自媒体/xiaohongshu-mcp
+   docker compose up -d
+   ```
+
+2. 首次需**手机扫码登录**（cookie 存到 `./data` 复用，只做一次）。
+
+3. 公众号长文不能直接发小红书（硬约束：**标题≤20字、正文≤1000字**）。
+   先把文章改写成「小红书笔记」，存到 `articles/xhs/<slug>.xhs.md`，再发布
+   （**默认以「仅自己可见」发布**，验证无误后再改公开）：
+
+   ```bash
+   # 验证：仅自己可见，发布前会打印内容并要人工确认
+   python publish_to_xiaohongshu.py articles/xhs/20260705_1502_solo-recovery.xhs.md -v
+
+   # 正式公开
+   python publish_to_xiaohongshu.py articles/xhs/20260705_1502_solo-recovery.xhs.md --visibility 公开可见
+   ```
+
 ### 定时生成
 
 ```bash

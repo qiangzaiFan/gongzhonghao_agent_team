@@ -10,6 +10,10 @@
         "WECHAT_APP_ID": "你的情感公众号AppID",
         "WECHAT_APP_SECRET": "你的情感公众号AppSecret"
       }
+    },
+    "xiaohongshu-mcp": {
+      "type": "http",
+      "url": "http://localhost:18060/mcp"
     }
   }
 }

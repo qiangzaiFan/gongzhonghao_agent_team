@@ -23,7 +23,29 @@
       "Bash(grep -n \"结尾设计\\\\|结尾$\\\\|标题方法论\\\\|### Step 5\" emotion-writer.md)",
       "Bash(awk NR>=382 && NR<=384 {printf \"%d[%s]\\\\n\", NR, $0} *)",
       "Bash(git add *)",
-      "Bash(git commit -q -m ' *)"
+      "Bash(git commit -q -m ' *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(grep -vE \"^\\\\s*$\")",
+      "Bash(go version *)",
+      "Bash(docker --version)",
+      "Read(//Users/xiao/codeworkspace/自媒体/**)",
+      "Bash(mkdir -p /Users/xiao/codeworkspace/自媒体/xiaohongshu-mcp/data /Users/xiao/codeworkspace/自媒体/xiaohongshu-mcp/images)",
+      "Bash(cat docker-compose.yml)",
+      "Bash(docker compose *)",
+      "Read(//Applications/**)",
+      "Read(//Users/xiao/.docker/run/**)",
+      "Bash(docker context *)",
+      "Bash(colima start *)",
+      "Bash(docker info *)",
+      "Bash(colima version *)",
+      "Bash(brew --version)",
+      "Bash(brew install *)",
+      "Bash(cd *)",
+      "Bash(tar -xzf xhs-mcp.tar.gz)",
+      "Bash(pkill -f \"brew install qemu\")",
+      "Bash(pkill -f \"brew.sh install qemu\")",
+      "Bash(break)"
     ]
   }
 }
