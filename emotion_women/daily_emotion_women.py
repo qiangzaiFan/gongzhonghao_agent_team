@@ -19,7 +19,7 @@ LOG_DIR.mkdir(exist_ok=True)
 MCP_CONFIG = BASE_DIR / ".mcp.json"
 ARTICLES_DIR = BASE_DIR / "articles"
 WECHATSYNC_TOKEN_FILE = BASE_DIR / ".wechatsync_token"
-PUBLISH_THEME = "purple"
+PUBLISH_THEME = "orangeheart"
 # 生成后自动同步到这些 Wechatsync 平台（进各平台草稿箱，人工确认后再发）
 DEFAULT_SYNC_PLATFORMS = "toutiao,xiaohongshu"
 
@@ -138,6 +138,8 @@ class EmotionWomenAutomation:
 - 至少3个值得截图的金句，用金句模板打造（1221/1213/搜词/猜字/具象/否定/扩字法）
 - 观点犀利但有温度
 - 结尾套用 4 个结尾模板之一（总结型/关联读者型/名人名言型/排比型），有力量、能触发点赞转发，不烂尾
+- 结尾金句收束后必须补齐互动引导三件套：开放性问题（具体、勾评论）+ 点赞理由（和情绪/立场绑定）+ 分享动机（点名转发对象），口语真诚不生硬
+- 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，搜到的资料用大白话融进正文即可
 - 无AI鸡汤味
 - 正文配图至少 4 张（含封面），且图片要分散穿插在正文中间，不能只有开头一张；frontmatter 只写 title，不写 cover
 - 配图改为 **全部风景图**：不再使用泰勒斯威夫特/明星图/人物图/普通美女图；封面（标题图/正文第一张图）必须优先用城市夜景图或乡村风景图，其余图片使用明亮通透的风景图（自然风光、晴朗天空、海边、山野、湖泊、城市远景等），绝不用男性图、情侣图、人物图、物品/静物图

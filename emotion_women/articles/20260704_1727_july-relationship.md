@@ -117,9 +117,3 @@ title: 七月分手，是玄学吗
 愿你在这个夏天，不必靠玄学确认爱。
 
 有人坚定选择你，也有人被你坚定放下。
-
-参考来源：
-- [VICE：The Viral ‘July Theory’ Says Your Love Life Could Change Dramatically This Month](https://www.vice.com/en/article/the-viral-july-theory-says-your-love-life-could-change-dramatically-this-month/)
-- [Unravel：The July Theory: Does July Really Make or Break Couples?](https://unravelcouplegames.com/blog/july-theory/)
-- [TVBS：7月破碎星發威！「4生肖」感情問題恐放大](https://news.tvbs.com.tw/life/3241967)
-- [Yahoo奇摩：2026年7月桃花運排行榜](https://tw.news.yahoo.com/2026%E5%B9%B47%E6%9C%88%E6%A1%83%E8%8A%B1%E9%81%8B%E6%8E%92%E8%A1%8C%E6%A6%9C-4%E6%98%9F%E5%BA%A7%E6%84%9F%E6%83%85%E5%8D%87%E6%BA%AB-%E9%97%9C%E4%BF%82%E9%96%8B%E5%A7%8B%E6%9C%89%E7%AD%94%E6%A1%88-130024023.html)

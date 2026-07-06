@@ -59,7 +59,13 @@
       "Bash(export WECHATSYNC_TOKEN=\"f2bbf4d6-bf72-47bb-90b7-3667e5a309f0\")",
       "Bash(open \"https://mp.toutiao.com\")",
       "Bash(wechatsync auth *)",
-      "Bash(lsof -nP -iTCP:18060)"
+      "Bash(lsof -nP -iTCP:18060)",
+      "Bash(rg -l '参考资料|参考来源|资料来源|References' articles/*.md)",
+      "Bash(rg -l --iglob '*.{json,js,ts,css}' -i 'theme' .)",
+      "Bash(rg -rn --iglob '!node_modules' -i \"'purple'|\\\\\"purple\\\\\"|builtinThemes|builtIn|themes\\\\s*[:=]|themeMap\" src dist)",
+      "Bash(rg -rn --iglob '!node_modules' 'listThemes|from .*theme|import.*[Tt]heme' src)",
+      "Bash(rg -rn --iglob '!*.map' \"id:\\\\s*['\\\\\"]|'purple'|'orange'|'green'|'blue'|'red'|'pink'|'gray'|'lapis'|'maize'|'phycat'|'rose'|'galaxy'\" .)",
+      "Bash(python daily_emotion_women.py --now --count 1 --publish)"
     ]
   }
 }
