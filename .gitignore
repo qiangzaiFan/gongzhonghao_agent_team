@@ -1,6 +1,7 @@
 # 凭证 —— 绝不提交（含微信 AppID/AppSecret、Wechatsync Token）
 **/.mcp.json
 **/.wechatsync_token
+**/.claude/settings.local.json
 
 # 生成的草稿与发布记录
 **/output/

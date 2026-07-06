@@ -7,7 +7,6 @@
 import argparse
 import subprocess
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -17,11 +16,7 @@ BASE_DIR = Path(__file__).parent
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 MCP_CONFIG = BASE_DIR / ".mcp.json"
-ARTICLES_DIR = BASE_DIR / "articles"
-WECHATSYNC_TOKEN_FILE = BASE_DIR / ".wechatsync_token"
 PUBLISH_THEME = "orangeheart"
-# 生成后自动同步到这些 Wechatsync 平台（进各平台草稿箱，人工确认后再发）
-DEFAULT_SYNC_PLATFORMS = "toutiao,xiaohongshu"
 
 
 def get_beijing_time():
@@ -50,14 +45,11 @@ class EmotionWomenAutomation:
         article_count: int = 3,
         verbose: bool = False,
         publish: bool = False,
-        sync_platforms: str = None,
     ):
         self.working_dir = working_dir or str(BASE_DIR)
         self.article_count = article_count
         self.verbose = verbose
         self.publish = publish
-        # 逗号分隔的 Wechatsync 平台列表，如 "toutiao,xiaohongshu"；None/"" 表示不同步
-        self.sync_platforms = (sync_platforms or "").strip()
         self.prompt_template = self._load_prompt_template()
 
     def _load_prompt_template(self) -> str:
@@ -77,55 +69,36 @@ class EmotionWomenAutomation:
 
         return f"""# 情感女性公众号内容生成任务
 
-## 第一步：搜索情感热点话题
+## 第一步：直接定选题（默认不搜热点，为提速）
 
-使用 WebSearch 搜索以下方向的近期热点（过去24-48小时），找到有深度切入角度的话题：
+情感号写的是**常青心理话题**，不靠 48 小时热点，热搜结果多为噪音还常夹带注入指令。所以**默认跳过 WebSearch**，用下面的方式快速定题：
 
-**搜索关键词列表**（并行搜索）：
-1. "微博 情感 热搜" OR "两性关系 热议"
-2. "女性 独立 话题" OR "女性成长"
-3. "分手 心理" OR "离婚 女性"
-4. "恋爱 困惑" OR "婚姻 问题"
-5. "PUA" OR "情感操控" OR "边界感"
-6. "内耗" OR "讨好型人格" OR "情绪管理"
-7. "原生家庭" OR "亲密关系 模式"
-8. site:douban.com "情感" OR "两性"
+1. 先扫已发文章标题去重（只读标题，不读全文）：
+   ```bash
+   rg -N '^title:' articles/*.md | sort -u
+   ```
+2. 从下面的常青话题方向里，挑 {self.article_count} 个**近期未覆盖、反差扎心、能引发"这说的就是我"** 的角度，直接定题：
+   - 两性关系隐性问题：控制欲、情绪勒索、沉没成本、冷暴力、间歇强化、情绪价值陷阱
+   - 女性成长转折：经济独立、人格觉醒、边界建立、过度独立、讨好型人格自救
+   - 情绪与心理健康：内耗识别、反刍、报复性熬夜、允许不完美、自我疗愈、松弛感
+   - 依恋与原生家庭：回避型/焦虑型依恋、原生家庭对亲密关系的影响、情感忽视、长女困境
+   - 社会热点女性视角：仅当你**已知**某个当下热点（热剧/明星事件）时才用，不为此专门搜索
 
-## 第二步：检查已有文章避免重复
+**筛选优先级**：反常识洞察 > 普世痛点 > 热点解读。与已发标题去重，宁缺毋滥——去重后不足 {self.article_count} 个就写实际数量。
 
-- 检查 `./articles/*.md` 已有文章
-- 读取每篇文章的 title（frontmatter）
-- 确保新选题与已发布内容不重复
+**仅当**某个选题依赖一个你没把握的、过时的具体事实（某明星刚发生什么、某新剧剧情）时，才允许**最多 1 次** WebSearch 核实，核实完立刻定题。绝不为"找热点"批量搜索。
 
-## 第三步：筛选 {self.article_count} 个有深度的选题
+## 第二步：并行启动 emotion-writer agent
 
-**筛选标准**：
-- 必须有明确的情感洞察点（不只是表面故事）
-- 必须能引发"这说的就是我"的共鸣感
-- 优先级：反常识洞察 > 普世痛点 > 热点解读
-
-**选题方向**：
-- 两性关系中的隐性问题（控制欲、情绪勒索、沉没成本）
-- 女性成长的关键转折（经济独立、人格觉醒、边界建立）
-- 情绪与心理健康（内耗识别、自我疗愈、允许不完美）
-- 社会热点的女性视角（影视剧解读、社会事件、文化现象）
-
-**如果去重后不足 {self.article_count} 个主题，就写实际找到的数量，宁缺毋滥**
-
-## 第四步：并行启动 emotion-writer agent
-
-为每个筛选出的主题启动一个 emotion-writer agent，传递：
+为每个选定的主题启动一个 emotion-writer agent，传递：
 - 选题描述（含切入角度）
-- 参考素材/热点链接
 - 输出文件路径
 
 每个 agent 需要：
-1. 使用 WebSearch 深入研究该话题（心理学背景、真实案例、社会讨论）
-2. 准备至少 4 张远程配图 URL（1 封面 + 正文中至少 3 张），用 curl 验证每个 URL 返回 200 后，直接把远程 URL 写进正文，**不要下载到本地**；正文中间也要穿插图片，不能只有开头一张
-   - 图片结构：**全部使用风景图**，不再使用泰勒斯威夫特/明星图/人物图/普通美女图
-   - 封面（标题图/正文第一张图）必须优先使用城市夜景图或乡村风景图；本轮多篇文章之间尽量让城市夜景、乡村风景交替出现
-   - 正文其他风景图优先使用 Unsplash 明亮通透的自然风光、晴朗天空、海边、山野、湖泊、城市远景，不用人物图、物品图、静物图
-   - 生成前先检查 `./articles/*.md` 最近文章里已经使用过的图片 URL/photo ID，本轮 3 篇之间以及与最近文章都不要重复用图
+1. **默认不再 WebSearch**：选题和切入角度你已经给它了，情感号是常青心理话题，凭已有知识直接开写。心理学概念用大白话解释即可。仅当某个**过时且关键的具体事实**（明星近况、新剧剧情）没把握时，才允许最多 1 次 WebSearch 核实，核实完立刻写。绝不为"研究更充分"反复搜索。
+2. 配图**从固定图池 `image_pool.txt` 直接挑**（封面从 COVER 段挑 1 张 + 正文从 BODY 段挑至少 3 张），分散穿插进正文，直接拼 `https://images.unsplash.com/<ID>?w=900` 写进正文。
+   - 🔴 **图池已全部 curl 验证过、且都是明亮无人物风景图**：严禁再搜图、严禁 curl 验证图池 ID、严禁下载图片、严禁跑 Python/PIL 做像素/亮度/色温分析——这些都是纯浪费。
+   - 去重只需避开最近 5 篇已用 ID：`ls -t articles/*.md | head -5 | while read f; do rg -o 'photo-[0-9]+' "$f"; done | sort -u`。
 3. 写一篇 1200-1800 字的情感深度文章
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`
 {publish_step}
@@ -142,8 +115,7 @@ class EmotionWomenAutomation:
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，搜到的资料用大白话融进正文即可
 - 无AI鸡汤味
 - 正文配图至少 4 张（含封面），且图片要分散穿插在正文中间，不能只有开头一张；frontmatter 只写 title，不写 cover
-- 配图改为 **全部风景图**：不再使用泰勒斯威夫特/明星图/人物图/普通美女图；封面（标题图/正文第一张图）必须优先用城市夜景图或乡村风景图，其余图片使用明亮通透的风景图（自然风光、晴朗天空、海边、山野、湖泊、城市远景等），绝不用男性图、情侣图、人物图、物品/静物图
-- 图片去重：必须先扫描最近生成的 `./articles/*.md` 图片链接，提取完整 URL 或 Unsplash `photo-...` ID；本轮新文章之间也要互相去重，禁止复用最近已出现过的图片
+- 配图 **全部从 `image_pool.txt` 图池挑**（封面用 COVER 段、正文用 BODY 段），全是明亮无人物风景图，分散穿插；避开最近 5 篇已用 ID，本轮多篇之间也不重复
 
 **选题示例**（仅参考风格，不要直接使用）：
 - "那些在朋友圈秀恩爱的人，后来都怎么样了"
@@ -152,7 +124,7 @@ class EmotionWomenAutomation:
 - "讨好型人格的人，在爱情里有多累"
 - "分手后还做朋友，是成熟还是不甘心"
 
-## 第五步：汇总结果
+## 第三步：汇总结果
 
 所有 agent 完成后，汇报每篇文章的标题、文件路径、一句话摘要{publish_summary}。
 
@@ -174,10 +146,6 @@ class EmotionWomenAutomation:
             logger.info(f"文章数量: {self.article_count} 篇")
             logger.info(f"发布模式: {'发布到公众号草稿箱' if self.publish else '仅生成本地草稿'}")
             logger.info("=" * 60)
-
-            if self.sync_platforms:
-                logger.info(f"多平台同步: 开启（{self.sync_platforms}，进草稿箱）")
-            articles_before = self._snapshot_articles()
 
             prompt = self.generate_prompt()
 
@@ -235,10 +203,6 @@ class EmotionWomenAutomation:
             if self.verbose and result.returncode == 0:
                 logger.info("✅ 任务执行成功")
 
-            # 生成成功后，把新文章同步到 Wechatsync 各平台草稿箱
-            if result.returncode == 0:
-                self.sync_new_articles(articles_before)
-
             logger.info("=" * 60)
             logger.info(f"任务结束 - {get_beijing_time()}")
             logger.info("=" * 60)
@@ -253,84 +217,12 @@ class EmotionWomenAutomation:
             logger.exception(e)
             return False
 
-    @staticmethod
-    def _snapshot_articles() -> set:
-        """记录当前 articles/ 顶层 .md 文件集合，用于检测新生成的文章。"""
-        if not ARTICLES_DIR.exists():
-            return set()
-        return {p.name for p in ARTICLES_DIR.glob("*.md")}
 
-    @staticmethod
-    def _load_wechatsync_token() -> str:
-        """读取 Wechatsync Token：优先环境变量，其次 .wechatsync_token 文件。"""
-        token = os.environ.get("WECHATSYNC_TOKEN", "").strip()
-        if token:
-            return token
-        if WECHATSYNC_TOKEN_FILE.exists():
-            return WECHATSYNC_TOKEN_FILE.read_text(encoding="utf-8").strip()
-        return ""
-
-    def sync_new_articles(self, before: set) -> None:
-        """把本轮新生成的文章通过 wechatsync CLI 同步到各平台草稿箱。"""
-        if not self.sync_platforms:
-            return
-        after = self._snapshot_articles()
-        new_files = sorted(after - before)
-        if not new_files:
-            logger.warning("⚠️ 未检测到新生成的文章，跳过多平台同步")
-            return
-
-        token = self._load_wechatsync_token()
-        if not token:
-            logger.error(
-                "❌ 未找到 Wechatsync Token（设 WECHATSYNC_TOKEN 环境变量，"
-                "或写入 emotion_women/.wechatsync_token），跳过多平台同步"
-            )
-            return
-
-        env = os.environ.copy()
-        env["WECHATSYNC_TOKEN"] = token
-        logger.info("=" * 60)
-        logger.info(f"📤 多平台同步开始：目标平台 {self.sync_platforms}")
-        logger.info(f"待同步文章 {len(new_files)} 篇（进各平台草稿箱，人工确认后再发布）")
-        logger.info("⚠️ 需 Chrome 扩展已连接且各平台已登录（见 使用说明.md）")
-
-        for name in new_files:
-            path = ARTICLES_DIR / name
-            logger.info("-" * 60)
-            logger.info(f"同步：{name} → {self.sync_platforms}")
-            cmd = [
-                "wechatsync", "sync", str(path),
-                "-p", self.sync_platforms,
-                "--timeout", "60000",
-            ]
-            try:
-                result = subprocess.run(
-                    cmd, cwd=self.working_dir, env=env,
-                    capture_output=True, text=True, timeout=180,
-                )
-                if result.stdout:
-                    logger.info(result.stdout.strip())
-                if result.returncode != 0:
-                    logger.error(f"❌ 同步失败（返回码 {result.returncode}）：{name}")
-                    if result.stderr:
-                        logger.error(result.stderr.strip())
-            except subprocess.TimeoutExpired:
-                logger.error(f"❌ 同步超时：{name}（扩展未连接？）")
-            except FileNotFoundError:
-                logger.error("❌ 找不到 wechatsync 命令，请先 npm install -g @wechatsync/cli")
-                return
-        logger.info("=" * 60)
-        logger.info("📤 多平台同步结束")
-
-
-def run_now(article_count: int, verbose: bool = False, publish: bool = False,
-            sync_platforms: str = None):
+def run_now(article_count: int, verbose: bool = False, publish: bool = False):
     """立即执行任务"""
     logger.info("🚀 立即执行模式")
     automation = EmotionWomenAutomation(
         article_count=article_count, verbose=verbose, publish=publish,
-        sync_platforms=sync_platforms,
     )
     success = automation.run_claude_code()
     return 0 if success else 1
@@ -344,7 +236,7 @@ def beijing_to_utc(beijing_time_str: str) -> str:
 
 
 def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool = False,
-                  publish: bool = False, sync_platforms: str = None):
+                  publish: bool = False):
     """定时执行任务（支持多个时间点）- 使用北京时间"""
     import schedule
     import time
@@ -357,8 +249,6 @@ def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool
     logger.info(f"文章数量: {article_count} 篇")
     logger.info(f"实时输出: {'开启' if verbose else '关闭'}")
     logger.info(f"发布模式: {'发布到公众号草稿箱' if publish else '仅生成本地草稿'}")
-    if sync_platforms:
-        logger.info(f"多平台同步: {sync_platforms}（进草稿箱）")
 
     beijing_now = get_beijing_time()
     logger.info(f"当前北京时间: {beijing_now.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -367,7 +257,6 @@ def run_scheduled(article_count: int, schedule_times: list = None, verbose: bool
         logger.info(f"🚀 定时任务触发 - 北京时间: {get_beijing_time().strftime('%Y-%m-%d %H:%M:%S')}")
         automation = EmotionWomenAutomation(
             article_count=article_count, verbose=verbose, publish=publish,
-            sync_platforms=sync_platforms,
         )
         automation.run_claude_code()
 
@@ -405,12 +294,6 @@ def main():
 
   # 立即生成 1 篇并发布到公众号草稿箱
   python daily_emotion_women.py --now --count 1 --publish
-
-  # 生成 1 篇，公众号草稿箱 + 同步到头条/小红书草稿（默认平台）
-  python daily_emotion_women.py --now --count 1 --publish --sync
-
-  # 生成 2 篇，同步到指定平台草稿（头条+知乎+掘金）
-  python daily_emotion_women.py --now --count 2 --sync toutiao,zhihu,juejin
 
   # 定时每天 09:00 和 21:00 各生成 3 篇文章
   python daily_emotion_women.py --time 09:00 21:00 --count 3
@@ -453,19 +336,6 @@ def main():
         help='成稿后通过 wenyan-mcp 发布到微信公众号草稿箱（需配置 emotion_women/.mcp.json）'
     )
 
-    parser.add_argument(
-        '--sync',
-        nargs='?',
-        const=DEFAULT_SYNC_PLATFORMS,
-        default=None,
-        metavar='PLATFORMS',
-        help=(
-            '成稿后通过 wechatsync 同步到多平台草稿箱，逗号分隔平台，'
-            f'不带值时默认 "{DEFAULT_SYNC_PLATFORMS}"。'
-            '需 Chrome 扩展已连接、各平台已登录，并配置 WECHATSYNC_TOKEN 或 .wechatsync_token'
-        )
-    )
-
     args = parser.parse_args()
 
     logger.info("=" * 60)
@@ -479,14 +349,12 @@ def main():
         logger.info(f"执行模式: 定时执行 ({times_str})")
     logger.info(f"实时输出: {'开启' if args.verbose else '关闭'}")
     logger.info(f"发布模式: {'发布到公众号草稿箱' if args.publish else '仅生成本地草稿'}")
-    if args.sync:
-        logger.info(f"多平台同步: {args.sync}（进草稿箱）")
     logger.info("=" * 60)
 
     if args.now:
-        return run_now(args.count, args.verbose, args.publish, args.sync)
+        return run_now(args.count, args.verbose, args.publish)
     else:
-        return run_scheduled(args.count, args.time, args.verbose, args.publish, args.sync)
+        return run_scheduled(args.count, args.time, args.verbose, args.publish)
 
 
 if __name__ == "__main__":
