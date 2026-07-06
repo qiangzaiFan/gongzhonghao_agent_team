@@ -45,7 +45,21 @@
       "Bash(tar -xzf xhs-mcp.tar.gz)",
       "Bash(pkill -f \"brew install qemu\")",
       "Bash(pkill -f \"brew.sh install qemu\")",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(open /Users/xiao/codeworkspace/自媒体/xiaohongshu-mcp/login_qr.png)",
+      "Bash(npm install *)",
+      "Bash(wechatsync --version)",
+      "Bash(wechatsync --help)",
+      "Bash(wechatsync sync *)",
+      "Bash(timeout 8 wechatsync platforms)",
+      "Bash(echo \"[exit $?]\")",
+      "Bash(open \"/Users/xiao/codeworkspace/自媒体/wechatsync-ext/ext\")",
+      "Bash(wechatsync platforms *)",
+      "Bash(lsof -nP -iTCP:9527)",
+      "Bash(export WECHATSYNC_TOKEN=\"f2bbf4d6-bf72-47bb-90b7-3667e5a309f0\")",
+      "Bash(open \"https://mp.toutiao.com\")",
+      "Bash(wechatsync auth *)",
+      "Bash(lsof -nP -iTCP:18060)"
     ]
   }
 }
