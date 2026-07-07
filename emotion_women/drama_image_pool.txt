@@ -8,6 +8,8 @@
 # - 发布前 validate_article_images.py 会真实请求远程图片，404 / 非图片会直接拦住。
 #
 # 优先剧照 / 现代关系图：更适合情感、爱情、生活类文章。
+../images/drama/nothing_personal_still_12.jpg
+../images/drama/the_apartment_trailer_1.jpg
 https://upload.wikimedia.org/wikipedia/commons/e/e7/Nothing_Personal_Still_12_Johnny_Savageklein.jpg
 https://upload.wikimedia.org/wikipedia/commons/a/af/Talia_Fowler_%26_Timomatic_2012_%281%29.jpg
 https://upload.wikimedia.org/wikipedia/commons/1/1f/Talia_Fowler_%26_Timomatic_2012_%282%29.jpg

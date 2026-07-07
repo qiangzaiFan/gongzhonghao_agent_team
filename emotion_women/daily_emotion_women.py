@@ -209,6 +209,33 @@ def recent_image_refs(max_articles: int = 5) -> set[str]:
     return refs
 
 
+def article_snapshot() -> dict[Path, int]:
+    snapshot: dict[Path, int] = {}
+    if not ARTICLES_DIR.exists():
+        return snapshot
+    for path in ARTICLES_DIR.glob("*.md"):
+        try:
+            snapshot[path.resolve()] = path.stat().st_mtime_ns
+        except OSError:
+            continue
+    return snapshot
+
+
+def changed_article_paths(before: dict[Path, int]) -> list[Path]:
+    changed: list[Path] = []
+    if not ARTICLES_DIR.exists():
+        return changed
+    for path in ARTICLES_DIR.glob("*.md"):
+        resolved = path.resolve()
+        try:
+            mtime_ns = path.stat().st_mtime_ns
+        except OSError:
+            continue
+        if resolved not in before or before[resolved] != mtime_ns:
+            changed.append(path)
+    return sorted(changed, key=lambda item: item.stat().st_mtime_ns)
+
+
 def rotate_candidates(items: list[str], offset: int) -> list[str]:
     if not items:
         return []
@@ -360,6 +387,26 @@ def normalize_markdown(title: str, markdown: str, image_urls: list[str]) -> str:
     return f"---\ntitle: {title}\n---\n\n![]({image_urls[0]})\n\n{normalized_body}\n"
 
 
+def normalize_generated_articles(article_paths: list[Path]) -> tuple[bool, list[tuple[Path, str]]]:
+    """Rewrite generated drafts so image order follows cover -> drama still -> body images."""
+    if not article_paths:
+        return True, []
+
+    image_allocations = choose_images(len(article_paths))
+    results: list[tuple[Path, str]] = []
+    all_ok = True
+    for path, image_urls in zip(article_paths, image_allocations):
+        content = path.read_text(encoding="utf-8")
+        meta, _body = split_frontmatter(content)
+        title = meta.get("title") or path.stem
+        path.write_text(normalize_markdown(title, content, image_urls), encoding="utf-8")
+
+        ok, output = run_preflight(path)
+        results.append((path, output))
+        all_ok = all_ok and ok
+    return all_ok, results
+
+
 def run_preflight(article_path: Path) -> tuple[bool, str]:
     outputs: list[str] = []
     for script in ("validate_article_images.py", "quality_gate.py"):
@@ -418,7 +465,7 @@ class EmotionWomenAutomation:
         else:
             dedup_block = "- 暂无"
 
-        if self.publish:
+        if self.publish and self.provider != "claude":
             publish_step = f"""- 保存后依次运行：
   `python3 validate_article_images.py <文章绝对路径>`
   `python3 quality_gate.py <文章绝对路径>`
@@ -426,6 +473,11 @@ class EmotionWomenAutomation:
 - 不要传 `app_id`；不要群发；发布失败只记录原因并继续下一篇。"""
             publish_summary = "、草稿箱 media_id 或发布失败原因"
             publish_note = "- 本次需要发布到微信公众号草稿箱，但不直接群发，最终由人工在公众号后台审核后发布。"
+        elif self.publish:
+            publish_step = """- 保存后运行 `python3 validate_article_images.py <文章绝对路径>` 与 `python3 quality_gate.py <文章绝对路径>`。
+- 不调用 wenyan-mcp，不发布；主脚本会在生成结束后统一重排配图、复检并发布到公众号草稿箱。"""
+            publish_summary = "、本地质检结果"
+            publish_note = "- 本次需要发布到微信公众号草稿箱，但发布动作由主脚本在配图后处理通过后统一执行。"
         else:
             publish_step = "- 保存后运行 `python3 validate_article_images.py <文章绝对路径>` 与 `python3 quality_gate.py <文章绝对路径>`；不调用 wenyan-mcp。"
             publish_summary = ""
@@ -716,8 +768,9 @@ class EmotionWomenAutomation:
 
             ARTICLES_DIR.mkdir(exist_ok=True)
             IMAGES_DIR.mkdir(exist_ok=True)
+            before_articles = article_snapshot()
             prompt = self.generate_prompt()
-            tools = allowed_tools(self.publish)
+            tools = allowed_tools(False)
 
             logger.info(f"工作目录: {self.working_dir}")
             logger.info(f"使用 headless 模式{' [实时输出]' if self.verbose else ''}")
@@ -732,12 +785,6 @@ class EmotionWomenAutomation:
 
             if self.verbose:
                 cmd.append('--verbose')
-
-            if self.publish:
-                cmd.extend([
-                    '--mcp-config', str(MCP_CONFIG),
-                    '--strict-mcp-config'
-                ])
 
             cmd.extend([
                 '--permission-mode', 'bypassPermissions',
@@ -775,11 +822,38 @@ class EmotionWomenAutomation:
             if self.verbose and result.returncode == 0:
                 logger.info("✅ 任务执行成功")
 
+            generated_paths = changed_article_paths(before_articles)
+            success = result.returncode == 0
+            if not generated_paths:
+                if success:
+                    logger.error("❌ Claude 执行成功，但没有发现本轮新增或修改的文章")
+                success = False
+            else:
+                if result.returncode != 0:
+                    logger.warning("Claude 返回码非 0，但发现本轮文章，继续尝试统一重排配图并复检")
+                logger.info(f"发现本轮生成/修改文章 {len(generated_paths)} 篇，开始统一重排配图并复检")
+                postprocess_ok, preflight_results = normalize_generated_articles(generated_paths)
+                for path, output in preflight_results:
+                    if "质量门槛未通过" in output or "图片预检失败" in output:
+                        logger.error(f"❌ 后处理质检未通过：{path.name}\n{truncate_for_log(output)}")
+                    else:
+                        logger.info(f"✅ 后处理质检通过：{path.name}")
+                success = postprocess_ok
+
+            if success and self.publish:
+                for path in generated_paths:
+                    published, publish_output = publish_article(path, self.verbose)
+                    if published:
+                        logger.info(f"✅ 已发布到公众号草稿箱：{path.name}")
+                    else:
+                        logger.error(f"❌ 发布失败：{path.name}\n{truncate_for_log(publish_output)}")
+                        success = False
+
             logger.info("=" * 60)
             logger.info(f"任务结束 - {get_beijing_time()}")
             logger.info("=" * 60)
 
-            return result.returncode == 0
+            return success
 
         except subprocess.TimeoutExpired:
             logger.error("❌ 任务执行超时（超过1小时）")

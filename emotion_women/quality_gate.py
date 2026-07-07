@@ -11,6 +11,9 @@ from pathlib import Path
 from validate_article_images import image_paths, parse_frontmatter
 
 
+BASE_DIR = Path(__file__).parent
+DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
+
 BANNED_PHRASES = [
     "每个人都值得被爱",
     "时间会治愈一切",
@@ -20,6 +23,36 @@ BANNED_PHRASES = [
     "女性要学会",
     "正确的做法是",
 ]
+
+
+def is_image_reference(value: str) -> bool:
+    return (
+        value.startswith("http://")
+        or value.startswith("https://")
+        or value.startswith("/")
+        or value.startswith("./")
+        or value.startswith("../")
+        or value.startswith("photo-")
+    )
+
+
+def image_reference_to_markdown_path(value: str) -> str:
+    if value.startswith("photo-"):
+        return f"https://images.unsplash.com/{value}?w=900"
+    return value
+
+
+def drama_image_paths() -> set[str]:
+    if not DRAMA_IMAGE_POOL.exists():
+        return set()
+
+    paths: set[str] = set()
+    for raw_line in DRAMA_IMAGE_POOL.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or not is_image_reference(line):
+            continue
+        paths.add(image_reference_to_markdown_path(line))
+    return paths
 
 
 def cjk_len(text: str) -> int:
@@ -75,6 +108,14 @@ def main() -> int:
     images = image_paths(body)
     if len(images) < args.min_images:
         errors.append(f"正文图片不足：{len(images)} 张，至少 {args.min_images} 张")
+
+    drama_paths = drama_image_paths()
+    if not drama_paths:
+        errors.append(f"影视剧照图池为空：{DRAMA_IMAGE_POOL}")
+    elif len(images) < 2:
+        errors.append("封面后的第一张正文图缺失：正文至少需要封面图 + 影视剧照图")
+    elif images[1] not in drama_paths:
+        errors.append(f"封面后的第一张正文图不是影视剧照图池图片：{images[1]}")
 
     golden = bold_or_quote_count(body)
     if golden < args.min_golden:
