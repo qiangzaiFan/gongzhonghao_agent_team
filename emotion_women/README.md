@@ -22,6 +22,20 @@ python daily_emotion_women.py --now --count 3 -v
 
 默认只生成本地 Markdown 草稿，不会碰微信公众号。
 
+默认使用 Claude Code 调度，原有功能不变。也可以切到 OpenAI API：
+
+```bash
+export OPENAI_API_KEY="你的 OpenAI API Key"
+
+# 使用 OpenAI API 生成 1 篇本地草稿
+python daily_emotion_women.py --now --count 1 --provider openai
+
+# 指定模型
+python daily_emotion_women.py --now --count 1 --provider openai --openai-model gpt-5.5
+```
+
+OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质量门槛；带 `--publish` 时同样发布到公众号草稿箱。
+
 ### 发布到公众号草稿箱
 
 发布前先从模板生成 `emotion_women/.mcp.json`，填好 `wenyan-mcp` 路径和情感女性公众号的 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`。
@@ -129,8 +143,9 @@ Claude 会调用 `emotion-writer` agent 完成研究、撰写和发布。
 ## 配置
 
 1. 编辑 `.mcp.json`，填入你的公众号 wenyan-mcp 路径和凭证
-2. 确保已安装 `schedule` 库（定时模式需要）：`pip install schedule`
-3. 只有带 `--publish` 时才会加载 `.mcp.json` 并推送草稿箱
+2. 如使用 OpenAI API，设置 `OPENAI_API_KEY`；可选 `OPENAI_MODEL` / `OPENAI_BASE_URL` / `OPENAI_ENABLE_WEB_SEARCH=0`
+3. 确保已安装 `schedule` 库（定时模式需要）：`pip install schedule`
+4. 只有带 `--publish` 时才会加载 `.mcp.json` 并推送草稿箱
 
 ## 目录结构
 
