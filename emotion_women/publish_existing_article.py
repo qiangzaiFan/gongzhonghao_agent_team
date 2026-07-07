@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -68,6 +69,22 @@ def main() -> int:
     if not MCP_CONFIG.exists():
         print(f"错误：找不到 MCP 配置：{MCP_CONFIG}")
         return 1
+
+    image_preflight = subprocess.run(
+        [sys.executable, str(BASE_DIR / "validate_article_images.py"), str(article_path)],
+        cwd=BASE_DIR,
+    )
+    if image_preflight.returncode != 0:
+        print("错误：图片预检未通过，已停止发布。请修复图片后重试。")
+        return image_preflight.returncode
+
+    quality_preflight = subprocess.run(
+        [sys.executable, str(BASE_DIR / "quality_gate.py"), str(article_path)],
+        cwd=BASE_DIR,
+    )
+    if quality_preflight.returncode != 0:
+        print("错误：质量门槛未通过，已停止发布。请修复文章后重试。")
+        return quality_preflight.returncode
 
     wenyan_index, wechat_env = load_wenyan_config()
     # publishArticle 从 dist/publish.js 导出（dist/index.js 只是 MCP server 入口）
