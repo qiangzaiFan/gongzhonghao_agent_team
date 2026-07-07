@@ -4,9 +4,9 @@
 
 ## 定位
 
-- **目标读者**：22-35岁都市女性
+- **目标读者**：25-45岁女性，覆盖恋爱、婚姻、育儿、职场与家庭照护压力
 - **内容方向**：两性情感、女性成长、情绪疗愈
-- **风格**：真实故事 + 犀利观点 + 温暖底色（像闺蜜深夜聊天）
+- **风格**：真实故事 + 犀利观点 + 温暖底色（像有阅历的女性朋友认真聊天）
 
 ## 使用方法
 
@@ -36,6 +36,34 @@ python daily_emotion_women.py --now --count 1 --provider openai --openai-model g
 
 OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质量门槛；带 `--publish` 时同样发布到公众号草稿箱。
 
+### 从爆款链接生成原创转化稿
+
+看到一篇同领域爆款后，可以把链接交给脚本：它会抓取正文，分析标题钩子、读者痛点、结构和互动点，再按 `emotion-writer` 风格重新立项写一篇本账号文章。默认只生成本地草稿。
+
+硬约束：必须确认拿到了来源正文，才会进入改写。脚本会检查正文中文长度、过滤明显页面噪声，打印正文预览，并把来源抽取快照保存到 `sources/`。如果抓不到正文，直接停止；不要只凭标题或链接脑补。
+
+默认会跑两轮：第一轮分析爆款并原创转化，第二轮做“人工主编润色”，重点补生活细节、删模板化表达、调整段落节奏、降低搬运感和机器稿味。这个步骤不是绕过检测，而是提升原创质量和账号辨识度。确实想跳过时可加 `--no-editor-polish`。
+
+```bash
+export OPENAI_API_KEY="你的 OpenAI API Key"
+
+python rewrite_from_link.py "https://example.com/hot-article"
+```
+
+如果公众号链接无法直接抓取，先把原文复制到本地 txt/md，再用：
+
+```bash
+python rewrite_from_link.py --source-file /path/to/source.txt
+```
+
+生成并直接发布到公众号草稿箱：
+
+```bash
+python rewrite_from_link.py "https://example.com/hot-article" --publish
+```
+
+这个流程只把来源文章当作选题研究样本，要求更换标题、开头、故事、结构、小标题和表达，并会输出来源相似度指纹。不要做逐段改写或搬运；平台风险的核心处理方式是提高原创度、事实准确性和真人编辑质量，而不是研究绕过检测。
+
 ### 配图图池
 
 文章第一张图会作为公众号封面，仍按原规则从 `image_pool.txt` 的 COVER 段读取。
@@ -48,6 +76,8 @@ https://example.com/your-authorized-drama-still-1.jpg
 ```
 
 其余正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
+
+本地图建议统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，避免剧照和正文图在公众号里显示大小不一致。
 
 ### 发布到公众号草稿箱
 
@@ -169,6 +199,7 @@ emotion_women/
 ├── .mcp.json                # MCP 工具配置
 ├── CLAUDE.md                # 主编指令
 ├── daily_emotion_women.py   # 自动化脚本
+├── rewrite_from_link.py     # 爆款链接原创转化脚本
 ├── publish_existing_article.py # 重试发布已有文章到草稿箱
 ├── drama_image_pool.txt     # 封面后第一张正文图：影视/生活剧男女主合照等
 ├── image_pool.txt           # 封面图池 + 正文氛围图池

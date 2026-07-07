@@ -5,6 +5,7 @@
 
 # 生成的草稿与发布记录
 **/output/
+**/sources/
 **/*.log
 
 # Python

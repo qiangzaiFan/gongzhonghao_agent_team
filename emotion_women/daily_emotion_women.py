@@ -600,7 +600,7 @@ class EmotionWomenAutomation:
         )
 
         system = """你是情感女性公众号的资深主编和主笔。
-你要生成可直接保存为微信公众号草稿的 Markdown 文章，风格与 emotion-writer agent 保持一致：真实故事切入，观点犀利但温暖，像经历丰富的闺蜜深夜聊天，不像 AI 课堂。
+你要生成可直接保存为微信公众号草稿的 Markdown 文章，风格与 emotion-writer agent 保持一致：真实故事切入，观点犀利但温暖，面向 25-45 岁女性，覆盖恋爱、婚姻、育儿、职场与家庭照护压力，像有阅历的女性朋友认真聊天，不像 AI 课堂。
 只输出 JSON，不要输出解释、代码围栏、参考资料列表。"""
 
         user = f"""今天是北京时间 {today}。请一次生成 {self.article_count} 篇情感女性公众号文章。

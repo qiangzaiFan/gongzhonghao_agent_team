@@ -8,7 +8,12 @@ import re
 import sys
 from pathlib import Path
 
-from validate_article_images import image_paths, parse_frontmatter
+from validate_article_images import image_paths, is_url, local_image_path, parse_frontmatter
+
+try:
+    from PIL import Image
+except ImportError:  # pragma: no cover - optional local image dimension check
+    Image = None
 
 
 BASE_DIR = Path(__file__).parent
@@ -23,6 +28,7 @@ BANNED_PHRASES = [
     "女性要学会",
     "正确的做法是",
 ]
+EXPECTED_LOCAL_IMAGE_SIZE = (900, 600)
 
 
 def is_image_reference(value: str) -> bool:
@@ -67,6 +73,30 @@ def bold_or_quote_count(body: str) -> int:
 
 def heading_count(body: str) -> int:
     return len(re.findall(r"(?m)^##\s+\S", body))
+
+
+def validate_local_image_dimensions(article_path: Path, images: list[str]) -> list[str]:
+    if Image is None:
+        return []
+
+    errors: list[str] = []
+    for index, image in enumerate(images, start=1):
+        if is_url(image) or image.startswith("data:") or image.startswith("asset://"):
+            continue
+        resolved = local_image_path(article_path, image)
+        if not resolved.exists():
+            continue
+        try:
+            with Image.open(resolved) as im:
+                size = im.size
+        except OSError:
+            continue
+        if size != EXPECTED_LOCAL_IMAGE_SIZE:
+            errors.append(
+                f"正文图片 #{index} 本地尺寸不统一：{image} 为 {size[0]}x{size[1]}，"
+                f"应为 {EXPECTED_LOCAL_IMAGE_SIZE[0]}x{EXPECTED_LOCAL_IMAGE_SIZE[1]}"
+            )
+    return errors
 
 
 def main() -> int:
@@ -116,6 +146,8 @@ def main() -> int:
         errors.append("封面后的第一张正文图缺失：正文至少需要封面图 + 影视剧照图")
     elif images[1] not in drama_paths:
         errors.append(f"封面后的第一张正文图不是影视剧照图池图片：{images[1]}")
+
+    errors.extend(validate_local_image_dimensions(article_path, images))
 
     golden = bold_or_quote_count(body)
     if golden < args.min_golden:
