@@ -36,6 +36,19 @@ python daily_emotion_women.py --now --count 1 --provider openai --openai-model g
 
 OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质量门槛；带 `--publish` 时同样发布到公众号草稿箱。
 
+### 配图图池
+
+文章第一张图会作为公众号封面，仍按原规则从 `image_pool.txt` 的 COVER 段读取。
+
+封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照或生活化关系截图。
+
+```text
+https://example.com/your-authorized-drama-still-1.jpg
+./images/drama/your-drama-still-2.jpg
+```
+
+其余正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
+
 ### 发布到公众号草稿箱
 
 发布前先从模板生成 `emotion_women/.mcp.json`，填好 `wenyan-mcp` 路径和情感女性公众号的 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`。
@@ -157,6 +170,8 @@ emotion_women/
 ├── CLAUDE.md                # 主编指令
 ├── daily_emotion_women.py   # 自动化脚本
 ├── publish_existing_article.py # 重试发布已有文章到草稿箱
+├── drama_image_pool.txt     # 封面后第一张正文图：影视/生活剧男女主合照等
+├── image_pool.txt           # 封面图池 + 正文氛围图池
 ├── README.md                # 本文件
 ├── articles/                # 生成的文章
 ├── images/                  # 文章配图

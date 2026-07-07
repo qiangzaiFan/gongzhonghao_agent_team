@@ -21,12 +21,41 @@ MCP_CONFIG = BASE_DIR / ".mcp.json"
 DEFAULT_THEME = "purple"
 NODE_CANDIDATES = [
     Path("/Users/xiao/.nvm/versions/node/v22.22.1/bin/node"),
+    Path.home() / ".nvm/versions/node/v22.22.2/bin/node",
     Path("/opt/homebrew/bin/node"),
     Path("/usr/local/bin/node"),
 ]
 
 
+def node_major(path: Path) -> int:
+    try:
+        result = subprocess.run(
+            [str(path), "-p", "process.versions.node.split('.')[0]"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return int(result.stdout.strip())
+    except Exception:
+        return 0
+
+
 def find_node() -> str:
+    nvm_bin = os.environ.get("NVM_BIN")
+    if nvm_bin:
+        candidate = Path(nvm_bin) / "node"
+        if candidate.exists():
+            return str(candidate)
+
+    nvm_nodes = sorted(
+        (Path.home() / ".nvm/versions/node").glob("*/bin/node"),
+        key=node_major,
+        reverse=True,
+    )
+    for candidate in nvm_nodes:
+        if candidate.exists() and node_major(candidate) >= 20:
+            return str(candidate)
+
     for candidate in NODE_CANDIDATES:
         if candidate.exists():
             return str(candidate)

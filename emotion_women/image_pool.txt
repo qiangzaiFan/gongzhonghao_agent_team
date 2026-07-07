@@ -1,52 +1,32 @@
-# 情感号配图固定图池（预验证，写手直接从这里挑，不需要再 curl / 不需要搜图）
-# 来源：近期已发布文章里实际用过的图，2026-07-06 批量 curl 全部返回 200。
-# 全部为明亮温暖风景图、无人物、符合配图铁律。挑图后直接拼 URL：
-#   https://images.unsplash.com/<ID>?w=900
-# 去重：只需避开“最近 5 篇”已用过的 ID（见 Step 2），够用即可，不必全池唯一。
-# 维护：图池偏少或想换新时，另 curl 验证几张明亮风景图 append 到对应段落即可。
+# 情感号正文配图固定图池
+# 条目可以是完整 http(s) URL、本地图片路径，或旧的 photo-... ID。
+# 发布前 validate_article_images.py 会真实请求远程图片，404 / 非图片会直接拦住。
+#
+# 注意：
+# - 第一张封面图从 COVER 段读取，保持原封面规则。
+# - 封面后的第一张正文图优先从 drama_image_pool.txt 读取，用影视/生活剧男女主合照或官方剧照。
+# - BODY 是正文中间其余氛围图。
 
-## COVER（封面用，城市夜景 / 乡村风景 / 开阔天际线，正文第一张图从这里挑）
-photo-1444723121867
-photo-1449824913935
-photo-1480714378408
-photo-1494790108377
-photo-1496568816309
-photo-1500382017468
-photo-1500964757637
-photo-1519501025264
-photo-1524504388940
+## COVER（封面图）
+https://picsum.photos/seed/emotion-cover-1/900/600
+https://picsum.photos/seed/emotion-cover-2/900/600
+https://picsum.photos/seed/emotion-cover-3/900/600
+https://picsum.photos/seed/emotion-cover-4/900/600
 
-## BODY（正文配图用，明亮自然风光 / 晴天 / 海边 / 山野 / 湖泊 / 花海 / 城市远景）
-photo-1426604966848
-photo-1433086966358
-photo-1438761681033
-photo-1439853949127
-photo-1441716844725
-photo-1441974231531
-photo-1444080748397
-photo-1447752875215
-photo-1464822759023
-photo-1470004914212
-photo-1470252649378
-photo-1470770841072
-photo-1470770903676
-photo-1472214103451
-photo-1477346611705
-photo-1480796927426
-photo-1487412720507
-photo-1490730141103
-photo-1500534314209
-photo-1500534623283
-photo-1501785888041
-photo-1501854140801
-photo-1505765050516
-photo-1506744038136
-photo-1506905925346
-photo-1507525428034
-photo-1508214751196
-photo-1512453979798
-photo-1517841905240
-photo-1519452575417
-photo-1519681393784
-photo-1523712999610
-photo-1531123897727
+## BODY（正文配图用，明亮生活/风景氛围图）
+https://picsum.photos/seed/emotion-body-1/900/600
+https://picsum.photos/seed/emotion-body-2/900/600
+https://picsum.photos/seed/emotion-body-3/900/600
+https://picsum.photos/seed/emotion-body-4/900/600
+https://picsum.photos/seed/emotion-body-5/900/600
+https://picsum.photos/seed/emotion-body-6/900/600
+https://picsum.photos/seed/emotion-body-7/900/600
+https://picsum.photos/seed/emotion-body-8/900/600
+https://picsum.photos/seed/emotion-body-9/900/600
+https://picsum.photos/seed/emotion-body-10/900/600
+https://picsum.photos/seed/emotion-body-11/900/600
+https://picsum.photos/seed/emotion-body-12/900/600
+https://picsum.photos/seed/emotion-body-13/900/600
+https://picsum.photos/seed/emotion-body-14/900/600
+https://picsum.photos/seed/emotion-body-15/900/600
+https://picsum.photos/seed/emotion-body-16/900/600

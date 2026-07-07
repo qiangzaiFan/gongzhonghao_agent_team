@@ -26,6 +26,7 @@ PUBLISH_THEME = "orangeheart"
 ARTICLES_DIR = BASE_DIR / "articles"
 IMAGES_DIR = BASE_DIR / "images"
 IMAGE_POOL = BASE_DIR / "image_pool.txt"
+DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
 MAX_LOG_OUTPUT_CHARS = 4000
 DEFAULT_PROVIDER = os.getenv("EMOTION_PROVIDER", "claude").strip().lower() or "claude"
 DEFAULT_OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.5").strip() or "gpt-5.5"
@@ -136,7 +137,7 @@ def read_writer_style_digest() -> str:
 
 
 def parse_image_pool() -> dict[str, list[str]]:
-    """读取固定图池，返回 COVER/BODY 两段图片 ID。"""
+    """读取固定图池，返回 COVER/BODY 两段图片引用。"""
     pool = {"COVER": [], "BODY": []}
     if not IMAGE_POOL.exists():
         return pool
@@ -155,22 +156,57 @@ def parse_image_pool() -> dict[str, list[str]]:
             continue
         if line.startswith("#"):
             continue
-        if current and line.startswith("photo-"):
+        if current and is_image_reference(line):
             pool[current].append(line)
     return pool
 
 
-def recent_image_ids(max_articles: int = 5) -> set[str]:
-    ids: set[str] = set()
+def is_image_reference(value: str) -> bool:
+    return (
+        value.startswith("http://")
+        or value.startswith("https://")
+        or value.startswith("/")
+        or value.startswith("./")
+        or value.startswith("../")
+        or value.startswith("photo-")
+    )
+
+
+def parse_drama_image_pool() -> list[str]:
+    """读取影视/生活剧男女主合照图池，一行一个 URL 或本地路径。"""
+    if not DRAMA_IMAGE_POOL.exists():
+        return []
+
+    images: list[str] = []
+    for raw_line in DRAMA_IMAGE_POOL.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if is_image_reference(line):
+            images.append(line)
+    return images
+
+
+def image_reference_to_markdown_path(value: str) -> str:
+    if value.startswith("photo-"):
+        return f"https://images.unsplash.com/{value}?w=900"
+    return value
+
+
+def recent_image_refs(max_articles: int = 5) -> set[str]:
+    refs: set[str] = set()
     if not ARTICLES_DIR.exists():
-        return ids
+        return refs
     image_re = re.compile(r"photo-[0-9]+")
+    markdown_image_re = re.compile(r"!\[[^\]]*\]\(([^)\s]+)")
     for path in sorted(ARTICLES_DIR.glob("*.md"), reverse=True)[:max_articles]:
         try:
-            ids.update(image_re.findall(path.read_text(encoding="utf-8", errors="ignore")))
+            content = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-    return ids
+        refs.update(image_re.findall(content))
+        refs.update(markdown_image_re.findall(content))
+    return refs
 
 
 def rotate_candidates(items: list[str], offset: int) -> list[str]:
@@ -180,26 +216,38 @@ def rotate_candidates(items: list[str], offset: int) -> list[str]:
     return items[offset:] + items[:offset]
 
 
+def candidates_with_recent_fallback(items: list[str], used_recent: set[str], offset: int, needed: int) -> list[str]:
+    rotated = rotate_candidates(items, offset)
+    available = [item for item in rotated if item not in used_recent]
+    if len(available) >= needed:
+        return available
+    return rotated
+
+
 def choose_images(article_count: int) -> list[list[str]]:
-    """为每篇文章分配 1 张封面 + 3 张正文图，全部来自固定图池。"""
+    """为每篇文章分配封面图、影视剧照、正文氛围图。"""
     pool = parse_image_pool()
-    used_recent = recent_image_ids()
-    if not pool["COVER"] or len(pool["BODY"]) < 3:
+    used_recent = recent_image_refs()
+    if not pool["COVER"] or len(pool["BODY"]) < 2:
         raise RuntimeError(f"图片池不足，请检查 {IMAGE_POOL}")
 
     offset = int(get_beijing_time().strftime("%d%H%M"))
-    covers = [item for item in rotate_candidates(pool["COVER"], offset) if item not in used_recent]
-    bodies = [item for item in rotate_candidates(pool["BODY"], offset) if item not in used_recent]
-    covers = covers or rotate_candidates(pool["COVER"], offset)
-    bodies = bodies or rotate_candidates(pool["BODY"], offset)
+    drama_source = parse_drama_image_pool()
+    if not drama_source:
+        raise RuntimeError(f"影视剧照图池为空，请先维护 {DRAMA_IMAGE_POOL}")
+
+    covers = candidates_with_recent_fallback(pool["COVER"], used_recent, offset, article_count)
+    dramas = candidates_with_recent_fallback(drama_source, used_recent, 0, article_count)
+    bodies = candidates_with_recent_fallback(pool["BODY"], used_recent, offset, article_count * 2)
 
     allocations: list[list[str]] = []
     for index in range(article_count):
         cover = covers[index % len(covers)]
-        start = (index * 3) % len(bodies)
-        body_ids = [bodies[(start + body_index) % len(bodies)] for body_index in range(3)]
-        ids = [cover] + body_ids
-        urls = [f"https://images.unsplash.com/{image_id}?w=900" for image_id in ids]
+        start = (index * 2) % len(bodies)
+        body_ids = [bodies[(start + body_index) % len(bodies)] for body_index in range(2)]
+        drama = dramas[index % len(dramas)]
+        ids = [cover, drama] + body_ids
+        urls = [image_reference_to_markdown_path(image_id) for image_id in ids]
         allocations.append(urls)
     return allocations
 
@@ -406,9 +454,10 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池 `image_pool.txt` 直接挑：封面从 COVER 段挑 1 张，正文从 BODY 段挑至少 3 张，分散穿插进正文，直接拼 `https://images.unsplash.com/<ID>?w=900` 写进正文。
-   - 图池已验证，严禁再搜图、严禁 curl 验证图池 ID、严禁下载图片、严禁跑 Python/PIL 做图像分析。
-   - 去重只需避开最近 5 篇已用 ID：`ls -t articles/*.md | head -5 | while read f; do rg -o 'photo-[0-9]+' "$f"; done | sort -u`。
+2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER 段挑 1 张；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
+   - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
+   - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
+   - 去重只需避开最近 5 篇已用图片 URL/ID。
 3. 写一篇 1200-1800 字的情感深度文章。
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`。
 {publish_step}
@@ -422,7 +471,7 @@ class EmotionWomenAutomation:
 - 结尾有力量，并补齐互动引导三件套：开放性问题 + 点赞理由 + 分享动机。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
-- 正文配图至少 4 张（含封面），且图片要分散穿插在正文中间；frontmatter 只写 title，不写 cover。
+- 正文配图至少 4 张（含封面），封面按 COVER 段原规则；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
 
 ## 第三步：汇总结果
 
@@ -494,7 +543,7 @@ class EmotionWomenAutomation:
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
         image_plan = "\n".join(
-            f"{index + 1}. 封面/正文图：{', '.join(urls)}"
+            f"{index + 1}. 封面：{urls[0]}；封面后第一张正文图：{urls[1]}；正文图：{', '.join(urls[2:])}"
             for index, urls in enumerate(image_allocations)
         )
 
@@ -513,7 +562,7 @@ class EmotionWomenAutomation:
 {existing_titles}
 
 ## 固定配图
-每篇文章必须使用对应的 4 张图片。正文第一张图是封面，frontmatter 只写 title，不写 cover。
+每篇文章必须使用对应的 4 张图片。正文第一张图是封面，按封面原规则；封面后的第一张正文图优先是影视/生活剧男女主合照或官方剧照；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
 {image_plan}
 
 ## 输出格式

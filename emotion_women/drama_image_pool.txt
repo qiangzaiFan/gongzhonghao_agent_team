@@ -1,0 +1,32 @@
+# 情感号影视剧照图池
+# 用途：封面图后面的第一张正文图片，不作为公众号封面图。
+#
+# 放置建议：
+# - 爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照、生活化关系截图。
+# - 优先使用官方海报/剧照页、已获授权图片、你自己截取并确认可用于公众号的图片。
+# - 每行一个完整 URL 或本地图片路径；不要写说明文字。
+# - 发布前 validate_article_images.py 会真实请求远程图片，404 / 非图片会直接拦住。
+#
+# 优先剧照 / 现代关系图：更适合情感、爱情、生活类文章。
+https://upload.wikimedia.org/wikipedia/commons/e/e7/Nothing_Personal_Still_12_Johnny_Savageklein.jpg
+https://upload.wikimedia.org/wikipedia/commons/a/af/Talia_Fowler_%26_Timomatic_2012_%281%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/1/1f/Talia_Fowler_%26_Timomatic_2012_%282%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/d/d8/Barbara_Eden_Larry_Hagman_I_Dream_of_Jeannie_1969.jpg
+https://upload.wikimedia.org/wikipedia/commons/8/82/Robert_Sterling_Anne_Jeffreys_Love_That_Jill.jpg
+https://upload.wikimedia.org/wikipedia/commons/c/ca/Romance_%281930%29_still_1.JPG
+https://upload.wikimedia.org/wikipedia/commons/d/d0/The_apartment_trailer_1.JPG
+https://upload.wikimedia.org/wikipedia/commons/9/91/The_Love_Nest_%281922%29_-_1.jpg
+
+# 内置兜底：Wikimedia Commons 可公开访问的电影剧照 / 影像 still。
+https://upload.wikimedia.org/wikipedia/commons/a/ac/One_Week_%281920%29_-_2_%28wedding_gift%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/3/35/Sharon_Tate_and_Roman_Polanski_in_The_Fearless_Vampire_Killers_%281967%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/0/0f/Trint-couple.jpg
+https://upload.wikimedia.org/wikipedia/commons/6/6e/Recueil._%22Le_couple_id%C3%A9al%22_film_de_Bernard-Roland_-_btv1b10522666s_%2815_of_50%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/f/f3/Recueil._%22Le_couple_id%C3%A9al%22_film_de_Bernard-Roland_-_btv1b10522666s_%2816_of_50%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/b/b7/Recueil._%22Le_couple_id%C3%A9al%22_film_de_Bernard-Roland_-_btv1b10522666s_%2818_of_50%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/f/fb/Recueil._%22Le_couple_id%C3%A9al%22_film_de_Bernard-Roland_-_btv1b10522666s_%2819_of_50%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/8/87/Recueil._%22Le_couple_id%C3%A9al%22_film_de_Bernard-Roland_-_btv1b10522666s_%2821_of_50%29.jpg
+https://upload.wikimedia.org/wikipedia/commons/a/ad/Man-Woman-Marriage_%281921%29_-_1.jpg
+https://upload.wikimedia.org/wikipedia/commons/b/b4/Man-Woman-Marriage_%281921%29_-_2.jpg
+https://upload.wikimedia.org/wikipedia/commons/f/f3/Man-Woman-Marriage_%281921%29_-_3.jpg
+https://upload.wikimedia.org/wikipedia/commons/f/f4/Man-Woman-Marriage_%281921%29_-_4.jpg
