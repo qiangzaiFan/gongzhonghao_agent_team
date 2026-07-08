@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import html as html_module
 import json
 import re
 import subprocess
@@ -32,6 +33,12 @@ from daily_emotion_women import (
 
 
 DEFAULT_TIMEOUT_SECONDS = 30
+DEFAULT_USER_AGENT = "Mozilla/5.0 emotion-women-rewrite/1.0"
+WECHAT_USER_AGENT = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 "
+    "Mobile/15E148 Safari/604.1"
+)
 MAX_SOURCE_CHARS = 14000
 OVERLAP_WARN_THRESHOLD = 0.08
 MIN_SOURCE_CJK = 800
@@ -43,6 +50,18 @@ SOURCE_NOISE_PHRASES = [
     "使用小程序",
     "在小说阅读器",
     "点击预约直播间",
+    "环境异常",
+    "当前环境异常",
+    "完成验证后即可继续访问",
+    "微信公众平台",
+    "赞，轻点两下取消赞",
+    "在看，轻点两下取消在看",
+    "作者提示:内容由AI生成",
+]
+SOURCE_AD_CONTEXT_PHRASES = [
+    "点击预约直播间",
+    "在小说阅读器",
+    "去阅读",
 ]
 
 
@@ -113,15 +132,132 @@ class ArticleHTMLParser(HTMLParser):
         return "\n".join(lines).strip()
 
 
+class TargetElementTextParser(HTMLParser):
+    """Extract text from a target element, such as WeChat's #js_content."""
+
+    BLOCK_TAGS = ArticleHTMLParser.BLOCK_TAGS
+    SKIP_TAGS = ArticleHTMLParser.SKIP_TAGS
+
+    def __init__(self, target_id: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.target_id = target_id
+        self.capture_depth = 0
+        self.skip_depth = 0
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        attrs_dict = {key.lower(): value for key, value in attrs if key}
+        if self.capture_depth == 0 and attrs_dict.get("id") == self.target_id:
+            self.capture_depth = 1
+            self.parts.append("\n")
+            return
+
+        if self.capture_depth:
+            self.capture_depth += 1
+            if tag in self.SKIP_TAGS:
+                self.skip_depth += 1
+            if tag in self.BLOCK_TAGS:
+                self.parts.append("\n")
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if not self.capture_depth:
+            return
+        if tag in self.SKIP_TAGS and self.skip_depth:
+            self.skip_depth -= 1
+        if tag in self.BLOCK_TAGS:
+            self.parts.append("\n")
+        self.capture_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self.capture_depth or self.skip_depth:
+            return
+        text = re.sub(r"\s+", " ", data).strip()
+        if text:
+            self.parts.append(text)
+
+    @property
+    def text(self) -> str:
+        return normalize_extracted_lines("".join(self.parts))
+
+
+def normalize_extracted_lines(text: str) -> str:
+    text = re.sub(r"[ \t\r\f\v]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    lines = [line.strip() for line in text.splitlines()]
+    lines = [line for line in lines if line]
+    return "\n".join(lines).strip()
+
+
+def is_wechat_url(url: str) -> bool:
+    return urlparse(url).netloc.endswith("mp.weixin.qq.com")
+
+
+def extract_meta_content(markup: str, key: str) -> str:
+    for match in re.finditer(r"<meta\b[^>]*>", markup, re.I):
+        tag = match.group(0)
+        if re.search(rf"(?:property|name)\s*=\s*['\"]{re.escape(key)}['\"]", tag, re.I):
+            content_match = re.search(r"content\s*=\s*(['\"])(.*?)\1", tag, re.I | re.S)
+            if content_match:
+                return html_module.unescape(content_match.group(2)).strip()
+    return ""
+
+
+def extract_js_string(markup: str, name: str) -> str:
+    match = re.search(rf"\b{name}\s*=\s*(['\"])(.*?)\1", markup, re.S)
+    if not match:
+        return ""
+    value = match.group(2)
+    if "\\" in value:
+        try:
+            value = bytes(value, "utf-8").decode("unicode_escape")
+        except UnicodeDecodeError:
+            pass
+    return html_module.unescape(value).strip()
+
+
+def extract_title_from_html(markup: str, fallback: str = "") -> str:
+    for candidate in (
+        extract_meta_content(markup, "og:title"),
+        extract_js_string(markup, "msg_title"),
+    ):
+        if candidate:
+            return clean_title(candidate)
+
+    parser = ArticleHTMLParser()
+    parser.feed(markup)
+    return clean_title(parser.title or fallback)
+
+
+def clean_title(title: str) -> str:
+    title = re.sub(r"\s+", " ", html_module.unescape(title)).strip()
+    title = re.sub(r"\s*-\s*微信公众平台\s*$", "", title)
+    return title
+
+
+def extract_article_text_from_html(markup: str, prefer_wechat: bool = False) -> str:
+    if prefer_wechat or "js_content" in markup:
+        parser = TargetElementTextParser("js_content")
+        parser.feed(markup)
+        if cjk_len(parser.text) >= 200:
+            return parser.text
+
+    parser = ArticleHTMLParser()
+    parser.feed(markup)
+    return parser.text
+
+
 def fetch_url_text(url: str) -> tuple[str, str]:
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"}:
         raise ValueError("只支持 http/https 链接")
 
+    user_agent = WECHAT_USER_AGENT if is_wechat_url(url) else DEFAULT_USER_AGENT
     req = request.Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0 emotion-women-rewrite/1.0",
+            "User-Agent": user_agent,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         },
     )
@@ -136,11 +272,9 @@ def fetch_url_text(url: str) -> tuple[str, str]:
     except TimeoutError as exc:
         raise RuntimeError("抓取链接超时") from exc
 
-    html = raw.decode(charset, errors="replace")
-    parser = ArticleHTMLParser()
-    parser.feed(html)
-    title = parser.title
-    text = parser.text
+    markup = raw.decode(charset, errors="replace")
+    title = extract_title_from_html(markup, fallback=url)
+    text = extract_article_text_from_html(markup, prefer_wechat=is_wechat_url(url))
     return title, text
 
 
@@ -161,7 +295,29 @@ def read_source(args: argparse.Namespace) -> tuple[str, str]:
 def clean_source_text(text: str) -> str:
     text = re.sub(r"\r\n?", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+    return remove_source_noise(text).strip()
+
+
+def remove_source_noise(text: str) -> str:
+    raw_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    skip_indexes: set[int] = set()
+    for index, line in enumerate(raw_lines):
+        if any(phrase in line for phrase in SOURCE_AD_CONTEXT_PHRASES):
+            for skip_index in range(max(0, index - 2), min(len(raw_lines), index + 3)):
+                skip_indexes.add(skip_index)
+
+    cleaned: list[str] = []
+    for index, line in enumerate(raw_lines):
+        if index in skip_indexes:
+            continue
+        if any(phrase in line for phrase in SOURCE_NOISE_PHRASES):
+            continue
+        if re.fullmatch(r"[▽▼△▲·.\-—_ ]{3,}", line):
+            continue
+        if re.search(r"^(来源|声明|作者|编辑|责编)\s*[|：:]", line):
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned)
 
 
 def cjk_len(text: str) -> int:

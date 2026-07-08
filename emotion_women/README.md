@@ -64,6 +64,30 @@ python rewrite_from_link.py "https://example.com/hot-article" --publish
 
 这个流程只把来源文章当作选题研究样本，要求更换标题、开头、故事、结构、小标题和表达，并会输出来源相似度指纹。不要做逐段改写或搬运；平台风险的核心处理方式是提高原创度、事实准确性和真人编辑质量，而不是研究绕过检测。
 
+### 从链接直接改写标题和正文
+
+如果不想使用情感 agent 的爆款分析和重构模板，只想拿一篇文章的标题和正文做“直接原创改写”，使用独立脚本：
+
+```bash
+python rewrite_direct_from_link.py "https://example.com/source-article"
+```
+
+这条链路仍然会先确认拿到来源正文、保存来源快照、计算来源相似度，但不会调用 `emotion-writer` 风格摘要，也不会输出爆款分析。它只要求重写标题、开头、小标题、段落表达和正文内容。生成文件名会带 `direct-` 前缀，避免和情感模板改写稿混在一起。
+
+微信链接会优先使用移动端页面抓取，并抽取正文容器 `js_content`，自动清理阅读器、预约直播、按钮文案等广告/页面噪声。
+
+链接抓不到时也可以传原文文件：
+
+```bash
+python rewrite_direct_from_link.py --source-file /path/to/source.txt
+```
+
+需要直接发布到公众号草稿箱：
+
+```bash
+python rewrite_direct_from_link.py "https://example.com/source-article" --publish
+```
+
 ### 配图图池
 
 文章第一张图会作为公众号封面，仍按原规则从 `image_pool.txt` 的 COVER 段读取。
@@ -200,6 +224,7 @@ emotion_women/
 ├── CLAUDE.md                # 主编指令
 ├── daily_emotion_women.py   # 自动化脚本
 ├── rewrite_from_link.py     # 爆款链接原创转化脚本
+├── rewrite_direct_from_link.py # 链接文章标题/正文直接改写脚本
 ├── publish_existing_article.py # 重试发布已有文章到草稿箱
 ├── drama_image_pool.txt     # 封面后第一张正文图：影视/生活剧男女主合照等
 ├── image_pool.txt           # 封面图池 + 正文氛围图池
