@@ -22,6 +22,7 @@ from daily_emotion_women import (
     PUBLISH_THEME,
     EmotionWomenAutomation,
     choose_images,
+    format_title_template_guidance,
     get_beijing_time,
     normalize_markdown,
     parse_json_object,
@@ -387,6 +388,7 @@ def build_messages(source_title: str, source_text: str, url: str) -> list[dict]:
     style_digest = read_writer_style_digest()
     today = get_beijing_time().strftime("%Y年%m月%d日")
     source_excerpt = compact_source_text(source_text)
+    title_template_guidance = format_title_template_guidance(1)
 
     system = """你是情感女性公众号的资深主编和原创改写编辑。
 你的任务不是洗稿，而是把一篇爆款文章当作选题研究样本，提炼它为什么能打动读者，再写出一篇属于本账号的新文章。
@@ -416,6 +418,7 @@ def build_messages(source_title: str, source_text: str, url: str) -> list[dict]:
 ## 文章硬性要求
 - 1200-1800 字中文。
 - 标题 20 字以内，聚焦一个爆点。
+- 标题必须按下面的模板轮换建议优先使用最近少用的标题模板，但不能像来源标题。
 - frontmatter 只写 title。
 - 至少 2 个二级小标题。
 - 至少 1 个完整故事场景，有动作、对话和冲突。
@@ -423,6 +426,8 @@ def build_messages(source_title: str, source_text: str, url: str) -> list[dict]:
 - 结尾包含开放性问题、点赞理由、分享动机。
 - 文末不要列参考资料/来源链接。
 - 不要出现这些 AI 感表达：每个人都值得被爱、时间会治愈一切、我们应该认识到、综上所述、由此可见、女性要学会、正确的做法是。
+
+{title_template_guidance}
 
 ## 输出格式
 只输出 JSON：
@@ -462,6 +467,7 @@ def build_editor_polish_messages(data: dict, source_title: str, source_text: str
     markdown = str(data.get("markdown") or "")
     title = str(data.get("title") or "")
     originality_notes = str(data.get("originality_notes") or "")
+    title_template_guidance = format_title_template_guidance(1)
 
     system = """你是情感女性公众号的人工主编，负责把模型初稿改成更像真人主笔写过的原创稿。
 你不是在规避检测器；你的目标是提升原创度、可读性、细节密度和账号辨识度。
@@ -485,9 +491,11 @@ def build_editor_polish_messages(data: dict, source_title: str, source_text: str
 2. 增加具体动作、生活物件、对话和心理停顿，减少抽象判断。
 3. 删除或改写模板化表达、正确废话、口号式鸡汤。
 4. 调整段落节奏：允许短句单独成段，避免每段都像“观点-解释-总结”。
-5. 保持标题 20 字以内；可优化标题，但不要像来源标题。
+5. 保持标题 20 字以内；可按下面的模板轮换建议优化标题，优先使用最近少用的标题模板，但不要像来源标题。
 6. 不要新增无法确认的真实人物、真实数据、真实新闻事实。
 7. 不要把来源文章逐段换词；如果发现初稿和来源结构太像，要重排段落和故事重心。
+
+{title_template_guidance}
 
 ## 必须保留
 - frontmatter 只写 title。

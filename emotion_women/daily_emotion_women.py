@@ -4,6 +4,8 @@
 支持定时执行或立即执行，可自定义文章数量
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
@@ -95,6 +97,201 @@ def list_existing_titles(max_items: int = 30) -> list[str]:
     return titles
 
 
+TITLE_TEMPLATE_RECENT_WINDOW = 12
+TITLE_TEMPLATE_RECENT_AVOID = 3
+TITLE_TEMPLATE_MIN_VARIETY = 3
+TITLE_TEMPLATES = [
+    {
+        "name": "数字法",
+        "short": "加入数字、比例、年龄、几句话/几点，增强具体感和点击冲动。",
+        "example": "这3句话,90%的女生都说过",
+    },
+    {
+        "name": "对比法",
+        "short": "把两种反差状态并置，常用不是/却/一边一边/越越制造冲突。",
+        "example": "你越懂事,他越不珍惜",
+    },
+    {
+        "name": "热词法",
+        "short": "把近期热点、热剧、热梗或高频情感词放进标题。",
+        "example": "边界感火了,但很多人用错了",
+    },
+    {
+        "name": "疑问法",
+        "short": "用反常识问题收尾，让读者想确认答案。",
+        "example": "你真以为沉默就是成熟吗",
+    },
+    {
+        "name": "对话法",
+        "short": "用一句生活里常见的话，加一句有力回应。",
+        "example": "「我都是为你好」「那请你停下」",
+    },
+    {
+        "name": "好奇法",
+        "short": "话说一半，藏住关键答案，适合有一种/这几句/后来怎样。",
+        "example": "有一种分手,说不出口却最痛",
+    },
+    {
+        "name": "俗语法",
+        "short": "借俗语、歌词、熟句改写，最好顺口、有记忆点。",
+        "example": "懂事一生一起走,谁先心软谁先输",
+    },
+    {
+        "name": "电影台词法",
+        "short": "改编知名电影/台词/熟悉句式，让标题自带画面感。",
+        "example": "其实我不是冷漠,我只是累了",
+    },
+]
+TITLE_TEMPLATE_NAMES = [template["name"] for template in TITLE_TEMPLATES]
+
+
+def classify_title_templates(title: str) -> list[str]:
+    """用轻量启发式识别标题大致套用了哪些模板。"""
+    title = title.strip()
+    labels: list[str] = []
+
+    if re.search(r"\d|[一二三四五六七八九十百千万]+(?=个|种|句|点|次|年|岁|%)", title):
+        labels.append("数字法")
+
+    if re.search(r"[?？]|(吗|呢|么)$|为什么|怎么|到底|哪天|值不值|去不去|该不该", title):
+        labels.append("疑问法")
+
+    if any(mark in title for mark in ("「", "」", "“", "”", '"')) or re.search(r".+[，,：:].+(关你|谢谢|够了|停下|算了)", title):
+        labels.append("对话法")
+
+    if re.search(r"不是|不再|别把|别再|却|一边.+一边|越.+越|只是不|而是|才是|和别人比|拿你.+比", title):
+        labels.append("对比法")
+
+    hot_words = (
+        "边界感",
+        "情绪价值",
+        "恋爱脑",
+        "冷暴力",
+        "PUA",
+        "原生家庭",
+        "前任",
+        "分手",
+        "婚姻",
+        "离婚",
+        "催婚",
+        "婆媳",
+        "彩礼",
+        "断亲",
+        "内耗",
+        "松弛感",
+        "报复性熬夜",
+    )
+    if any(word in title for word in hot_words):
+        labels.append("热词法")
+
+    if re.search(r"有一种|这[0-9一二三四五六七八九十]+|那些|后来.+怎么样|最.+的|永远是|压根|其实", title):
+        labels.append("好奇法")
+
+    common_sayings = (
+        "一生一起走",
+        "各自安好",
+        "来都来了",
+        "万一",
+        "谁先",
+        "人间值得",
+        "算了",
+        "不撞南墙",
+        "体面",
+    )
+    if any(phrase in title for phrase in common_sayings):
+        labels.append("俗语法")
+
+    movie_lines = (
+        "其实我不是",
+        "我不是一个",
+        "我猜中了",
+        "曾经有一份",
+        "后来的我们",
+        "如果爱有天意",
+        "这个杀手不太冷",
+    )
+    if any(phrase in title for phrase in movie_lines):
+        labels.append("电影台词法")
+
+    return [name for name in TITLE_TEMPLATE_NAMES if name in labels] or ["未识别"]
+
+
+def title_template_counts(titles: list[str]) -> dict[str, int]:
+    counts = {name: 0 for name in TITLE_TEMPLATE_NAMES}
+    for title in titles:
+        for label in classify_title_templates(title):
+            if label in counts:
+                counts[label] += 1
+    return counts
+
+
+def select_title_templates(article_count: int, titles: list[str] | None = None) -> list[str]:
+    """按最近使用情况为本批文章分配标题模板，优先补少用模板。"""
+    if article_count <= 0:
+        return []
+
+    recent_titles = (titles if titles is not None else list_existing_titles(TITLE_TEMPLATE_RECENT_WINDOW))[
+        :TITLE_TEMPLATE_RECENT_WINDOW
+    ]
+    counts = title_template_counts(recent_titles)
+    recent_labels = {
+        label
+        for title in recent_titles[:TITLE_TEMPLATE_RECENT_AVOID]
+        for label in classify_title_templates(title)
+        if label in counts
+    }
+
+    ranked = sorted(
+        TITLE_TEMPLATE_NAMES,
+        key=lambda name: (
+            1 if name in recent_labels else 0,
+            counts[name],
+            TITLE_TEMPLATE_NAMES.index(name),
+        ),
+    )
+    unique_needed = min(len(TITLE_TEMPLATE_NAMES), article_count)
+    selected = ranked[:unique_needed]
+    while len(selected) < article_count:
+        selected.append(ranked[len(selected) % len(ranked)])
+    return selected[:article_count]
+
+
+def format_title_template_guidance(article_count: int, titles: list[str] | None = None) -> str:
+    """生成可注入 Prompt 的标题模板轮换说明。"""
+    recent_titles = (titles if titles is not None else list_existing_titles(TITLE_TEMPLATE_RECENT_WINDOW))[
+        :TITLE_TEMPLATE_RECENT_WINDOW
+    ]
+    counts = title_template_counts(recent_titles)
+    plan = select_title_templates(article_count, recent_titles)
+    template_brief = "\n".join(
+        f"- {template['name']}：{template['short']}例：{template['example']}"
+        for template in TITLE_TEMPLATES
+    )
+    count_brief = "；".join(f"{name}{counts[name]}次" for name in TITLE_TEMPLATE_NAMES)
+    plan_brief = "\n".join(
+        f"{index + 1}. 第 {index + 1} 篇优先用「{name}」"
+        for index, name in enumerate(plan)
+    )
+
+    batch_rule = (
+        f"本批 {article_count} 篇至少使用 {min(article_count, TITLE_TEMPLATE_MIN_VARIETY)} 种不同标题模板"
+        if article_count >= TITLE_TEMPLATE_MIN_VARIETY
+        else "本批标题不要重复使用最近 3 篇刚用过的模板"
+    )
+    return f"""## 标题模板轮换规则
+{batch_rule}，优先补最近 {TITLE_TEMPLATE_RECENT_WINDOW} 篇里使用次数最低的模板；不要连续几篇都用同一种“你不是/别把/越...越...”风格。
+
+最近 {TITLE_TEMPLATE_RECENT_WINDOW} 篇标题模板使用估算：{count_brief}
+
+本批标题模板分配：
+{plan_brief}
+
+8 个可用标题模板：
+{template_brief}
+
+每篇先按指定模板写 3 个候选标题，再挑最有点击欲的 1 个作为最终 title；最终标题仍要 ≤20 字、只聚焦一个爆点、有情感敏感词。"""
+
+
 def truncate_for_log(text: str) -> str:
     if len(text) <= MAX_LOG_OUTPUT_CHARS:
         return text
@@ -121,6 +318,7 @@ def read_writer_style_digest() -> str:
         "关键气质",
         "写作铁律",
         "文章撰写",
+        "标题方法论",
         "开篇设计",
         "正文写作要求",
         "结尾设计",
@@ -464,6 +662,7 @@ class EmotionWomenAutomation:
             dedup_block = "\n".join(f"- {title}" for title in existing_titles)
         else:
             dedup_block = "- 暂无"
+        title_template_guidance = format_title_template_guidance(self.article_count, existing_titles)
 
         if self.publish and self.provider != "claude":
             publish_step = f"""- 保存后依次运行：
@@ -500,6 +699,11 @@ class EmotionWomenAutomation:
    - 核心反常识洞察
    - 1-2 条参考链接或素材摘要
 
+## 已发标题，必须避开近似选题
+{dedup_block}
+
+{title_template_guidance}
+
 ## 第二步：并行启动 emotion-writer agent
 
 为每个选定主题启动一个 emotion-writer agent，传递上面的选题信息和输出文件路径。
@@ -515,7 +719,7 @@ class EmotionWomenAutomation:
 {publish_step}
 
 **文章要求**：
-- 标题 ≤20 字，只聚焦一个爆点，含敏感词，套用 8 个标题模板之一，不要写"论…""如何…""关于…的思考"这类概括式标题。
+- 标题 ≤20 字，只聚焦一个爆点，含敏感词；按上面的标题模板轮换分配来取标题，不要写"论…""如何…""关于…的思考"这类概括式标题。
 - 开篇 3 秒抓住读者，前 3 句必须制造悬念或共鸣。
 - 全文套用 4 个框架结构之一（观点+N事例 / 大观点+N小观点 / 观点+N角度 / 观点+人物N故事），主线清晰。
 - 至少 1 个完整故事场景，有冲突、有情绪爆点、用具象细节而非情绪标签。
@@ -591,7 +795,9 @@ class EmotionWomenAutomation:
         return text
 
     def build_openai_prompt(self, image_allocations: list[list[str]]) -> list[dict]:
-        existing_titles = "\n".join(f"- {title}" for title in list_existing_titles()) or "- 暂无"
+        existing_title_list = list_existing_titles()
+        existing_titles = "\n".join(f"- {title}" for title in existing_title_list) or "- 暂无"
+        title_template_guidance = format_title_template_guidance(self.article_count, existing_title_list)
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
         image_plan = "\n".join(
@@ -613,6 +819,8 @@ class EmotionWomenAutomation:
 ## 已发标题，必须避开近似选题
 {existing_titles}
 
+{title_template_guidance}
+
 ## 固定配图
 每篇文章必须使用对应的 4 张图片。正文第一张图是封面，按封面原规则；封面后的第一张正文图优先是影视/生活剧男女主合照或官方剧照；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
 {image_plan}
@@ -631,7 +839,7 @@ class EmotionWomenAutomation:
 }}
 
 ## 每篇硬性要求
-- 1200-1800 字中文，标题≤20字，聚焦一个爆点，不要“论/如何/关于...的思考”。
+- 1200-1800 字中文，标题≤20字，聚焦一个爆点，并按标题模板轮换分配生成，不要“论/如何/关于...的思考”。
 - 开篇 3 句必须抓人，有悬念或共鸣。
 - 至少 1 个完整故事场景，有冲突、有动作、有细节。
 - 至少 3 条加粗或引用格式金句。
