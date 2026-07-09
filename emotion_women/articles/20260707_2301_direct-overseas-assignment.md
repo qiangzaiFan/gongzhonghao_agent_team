@@ -2,7 +2,7 @@
 title: 外派涨薪50%,到底去不去
 ---
 
-![](https://picsum.photos/seed/emotion-cover-2/900/600)
+![](../images/cover/cover_self_soft_portrait_900x600.jpg)
 
 这两年，很多工厂人的机会，突然被搬到了海外。
 

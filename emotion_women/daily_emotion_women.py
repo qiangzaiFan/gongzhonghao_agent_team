@@ -335,7 +335,7 @@ def read_writer_style_digest() -> str:
 
 
 def parse_image_pool() -> dict[str, list[str]]:
-    """读取固定图池，返回 COVER/BODY 两段图片引用。"""
+    """读取固定图池，返回 COVER/COVER_* 和 BODY 图片引用。"""
     pool = {"COVER": [], "BODY": []}
     if not IMAGE_POOL.exists():
         return pool
@@ -347,7 +347,9 @@ def parse_image_pool() -> dict[str, list[str]]:
             continue
         upper = line.upper()
         if upper.startswith("## COVER"):
-            current = "COVER"
+            match = re.match(r"##\s+(COVER(?:_[A-Z0-9]+)?)", upper)
+            current = match.group(1) if match else "COVER"
+            pool.setdefault(current, [])
             continue
         if upper.startswith("## BODY"):
             current = "BODY"
@@ -356,6 +358,8 @@ def parse_image_pool() -> dict[str, list[str]]:
             continue
         if current and is_image_reference(line):
             pool[current].append(line)
+            if current.startswith("COVER_"):
+                pool["COVER"].append(line)
     return pool
 
 
@@ -389,6 +393,93 @@ def image_reference_to_markdown_path(value: str) -> str:
     if value.startswith("photo-"):
         return f"https://images.unsplash.com/{value}?w=900"
     return value
+
+
+COVER_THEME_KEYWORDS = {
+    "BREAKUP": (
+        "分手",
+        "前任",
+        "失恋",
+        "断联",
+        "挽回",
+        "放下",
+        "体面",
+        "秒回",
+        "脑补",
+        "深夜",
+    ),
+    "MARRIAGE": (
+        "婚姻",
+        "结婚",
+        "老公",
+        "丈夫",
+        "妻子",
+        "婆婆",
+        "婆媳",
+        "家务",
+        "家庭",
+        "孩子",
+        "育儿",
+        "妈妈",
+        "女儿",
+    ),
+    "WORK": (
+        "职场",
+        "工作",
+        "外派",
+        "涨薪",
+        "加班",
+        "老板",
+        "同事",
+        "办公室",
+        "辞职",
+        "裸辞",
+    ),
+    "FRIENDSHIP": (
+        "闺蜜",
+        "朋友",
+        "友情",
+        "室友",
+        "社交",
+        "姐妹",
+    ),
+    "RELATIONSHIP": (
+        "恋爱",
+        "爱",
+        "他",
+        "男友",
+        "伴侣",
+        "边界感",
+        "情绪价值",
+        "冷淡",
+        "比较",
+        "别人比",
+        "PUA",
+        "恋爱脑",
+    ),
+    "SELF": (
+        "独立",
+        "内耗",
+        "完美主义",
+        "懂事",
+        "成长",
+        "松弛感",
+        "焦虑",
+        "怕",
+        "求救",
+        "讨厌",
+        "冷漠",
+    ),
+}
+
+
+def cover_theme_for_title(title: str) -> str:
+    """根据标题关键词粗分封面主题。"""
+    compact = re.sub(r"\s+", "", title or "")
+    for theme, keywords in COVER_THEME_KEYWORDS.items():
+        if any(keyword in compact for keyword in keywords):
+            return theme
+    return "SELF"
 
 
 def recent_image_refs(max_articles: int = 5) -> set[str]:
@@ -449,7 +540,28 @@ def candidates_with_recent_fallback(items: list[str], used_recent: set[str], off
     return rotated
 
 
-def choose_images(article_count: int) -> list[list[str]]:
+def choose_cover(
+    pool: dict[str, list[str]],
+    title: str,
+    used_recent: set[str],
+    used_batch: set[str],
+    offset: int,
+    index: int,
+) -> str:
+    theme = cover_theme_for_title(title)
+    themed_key = f"COVER_{theme}"
+    candidates = pool.get(themed_key) or pool["COVER"]
+    used = used_recent | used_batch
+    if title:
+        available = [candidate for candidate in candidates if candidate not in used]
+        cover = (available or candidates)[0]
+    else:
+        cover = candidates_with_recent_fallback(candidates, used, offset + index, 1)[0]
+    used_batch.add(cover)
+    return cover
+
+
+def choose_images(article_count: int, titles: list[str] | None = None) -> list[list[str]]:
     """为每篇文章分配封面图、影视剧照、正文氛围图。"""
     pool = parse_image_pool()
     used_recent = recent_image_refs()
@@ -461,13 +573,14 @@ def choose_images(article_count: int) -> list[list[str]]:
     if not drama_source:
         raise RuntimeError(f"影视剧照图池为空，请先维护 {DRAMA_IMAGE_POOL}")
 
-    covers = candidates_with_recent_fallback(pool["COVER"], used_recent, offset, article_count)
     dramas = candidates_with_recent_fallback(drama_source, used_recent, 0, article_count)
     bodies = candidates_with_recent_fallback(pool["BODY"], used_recent, offset, article_count * 2)
 
     allocations: list[list[str]] = []
+    used_batch_covers: set[str] = set()
     for index in range(article_count):
-        cover = covers[index % len(covers)]
+        title = titles[index] if titles and index < len(titles) else ""
+        cover = choose_cover(pool, title, used_recent, used_batch_covers, offset, index)
         start = (index * 2) % len(bodies)
         body_ids = [bodies[(start + body_index) % len(bodies)] for body_index in range(2)]
         drama = dramas[index % len(dramas)]
@@ -590,13 +703,16 @@ def normalize_generated_articles(article_paths: list[Path]) -> tuple[bool, list[
     if not article_paths:
         return True, []
 
-    image_allocations = choose_images(len(article_paths))
-    results: list[tuple[Path, str]] = []
-    all_ok = True
-    for path, image_urls in zip(article_paths, image_allocations):
+    titles: list[str] = []
+    for path in article_paths:
         content = path.read_text(encoding="utf-8")
         meta, _body = split_frontmatter(content)
-        title = meta.get("title") or path.stem
+        titles.append(meta.get("title") or path.stem)
+    image_allocations = choose_images(len(article_paths), titles)
+    results: list[tuple[Path, str]] = []
+    all_ok = True
+    for path, title, image_urls in zip(article_paths, titles, image_allocations):
+        content = path.read_text(encoding="utf-8")
         path.write_text(normalize_markdown(title, content, image_urls), encoding="utf-8")
 
         ok, output = run_preflight(path)
@@ -710,7 +826,7 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER 段挑 1 张；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
+2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 去重只需避开最近 5 篇已用图片 URL/ID。
@@ -727,7 +843,7 @@ class EmotionWomenAutomation:
 - 结尾有力量，并补齐互动引导三件套：开放性问题 + 点赞理由 + 分享动机。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
-- 正文配图至少 4 张（含封面），封面按 COVER 段原规则；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
+- 正文配图至少 4 张（含封面），封面按标题主题从 COVER_* 本地精选封面池匹配；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
 
 ## 第三步：汇总结果
 
@@ -794,16 +910,19 @@ class EmotionWomenAutomation:
             raise RuntimeError(f"OpenAI API 未返回文本: {truncate_for_log(json.dumps(data, ensure_ascii=False))}")
         return text
 
-    def build_openai_prompt(self, image_allocations: list[list[str]]) -> list[dict]:
+    def build_openai_prompt(self, image_allocations: list[list[str]] | None = None) -> list[dict]:
         existing_title_list = list_existing_titles()
         existing_titles = "\n".join(f"- {title}" for title in existing_title_list) or "- 暂无"
         title_template_guidance = format_title_template_guidance(self.article_count, existing_title_list)
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
-        image_plan = "\n".join(
-            f"{index + 1}. 封面：{urls[0]}；封面后第一张正文图：{urls[1]}；正文图：{', '.join(urls[2:])}"
-            for index, urls in enumerate(image_allocations)
-        )
+        if image_allocations:
+            image_plan = "\n".join(
+                f"{index + 1}. 封面：{urls[0]}；封面后第一张正文图：{urls[1]}；正文图：{', '.join(urls[2:])}"
+                for index, urls in enumerate(image_allocations)
+            )
+        else:
+            image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，封面后的第一张正文图从 drama_image_pool.txt 选，后 2 张从 BODY 选。"
 
         system = """你是情感女性公众号的资深主编和主笔。
 你要生成可直接保存为微信公众号草稿的 Markdown 文章，风格与 emotion-writer agent 保持一致：真实故事切入，观点犀利但温暖，面向 25-45 岁女性，覆盖恋爱、婚姻、育儿、职场与家庭照护压力，像有阅历的女性朋友认真聊天，不像 AI 课堂。
@@ -822,7 +941,7 @@ class EmotionWomenAutomation:
 {title_template_guidance}
 
 ## 固定配图
-每篇文章必须使用对应的 4 张图片。正文第一张图是封面，按封面原规则；封面后的第一张正文图优先是影视/生活剧男女主合照或官方剧照；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
+每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是影视/生活剧男女主合照或官方剧照；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
 {image_plan}
 
 ## 输出格式
@@ -915,8 +1034,7 @@ class EmotionWomenAutomation:
 
         try:
             ARTICLES_DIR.mkdir(exist_ok=True)
-            image_allocations = choose_images(self.article_count)
-            messages = self.build_openai_prompt(image_allocations)
+            messages = self.build_openai_prompt()
             logger.info("调用 OpenAI API 生成文章...")
             text = self.openai_request(messages, use_web_search=True)
             data = parse_json_object(text)
@@ -924,6 +1042,8 @@ class EmotionWomenAutomation:
             if not isinstance(articles, list) or len(articles) < self.article_count:
                 raise RuntimeError(f"OpenAI 返回文章数量不足：{len(articles) if isinstance(articles, list) else 0}/{self.article_count}")
 
+            titles = [str(article.get("title") or "").strip() for article in articles[: self.article_count]]
+            image_allocations = choose_images(self.article_count, titles)
             saved = self.save_openai_articles(articles, image_allocations)
             all_ok = True
             for index, (path, title, summary) in enumerate(saved):

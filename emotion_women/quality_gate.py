@@ -19,6 +19,7 @@ except ImportError:  # pragma: no cover - optional local image dimension check
 
 
 BASE_DIR = Path(__file__).parent
+IMAGE_POOL = BASE_DIR / "image_pool.txt"
 DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
 
 BANNED_PHRASES = [
@@ -31,6 +32,10 @@ BANNED_PHRASES = [
     "正确的做法是",
 ]
 EXPECTED_LOCAL_IMAGE_SIZE = (900, 600)
+MIN_LOCAL_COVER_EDGE_RMS = 10.0
+MIN_LOCAL_COVER_BRIGHTNESS = 45.0
+MAX_LOCAL_COVER_BRIGHTNESS = 235.0
+MIN_LOCAL_COVER_SATURATION = 18.0
 MIN_LOCAL_DRAMA_EDGE_RMS = 15.0
 
 
@@ -59,6 +64,27 @@ def drama_image_paths() -> set[str]:
     for raw_line in DRAMA_IMAGE_POOL.read_text(encoding="utf-8", errors="ignore").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#") or not is_image_reference(line):
+            continue
+        paths.add(image_reference_to_markdown_path(line))
+    return paths
+
+
+def cover_image_paths() -> set[str]:
+    if not IMAGE_POOL.exists():
+        return set()
+
+    paths: set[str] = set()
+    in_cover = False
+    for raw_line in IMAGE_POOL.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.strip()
+        upper = line.upper()
+        if upper.startswith("## COVER"):
+            in_cover = True
+            continue
+        if upper.startswith("## BODY"):
+            in_cover = False
+            continue
+        if not in_cover or not line or line.startswith("#") or not is_image_reference(line):
             continue
         paths.add(image_reference_to_markdown_path(line))
     return paths
@@ -99,6 +125,46 @@ def validate_local_image_dimensions(article_path: Path, images: list[str]) -> li
                 f"正文图片 #{index} 本地尺寸不统一：{image} 为 {size[0]}x{size[1]}，"
                 f"应为 {EXPECTED_LOCAL_IMAGE_SIZE[0]}x{EXPECTED_LOCAL_IMAGE_SIZE[1]}"
             )
+    return errors
+
+
+def validate_local_cover_quality(article_path: Path, images: list[str]) -> list[str]:
+    if Image is None or ImageFilter is None or ImageStat is None or not images:
+        return []
+
+    cover_image = images[0]
+    if is_url(cover_image) or cover_image.startswith("data:") or cover_image.startswith("asset://"):
+        return ["封面图必须使用本地精选封面池图片，不能直接使用远程链接"]
+
+    resolved = local_image_path(article_path, cover_image)
+    if not resolved.exists():
+        return []
+
+    try:
+        with Image.open(resolved).convert("RGB") as im:
+            gray = im.convert("L")
+            brightness = ImageStat.Stat(gray).mean[0]
+            edge_rms = ImageStat.Stat(gray.filter(ImageFilter.FIND_EDGES)).rms[0]
+            saturation = ImageStat.Stat(im.convert("HSV").split()[1]).mean[0]
+    except OSError:
+        return []
+
+    errors: list[str] = []
+    if brightness < MIN_LOCAL_COVER_BRIGHTNESS or brightness > MAX_LOCAL_COVER_BRIGHTNESS:
+        errors.append(
+            f"封面图亮度不适合：{cover_image} brightness={brightness:.1f}，"
+            f"应在 {MIN_LOCAL_COVER_BRIGHTNESS:.0f}-{MAX_LOCAL_COVER_BRIGHTNESS:.0f}"
+        )
+    if edge_rms < MIN_LOCAL_COVER_EDGE_RMS:
+        errors.append(
+            f"封面图清晰度偏低：{cover_image} edge_rms={edge_rms:.2f}，"
+            f"至少 {MIN_LOCAL_COVER_EDGE_RMS:.1f}"
+        )
+    if saturation < MIN_LOCAL_COVER_SATURATION:
+        errors.append(
+            f"封面图色彩吸引力偏弱：{cover_image} saturation={saturation:.1f}，"
+            f"至少 {MIN_LOCAL_COVER_SATURATION:.1f}"
+        )
     return errors
 
 
@@ -165,6 +231,14 @@ def main() -> int:
     if len(images) < args.min_images:
         errors.append(f"正文图片不足：{len(images)} 张，至少 {args.min_images} 张")
 
+    cover_paths = cover_image_paths()
+    if not cover_paths:
+        errors.append(f"封面图池为空：{IMAGE_POOL}")
+    elif not images:
+        errors.append("封面图缺失：正文第一张图片必须作为公众号封面")
+    elif images[0] not in cover_paths:
+        errors.append(f"正文第一张图不是精选封面图池图片：{images[0]}")
+
     drama_paths = drama_image_paths()
     if not drama_paths:
         errors.append(f"影视剧照图池为空：{DRAMA_IMAGE_POOL}")
@@ -176,6 +250,7 @@ def main() -> int:
         errors.append("封面后的影视剧照必须使用本地高清缓存图，不能直接使用远程链接")
 
     errors.extend(validate_local_image_dimensions(article_path, images))
+    errors.extend(validate_local_cover_quality(article_path, images))
     errors.extend(validate_local_drama_clarity(article_path, images))
 
     golden = bold_or_quote_count(body)

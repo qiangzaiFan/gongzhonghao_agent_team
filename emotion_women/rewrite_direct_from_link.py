@@ -117,7 +117,7 @@ def save_direct_article(data: dict, source_text: str) -> tuple[Path, float]:
         path = ARTICLES_DIR / f"{timestamp}_direct-{slug}-{suffix}.md"
         suffix += 1
 
-    image_urls = choose_images(1)[0]
+    image_urls = choose_images(1, [title])[0]
     normalized = normalize_markdown(title, markdown, image_urls)
     overlap = shingle_overlap(source_text, normalized)
     path.write_text(normalized, encoding="utf-8")

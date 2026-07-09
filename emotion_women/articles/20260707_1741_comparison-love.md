@@ -2,7 +2,7 @@
 title: 他总拿你和别人比,够了
 ---
 
-![](https://picsum.photos/seed/emotion-cover-2/900/600)
+![](../images/cover/cover_self_hair_close_900x600.jpg)
 
 最伤人的话，往往不是“我不爱你了”。
 

@@ -2,7 +2,7 @@
 title: 婚姻里最累的永远是她
 ---
 
-![](https://picsum.photos/seed/emotion-cover-3/900/600)
+![](../images/cover/cover_marriage_mature_home_900x600.jpg)
 
 很多女人不是被家务压垮的。
 

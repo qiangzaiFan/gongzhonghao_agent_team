@@ -2,7 +2,7 @@
 title: 别把边界感过成冷漠了
 ---
 
-![](https://picsum.photos/seed/emotion-cover-1/900/600)
+![](../images/cover/cover_relationship_sunset_900x600.jpg)
 
 有些婚姻不是吵散的。
 

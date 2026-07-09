@@ -2,7 +2,7 @@
 title: 分手后别再装得太体面
 ---
 
-![](https://picsum.photos/seed/emotion-cover-4/900/600)
+![](../images/cover/cover_breakup_city_night_900x600.jpg)
 
 分手后最折磨人的，不一定是还爱。
 

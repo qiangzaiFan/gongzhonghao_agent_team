@@ -90,7 +90,15 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 ### 配图图池
 
-文章第一张图会作为公众号封面，仍按原规则从 `image_pool.txt` 的 COVER 段读取。
+文章第一张图会作为公众号封面，从 `image_pool.txt` 的 `COVER_*` 本地精选封面池读取。脚本会按标题关键词自动匹配封面主题，例如婚姻/家庭、分手/前任、职场、亲密关系、女性成长、朋友关系。
+
+```text
+## COVER_BREAKUP
+../images/cover/cover_breakup_anxious_900x600.jpg
+
+## COVER_MARRIAGE
+../images/cover/cover_marriage_mature_home_900x600.jpg
+```
 
 封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照或生活化关系截图。为了保证公众号正文清晰度，这个图池只放本地高清缓存图。
 
@@ -101,7 +109,7 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 其余正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
 
-本地图统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，并对封面后的影视剧图做清晰度检测，避免剧照和正文图在公众号里显示大小不一致或画质偏糊。
+本地图统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，并对封面图做亮度、清晰度、色彩吸引力检测，对封面后的影视剧图做清晰度检测，避免公众号里出现随机、偏暗、偏糊或尺寸不一致的图片。
 
 ### 发布到公众号草稿箱
 
