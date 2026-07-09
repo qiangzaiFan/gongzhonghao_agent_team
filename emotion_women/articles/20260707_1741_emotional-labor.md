@@ -38,7 +38,7 @@ title: 婚姻里最累的永远是她
 
 ## 情绪劳动最容易被当成应该
 
-![](https://picsum.photos/seed/emotion-body-1/900/600)
+![](../images/drama/the_apartment_trailer_1_right_900x600.jpg)
 
 很多男人会说：“我也做家务啊。”
 

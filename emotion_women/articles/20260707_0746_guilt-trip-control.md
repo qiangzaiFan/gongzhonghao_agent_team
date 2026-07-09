@@ -30,7 +30,7 @@ title: 「我这么做还不是为你好」才是最狠的一句话
 **真正的爱是给你打伞,情感勒索是往你身上泼水,再骂你怎么这么狼狈。**
 
 
-![](https://upload.wikimedia.org/wikipedia/commons/e/e7/Nothing_Personal_Still_12_Johnny_Savageklein.jpg)
+![](../images/drama/the_apartment_trailer_1_right_900x600.jpg)
 
 ## 二、它最毒的地方:让你的每个选择都变成"辜负"
 

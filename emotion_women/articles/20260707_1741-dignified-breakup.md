@@ -34,7 +34,7 @@ title: 分手后别再装得太体面
 
 ## 体面有时候是在延迟疼痛
 
-![](https://picsum.photos/seed/emotion-body-4/900/600)
+![](../images/drama/the_apartment_trailer_1_left_900x600.jpg)
 
 我不是反对体面。
 

@@ -11,9 +11,11 @@ from pathlib import Path
 from validate_article_images import image_paths, is_url, local_image_path, parse_frontmatter
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageFilter, ImageStat
 except ImportError:  # pragma: no cover - optional local image dimension check
     Image = None
+    ImageFilter = None
+    ImageStat = None
 
 
 BASE_DIR = Path(__file__).parent
@@ -29,6 +31,7 @@ BANNED_PHRASES = [
     "正确的做法是",
 ]
 EXPECTED_LOCAL_IMAGE_SIZE = (900, 600)
+MIN_LOCAL_DRAMA_EDGE_RMS = 15.0
 
 
 def is_image_reference(value: str) -> bool:
@@ -99,6 +102,29 @@ def validate_local_image_dimensions(article_path: Path, images: list[str]) -> li
     return errors
 
 
+def validate_local_drama_clarity(article_path: Path, images: list[str]) -> list[str]:
+    if Image is None or ImageFilter is None or ImageStat is None or len(images) < 2:
+        return []
+
+    drama_image = images[1]
+    resolved = local_image_path(article_path, drama_image)
+    if not resolved.exists():
+        return []
+
+    try:
+        with Image.open(resolved).convert("L") as im:
+            edge_rms = ImageStat.Stat(im.filter(ImageFilter.FIND_EDGES)).rms[0]
+    except OSError:
+        return []
+
+    if edge_rms < MIN_LOCAL_DRAMA_EDGE_RMS:
+        return [
+            f"封面后的影视剧照清晰度偏低：{drama_image} edge_rms={edge_rms:.2f}，"
+            f"至少 {MIN_LOCAL_DRAMA_EDGE_RMS:.1f}。请换高清源图裁成 900x600"
+        ]
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="检查 emotion_women 文章是否达到发布前的低成本质量门槛",
@@ -146,8 +172,11 @@ def main() -> int:
         errors.append("封面后的第一张正文图缺失：正文至少需要封面图 + 影视剧照图")
     elif images[1] not in drama_paths:
         errors.append(f"封面后的第一张正文图不是影视剧照图池图片：{images[1]}")
+    elif is_url(images[1]) or images[1].startswith("data:") or images[1].startswith("asset://"):
+        errors.append("封面后的影视剧照必须使用本地高清缓存图，不能直接使用远程链接")
 
     errors.extend(validate_local_image_dimensions(article_path, images))
+    errors.extend(validate_local_drama_clarity(article_path, images))
 
     golden = bold_or_quote_count(body)
     if golden < args.min_golden:

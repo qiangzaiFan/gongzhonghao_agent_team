@@ -62,7 +62,7 @@ title: 别把边界感过成冷漠了
 
 ## 边界感不是把门反锁
 
-![](../images/drama/nothing_personal_still_12_900x600.jpg)
+![](../images/drama/the_apartment_trailer_1_left_900x600.jpg)
 
 我当然不是说，婚姻里不需要边界。
 

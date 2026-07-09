@@ -36,7 +36,7 @@ title: 他总拿你和别人比,够了
 
 ## 比较不是建议,是关系里的贬低
 
-![](https://picsum.photos/seed/emotion-body-14/900/600)
+![](../images/drama/the_apartment_trailer_1_900x600.jpg)
 
 很多人会把比较包装成“为你好”。
 

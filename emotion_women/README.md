@@ -92,16 +92,16 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 文章第一张图会作为公众号封面，仍按原规则从 `image_pool.txt` 的 COVER 段读取。
 
-封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照或生活化关系截图。
+封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照或生活化关系截图。为了保证公众号正文清晰度，这个图池只放本地高清缓存图。
 
 ```text
-https://example.com/your-authorized-drama-still-1.jpg
-./images/drama/your-drama-still-2.jpg
+../images/drama/your-drama-still-1_900x600.jpg
+../images/drama/your-drama-still-2_900x600.jpg
 ```
 
 其余正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
 
-本地图建议统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，避免剧照和正文图在公众号里显示大小不一致。
+本地图统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，并对封面后的影视剧图做清晰度检测，避免剧照和正文图在公众号里显示大小不一致或画质偏糊。
 
 ### 发布到公众号草稿箱
 

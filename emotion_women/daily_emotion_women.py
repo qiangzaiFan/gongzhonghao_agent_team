@@ -173,7 +173,7 @@ def is_image_reference(value: str) -> bool:
 
 
 def parse_drama_image_pool() -> list[str]:
-    """读取影视/生活剧男女主合照图池，一行一个 URL 或本地路径。"""
+    """读取影视/生活剧男女主合照图池，一行一个本地高清图片路径。"""
     if not DRAMA_IMAGE_POOL.exists():
         return []
 
