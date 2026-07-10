@@ -9,15 +9,22 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import os
 import re
 import subprocess
 import sys
 import time
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from urllib import error, request
 from zoneinfo import ZoneInfo
+
+try:
+    from PIL import Image
+except ImportError:  # pragma: no cover - optional local color scoring
+    Image = None
 
 # 配置日志
 BASE_DIR = Path(__file__).parent
@@ -30,6 +37,8 @@ IMAGES_DIR = BASE_DIR / "images"
 IMAGE_POOL = BASE_DIR / "image_pool.txt"
 DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
 MAX_LOG_OUTPUT_CHARS = 4000
+RECENT_ARTICLES_FOR_DRAMA_IMAGES = 12
+MIN_COLORFUL_DRAMA_SCORE = 25.0
 DEFAULT_PROVIDER = os.getenv("EMOTION_PROVIDER", "claude").strip().lower() or "claude"
 DEFAULT_OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.5").strip() or "gpt-5.5"
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
@@ -395,6 +404,56 @@ def image_reference_to_markdown_path(value: str) -> str:
     return value
 
 
+def is_remote_image_reference(value: str) -> bool:
+    return value.startswith("http://") or value.startswith("https://") or value.startswith("data:")
+
+
+def local_image_path_from_reference(value: str) -> Path | None:
+    if is_remote_image_reference(value) or value.startswith("photo-") or value.startswith("asset://"):
+        return None
+
+    candidate = Path(value)
+    if candidate.is_absolute():
+        return candidate
+
+    if value.startswith("../") or value.startswith("./"):
+        return (ARTICLES_DIR / candidate).resolve()
+
+    return (BASE_DIR / candidate).resolve()
+
+
+@lru_cache(maxsize=256)
+def drama_image_colorfulness(value: str) -> float:
+    if Image is None:
+        return 0.0
+
+    path = local_image_path_from_reference(value)
+    if not path or not path.exists():
+        return 0.0
+
+    try:
+        with Image.open(path).convert("RGB") as im:
+            sample = im.resize((180, 120))
+            pixels = list(sample.getdata())
+    except OSError:
+        return 0.0
+
+    rg = [red - green for red, green, _blue in pixels]
+    yb = [0.5 * (red + green) - blue for red, green, blue in pixels]
+    mean_rg = sum(rg) / len(rg)
+    mean_yb = sum(yb) / len(yb)
+    std_rg = math.sqrt(sum((value - mean_rg) ** 2 for value in rg) / len(rg))
+    std_yb = math.sqrt(sum((value - mean_yb) ** 2 for value in yb) / len(yb))
+    return math.sqrt(std_rg**2 + std_yb**2) + 0.3 * math.sqrt(mean_rg**2 + mean_yb**2)
+
+
+def drama_source_group(value: str) -> str:
+    stem = Path(value.split("?", 1)[0]).stem.lower()
+    stem = re.sub(r"_900x600$", "", stem)
+    stem = re.sub(r"_(left|right|center)$", "", stem)
+    return stem
+
+
 COVER_THEME_KEYWORDS = {
     "BREAKUP": (
         "分手",
@@ -540,6 +599,71 @@ def candidates_with_recent_fallback(items: list[str], used_recent: set[str], off
     return rotated
 
 
+def color_ranked_drama_candidates(items: list[str], offset: int) -> list[str]:
+    """Prefer colorful local drama stills while keeping equal-score items rotated."""
+    rotated = rotate_candidates(items, offset)
+    order = {item: index for index, item in enumerate(rotated)}
+
+    def sort_key(item: str) -> tuple[int, float, int]:
+        color_score = drama_image_colorfulness(item)
+        color_bucket = 0 if color_score >= MIN_COLORFUL_DRAMA_SCORE else 1
+        return (color_bucket, -color_score, order[item])
+
+    return sorted(rotated, key=sort_key)
+
+
+def choose_drama_sequence(
+    items: list[str],
+    used_recent: set[str],
+    offset: int,
+    needed: int,
+) -> list[str]:
+    """Pick drama stills with color, recent-use, and same-source diversity."""
+    ranked = color_ranked_drama_candidates(items, offset)
+    if not ranked or needed <= 0:
+        return []
+
+    selected: list[str] = []
+    selected_items: set[str] = set()
+    selected_groups: set[str] = set()
+
+    def take(avoid_recent: bool, avoid_groups: bool, require_colorful: bool = False) -> bool:
+        for candidate in ranked:
+            if candidate in selected_items:
+                continue
+            if require_colorful and drama_image_colorfulness(candidate) < MIN_COLORFUL_DRAMA_SCORE:
+                continue
+            if avoid_recent and candidate in used_recent:
+                continue
+            group = drama_source_group(candidate)
+            if avoid_groups and group in selected_groups:
+                continue
+            selected.append(candidate)
+            selected_items.add(candidate)
+            selected_groups.add(group)
+            if len(selected) >= needed:
+                return True
+        return False
+
+    passes = (
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, True),
+        (True, True, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+    )
+    for avoid_recent, avoid_groups, require_colorful in passes:
+        if take(avoid_recent, avoid_groups, require_colorful):
+            return selected
+
+    while len(selected) < needed:
+        selected.append(ranked[len(selected) % len(ranked)])
+    return selected
+
+
 def choose_cover(
     pool: dict[str, list[str]],
     title: str,
@@ -565,6 +689,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
     """为每篇文章分配封面图、影视剧照、正文氛围图。"""
     pool = parse_image_pool()
     used_recent = recent_image_refs()
+    used_recent_drama = recent_image_refs(max_articles=RECENT_ARTICLES_FOR_DRAMA_IMAGES)
     if not pool["COVER"] or len(pool["BODY"]) < 2:
         raise RuntimeError(f"图片池不足，请检查 {IMAGE_POOL}")
 
@@ -573,7 +698,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
     if not drama_source:
         raise RuntimeError(f"影视剧照图池为空，请先维护 {DRAMA_IMAGE_POOL}")
 
-    dramas = candidates_with_recent_fallback(drama_source, used_recent, 0, article_count)
+    dramas = choose_drama_sequence(drama_source, used_recent_drama, offset, article_count)
     bodies = candidates_with_recent_fallback(pool["BODY"], used_recent, offset, article_count * 2)
 
     allocations: list[list[str]] = []
@@ -829,7 +954,7 @@ class EmotionWomenAutomation:
 2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
-   - 去重只需避开最近 5 篇已用图片 URL/ID。
+   - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
 3. 写一篇 1200-1800 字的情感深度文章。
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`。
 {publish_step}
@@ -941,7 +1066,7 @@ class EmotionWomenAutomation:
 {title_template_guidance}
 
 ## 固定配图
-每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是影视/生活剧男女主合照或官方剧照；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
+每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
 {image_plan}
 
 ## 输出格式

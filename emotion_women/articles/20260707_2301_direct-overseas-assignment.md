@@ -36,7 +36,7 @@ title: 外派涨薪50%,到底去不去
 
 这笔钱买走的，可能是你的稳定生活、熟悉圈子、家庭陪伴，也可能是两年里几乎没有回头路的选择权。
 
-![](../images/drama/the_apartment_trailer_1_900x600.jpg)
+![](../images/drama/young_margate_candid_900x600.jpg)
 
 ## 去海外,不只是换个地方上班
 

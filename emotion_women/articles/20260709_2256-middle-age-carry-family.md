@@ -12,7 +12,7 @@ title: 人到中年,别再替全家扛
 
 ## 她不是能干,是没人允许她掉链子
 
-![](../images/drama/the_apartment_trailer_1_900x600.jpg)
+![](../images/drama/young_boyfriend_girlfriend_900x600.jpg)
 
 梅姐四十二岁，白天在公司做行政，晚上回家像切换到另一个岗位。
 

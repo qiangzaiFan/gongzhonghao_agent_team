@@ -12,7 +12,7 @@ title: 这3次沉默,最伤女人
 
 ## 第一次沉默:你明明委屈,却先替他解释
 
-![](../images/drama/the_apartment_trailer_1_left_900x600.jpg)
+![](../images/drama/young_holding_hands_900x600.jpg)
 
 阿静有一次生日，男朋友答应陪她吃饭。
 

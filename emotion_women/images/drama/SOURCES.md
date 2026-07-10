@@ -1,0 +1,47 @@
+# Drama Image Sources
+
+These local relationship images are cached and cropped to `900x600` for the first body image after the cover. The current pool intentionally uses young, modern, colorful relationship scenes and excludes dated black-and-white film stills.
+
+- `young_about_to_kiss_900x600.jpg`
+  - Source: `https://www.flickr.com/photos/135396164@N05/31973976213`
+  - License: CC0
+  - Creator: freestocks.org
+- `young_boyfriend_girlfriend_900x600.jpg`
+  - Source: `https://stocksnap.io/photo/boyfriend-girlfriend-OIOWWM21KW`
+  - License: CC0
+  - Creator: Living Together
+- `young_couple_fun_900x600.jpg`
+  - Source: `https://www.flickr.com/photos/135396164@N05/33564740034`
+  - License: CC0
+  - Creator: freestocks.org
+- `young_lets_hug_900x600.jpg`
+  - Source: `https://www.flickr.com/photos/135396164@N05/24640023890`
+  - License: CC0
+  - Creator: freestocks.org
+- `young_home_music_900x600.jpg`
+  - Source: `https://commons.wikimedia.org/wiki/File:Happy_young_couple_listening_to_music_at_home.jpg`
+  - License: CC BY 2.0
+- `young_park_walk_900x600.jpg`
+  - Source: `https://commons.wikimedia.org/wiki/File:Young_couple_enjoying_each_other's_company_(42556568522).jpg`
+  - License: CC BY 2.0
+- `young_public_park_kiss_900x600.jpg`
+  - Source: `https://commons.wikimedia.org/wiki/File:Young_Couple_Smooches_in_a_Public_Park_-_Cordoba_-_Argentina._cropped.jpg`
+  - License: CC BY-SA 3.0
+- `young_margate_candid_900x600.jpg`
+  - Source: `https://www.flickr.com/photos/40837632@N05/17027963648`
+  - License: CC BY
+  - Creator: Gareth1953 All Right Now
+- `young_holding_hands_900x600.jpg`
+  - Source: `https://www.flickr.com/photos/135396164@N05/29183255620`
+  - License: CC0
+  - Creator: freestocks.org
+- `young_cafe_laughing_900x600.jpg`
+  - Source: `https://commons.wikimedia.org/wiki/File:A_young_couple_sits_closely_on_a_wooden_bench,_laughing_and_enjoying_a_moment_together_in_a_cozy_cafe.jpg`
+  - License: CC BY 2.0
+- `young_kitchen_conversation_900x600.jpg`
+  - Source: `https://commons.wikimedia.org/wiki/File:In_a_charming_wooden_kitchen,_a_relaxed_couple_engages_in_playful_conversation_while_preparing_a_meal.jpg`
+  - License: CC BY 2.0
+- `young_couple_food_900x600.jpg`
+  - Source: `https://stocksnap.io/photo/couple-food-IHQGVIHK7L`
+  - License: CC0
+  - Creator: Living Together

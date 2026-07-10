@@ -12,7 +12,7 @@ title: 成年人最贵的浪漫,是被惦记
 
 ## 她想要的不是惊喜,是你记得
 
-![](../images/drama/the_apartment_trailer_1_left_900x600.jpg)
+![](../images/drama/young_couple_fun_900x600.jpg)
 
 小满和男朋友在一起三年。
 

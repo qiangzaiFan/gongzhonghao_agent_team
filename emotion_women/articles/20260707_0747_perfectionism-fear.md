@@ -32,7 +32,7 @@ title: 你不是完美主义，你只是怕被讨厌
 高标准是往前冲，恐惧是往后缩。它俩长得像，方向却完全相反。
 
 
-![](../images/drama/the_apartment_trailer_1_left_900x600.jpg)
+![](../images/drama/young_boyfriend_girlfriend_900x600.jpg)
 
 ## 二、完美主义不是怕犯错，是怕不被爱
 

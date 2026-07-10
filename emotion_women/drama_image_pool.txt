@@ -8,7 +8,16 @@
 # - 必须使用本地高清缓存图，统一裁成 900x600；quality_gate.py 会拦截尺寸或清晰度不达标的图。
 # - 远程剧照请先下载/缓存到 images/drama/，处理成 900x600 后再放入本池。
 #
-# 优先剧照 / 现代关系图：更适合情感、爱情、生活类文章。
-../images/drama/the_apartment_trailer_1_left_900x600.jpg
-../images/drama/the_apartment_trailer_1_right_900x600.jpg
-../images/drama/the_apartment_trailer_1_900x600.jpg
+# 年轻现代关系图：优先用于封面后的第一张正文图。
+../images/drama/young_about_to_kiss_900x600.jpg
+../images/drama/young_boyfriend_girlfriend_900x600.jpg
+../images/drama/young_couple_fun_900x600.jpg
+../images/drama/young_lets_hug_900x600.jpg
+../images/drama/young_home_music_900x600.jpg
+../images/drama/young_park_walk_900x600.jpg
+../images/drama/young_public_park_kiss_900x600.jpg
+../images/drama/young_margate_candid_900x600.jpg
+../images/drama/young_holding_hands_900x600.jpg
+../images/drama/young_cafe_laughing_900x600.jpg
+../images/drama/young_kitchen_conversation_900x600.jpg
+../images/drama/young_couple_food_900x600.jpg

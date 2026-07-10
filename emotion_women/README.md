@@ -100,7 +100,7 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 ../images/cover/cover_marriage_mature_home_900x600.jpg
 ```
 
-封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放爱情、生活、都市情感题材电视剧/电影的男女主合照、官方剧照或生活化关系截图。为了保证公众号正文清晰度，这个图池只放本地高清缓存图。
+封面图后面的第一张正文图片，优先从 `drama_image_pool.txt` 读取，适合放年轻、现代、彩色的爱情/生活剧关系图、男女主合照或生活化关系截图。为了保证公众号正文清晰度，这个图池只放本地高清缓存图；批量生成/发布时会避开最近 12 篇用过的剧照，并尽量保证同一批文章不用同一来源场景。不要再放年代感强的黑白老片剧照。
 
 ```text
 ../images/drama/your-drama-still-1_900x600.jpg

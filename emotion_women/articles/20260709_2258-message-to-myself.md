@@ -12,7 +12,7 @@ title: 有一种孤独,叫消息发给自己
 
 ## 她不是没人认识,是没人能接住
 
-![](../images/drama/the_apartment_trailer_1_right_900x600.jpg)
+![](../images/drama/young_lets_hug_900x600.jpg)
 
 小鹿的微信里有两千多个联系人。
 
