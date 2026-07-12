@@ -29,6 +29,13 @@
 - 正文至少引用 3 张图片，并提供 1 张封面图；发布前运行 `python3 validate_article_images.py <文章路径>` 和 `python3 quality_gate.py <文章路径>` 校验
 - 配图存放在 `images/` 目录
 
+## 贴图口令
+
+- 用户说“贴图最新文章”时，运行 `python3 article_to_images.py --latest 1`。
+- 用户指定“贴图最新 N 篇文章”时，运行 `python3 article_to_images.py --latest N`。
+- 只有用户明确说“发到草稿箱”时才追加 `--publish`；未明确要求发布时只生成本地贴图。
+- 贴图输出到 `articles/image_posts/`，不得覆盖或修改 `articles/` 下的原始文章。
+
 ## 质量红线
 
 - 不写空洞鸡汤（"爱自己"、"时间会治愈"等陈词滥调）

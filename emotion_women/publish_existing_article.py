@@ -87,6 +87,7 @@ def record_successful_publish(article_path: Path, theme: str) -> None:
         "title": title_match.group(1) if title_match else article_path.stem,
         "cover": cover_match.group(1) if cover_match else "",
         "theme": theme,
+        "format": "image-post" if "format: image-post" in content else "article",
     }
     PUBLISH_HISTORY.parent.mkdir(exist_ok=True)
     with PUBLISH_HISTORY.open("a", encoding="utf-8") as fh:
@@ -126,8 +127,12 @@ def main() -> int:
         print("错误：图片预检未通过，已停止发布。请修复图片后重试。")
         return image_preflight.returncode
 
+    content = article_path.read_text(encoding="utf-8", errors="ignore")
+    quality_script = "validate_image_post.py" if re.search(
+        r"(?m)^format:\s*image-post\s*$", content
+    ) else "quality_gate.py"
     quality_preflight = subprocess.run(
-        [sys.executable, str(BASE_DIR / "quality_gate.py"), str(article_path)],
+        [sys.executable, str(BASE_DIR / quality_script), str(article_path)],
         cwd=BASE_DIR,
     )
     if quality_preflight.returncode != 0:
