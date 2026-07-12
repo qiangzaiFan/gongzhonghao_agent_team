@@ -10,15 +10,18 @@ WeChat Official Account IP allowlist.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).parent
 MCP_CONFIG = BASE_DIR / ".mcp.json"
 DEFAULT_THEME = "purple"
+PUBLISH_HISTORY = BASE_DIR / "logs" / "publish_history.jsonl"
 NODE_CANDIDATES = [
     Path("/Users/xiao/.nvm/versions/node/v22.22.1/bin/node"),
     Path.home() / ".nvm/versions/node/v22.22.2/bin/node",
@@ -72,6 +75,22 @@ def load_wenyan_config() -> tuple[str, dict[str, str]]:
         "WECHAT_APP_ID": env["WECHAT_APP_ID"],
         "WECHAT_APP_SECRET": env["WECHAT_APP_SECRET"],
     }
+
+
+def record_successful_publish(article_path: Path, theme: str) -> None:
+    content = article_path.read_text(encoding="utf-8", errors="ignore")
+    title_match = re.search(r"(?m)^title:\s*[\"']?(.+?)[\"']?\s*$", content)
+    cover_match = re.search(r"!\[[^\]]*\]\(([^)\s]+)", content)
+    record = {
+        "published_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "article": str(article_path),
+        "title": title_match.group(1) if title_match else article_path.stem,
+        "cover": cover_match.group(1) if cover_match else "",
+        "theme": theme,
+    }
+    PUBLISH_HISTORY.parent.mkdir(exist_ok=True)
+    with PUBLISH_HISTORY.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def main() -> int:
@@ -149,6 +168,8 @@ try {{
         result = subprocess.run(cmd, cwd=BASE_DIR, env=env)
     finally:
         Path(temp_script).unlink(missing_ok=True)
+    if result.returncode == 0:
+        record_successful_publish(article_path, args.theme)
     return result.returncode
 
 

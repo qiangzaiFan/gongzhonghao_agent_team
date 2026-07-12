@@ -30,7 +30,34 @@ BANNED_PHRASES = [
     "由此可见",
     "女性要学会",
     "正确的做法是",
+    "这告诉我们",
+    "在这个快节奏的时代",
+    "在这个充满挑战的时代",
+    "你有没有发现",
+    "值得注意的是",
+    "不难发现",
+    "愿每一个女孩",
+    "愿每个女孩",
+    "请相信",
 ]
+ENUMERATION_PATTERNS = [
+    r"首先[，,]",
+    r"其次[，,]",
+    r"最后[，,]",
+    r"第一[，,：:]",
+    r"第二[，,：:]",
+    r"第三[，,：:]",
+    r"一方面[，,]",
+    r"另一方面[，,]",
+]
+STORY_TIME_PATTERNS = (
+    r"那天|当天|第二天|后来|几天后|一个月后|早上|中午|晚上|"
+    r"凌晨|回到家|出门时|下班后|吃饭时"
+)
+AUTHOR_SUMMARY_PATTERNS = (
+    r"忽然明白|终于明白|这说明|这意味着|归根结底|说到底|"
+    r"本质上|本来就该|道理很简单|真正的[^。！？\n]{0,30}(?:是|在于)"
+)
 EXPECTED_LOCAL_IMAGE_SIZE = (900, 600)
 MIN_LOCAL_COVER_EDGE_RMS = 10.0
 MIN_LOCAL_COVER_BRIGHTNESS = 45.0
@@ -102,6 +129,56 @@ def bold_or_quote_count(body: str) -> int:
 
 def heading_count(body: str) -> int:
     return len(re.findall(r"(?m)^##\s+\S", body))
+
+
+def style_errors(body: str) -> list[str]:
+    """Catch repeated structural habits that make batch articles read mechanically."""
+    errors: list[str] = []
+    enumeration_count = sum(len(re.findall(pattern, body)) for pattern in ENUMERATION_PATTERNS)
+    if enumeration_count >= 2:
+        errors.append(f"机械枚举过多：识别到 {enumeration_count} 个顺序连接词")
+
+    contrast_count = len(re.findall(r"不是[^。！？\n]{0,35}而是", body))
+    if contrast_count >= 3:
+        errors.append(f"“不是……而是……”句式重复：识别到 {contrast_count} 处，最多 2 处")
+
+    question_count = len(re.findall(r"[？?]", body))
+    if question_count > 5:
+        errors.append(f"问句过多：识别到 {question_count} 个，最多 5 个")
+
+    ending = body[-350:]
+    engagement_hits = [word for word in ("评论", "点赞", "转发", "分享") if word in ending]
+    if len(engagement_hits) >= 3:
+        errors.append(f"结尾出现互动三件套：{', '.join(engagement_hits)}，最多保留一个自然互动动作")
+    return errors
+
+
+def narrative_errors(body: str) -> list[str]:
+    errors: list[str] = []
+    dialogue_count = len(re.findall(r"[“\"][^”\"\n]{2,80}[”\"]", body))
+    time_count = len(re.findall(STORY_TIME_PATTERNS, body))
+    if dialogue_count < 1:
+        errors.append("故事缺少人物对话：至少需要 1 处推动冲突的对话")
+    if time_count < 1:
+        errors.append("故事缺少推进：至少需要 1 个时间或场景变化信号")
+    return errors
+
+
+def author_summary_errors(body: str) -> list[str]:
+    errors: list[str] = []
+    summary_count = len(re.findall(AUTHOR_SUMMARY_PATTERNS, body))
+    if summary_count >= 2:
+        errors.append(f"作者总结过多：识别到 {summary_count} 处，应改成人物动作或对话")
+
+    prose_lines = [
+        line.strip()
+        for line in body.splitlines()
+        if line.strip() and not line.startswith("!") and not line.startswith("##")
+    ]
+    ending = "".join(prose_lines[-2:])
+    if re.search(AUTHOR_SUMMARY_PATTERNS, ending):
+        errors.append("结尾仍在解释故事意义，应停在动作、对话、环境声或物件上")
+    return errors
 
 
 def validate_local_image_dimensions(article_path: Path, images: list[str]) -> list[str]:
@@ -196,10 +273,13 @@ def main() -> int:
         description="检查 emotion_women 文章是否达到发布前的低成本质量门槛",
     )
     parser.add_argument("file", help="文章 Markdown 路径")
-    parser.add_argument("--min-cjk", type=int, default=900)
-    parser.add_argument("--max-cjk", type=int, default=2800)
-    parser.add_argument("--min-images", type=int, default=3)
-    parser.add_argument("--min-golden", type=int, default=3)
+    parser.add_argument("--min-cjk", type=int, default=720)
+    parser.add_argument("--max-cjk", type=int, default=900)
+    parser.add_argument("--min-images", type=int, default=4)
+    parser.add_argument("--min-golden", type=int, default=1)
+    parser.add_argument("--max-golden", type=int, default=1)
+    parser.add_argument("--min-headings", type=int, default=2)
+    parser.add_argument("--max-headings", type=int, default=2)
     args = parser.parse_args()
 
     article_path = Path(args.file)
@@ -218,8 +298,10 @@ def main() -> int:
     title = meta.get("title", "").strip()
     if not title:
         errors.append("frontmatter 缺少 title")
-    elif len(title) < 10:
+    elif len(title) < 6:
         errors.append(f"title 太短：{title}")
+    elif len(title) > 20:
+        errors.append(f"title 太长：{len(title)} 字，最多 20 字")
 
     length = cjk_len(body)
     if length < args.min_cjk:
@@ -256,14 +338,21 @@ def main() -> int:
     golden = bold_or_quote_count(body)
     if golden < args.min_golden:
         errors.append(f"金句不足：识别到 {golden} 条，至少 {args.min_golden} 条")
+    if golden > args.max_golden:
+        errors.append(f"刻意突出句过多：识别到 {golden} 条，最多 {args.max_golden} 条")
 
     headings = heading_count(body)
-    if headings < 2:
-        errors.append(f"小标题不足：识别到 {headings} 个，至少 2 个")
+    if headings < args.min_headings:
+        errors.append(f"小标题不足：识别到 {headings} 个，至少 {args.min_headings} 个")
+    if headings > args.max_headings:
+        errors.append(f"小标题过多：识别到 {headings} 个，最多 {args.max_headings} 个")
 
     for phrase in BANNED_PHRASES:
         if phrase in body:
             errors.append(f"包含低质/AI感表达：{phrase}")
+    errors.extend(style_errors(body))
+    errors.extend(narrative_errors(body))
+    errors.extend(author_summary_errors(body))
 
     if errors:
         print("质量门槛未通过：", file=sys.stderr)
@@ -273,7 +362,7 @@ def main() -> int:
 
     print(
         f"质量门槛通过：{length} 中文字符，{len(images)} 张正文图，"
-        f"{golden} 条金句，{headings} 个小标题"
+        f"{golden} 处重点句，{headings} 个小标题"
     )
     return 0
 

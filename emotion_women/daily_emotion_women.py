@@ -36,8 +36,10 @@ ARTICLES_DIR = BASE_DIR / "articles"
 IMAGES_DIR = BASE_DIR / "images"
 IMAGE_POOL = BASE_DIR / "image_pool.txt"
 DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
+PUBLISH_HISTORY = LOG_DIR / "publish_history.jsonl"
 MAX_LOG_OUTPUT_CHARS = 4000
 RECENT_ARTICLES_FOR_DRAMA_IMAGES = 12
+RECENT_ARTICLES_FOR_COVER_IMAGES = 12
 MIN_COLORFUL_DRAMA_SCORE = 25.0
 DEFAULT_PROVIDER = os.getenv("EMOTION_PROVIDER", "claude").strip().lower() or "claude"
 DEFAULT_OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.5").strip() or "gpt-5.5"
@@ -48,6 +50,9 @@ OPENAI_ENABLE_WEB_SEARCH = os.getenv("OPENAI_ENABLE_WEB_SEARCH", "1").strip().lo
     "false",
     "no",
 }
+ARTICLE_TARGET_CJK = 800
+ARTICLE_MIN_CJK = 720
+ARTICLE_MAX_CJK = 900
 
 BASE_TOOLS = [
     "WebSearch",
@@ -325,12 +330,12 @@ def read_writer_style_digest() -> str:
     keep_sections = [
         "核心定位",
         "关键气质",
-        "写作铁律",
-        "文章撰写",
-        "标题方法论",
-        "开篇设计",
-        "正文写作要求",
-        "结尾设计",
+        "写作目标",
+        "素材边界",
+        "成稿方法",
+        "语言要求",
+        "格式与配图",
+        "交稿检查",
     ]
     lines: list[str] = []
     keep = False
@@ -557,6 +562,40 @@ def recent_image_refs(max_articles: int = 5) -> set[str]:
     return refs
 
 
+def recent_cover_usage(max_articles: int = RECENT_ARTICLES_FOR_COVER_IMAGES) -> dict[str, int]:
+    """Count covers from actual successful publishes, falling back to local articles."""
+    usage: dict[str, int] = {}
+    if PUBLISH_HISTORY.exists():
+        records: list[dict] = []
+        for line in PUBLISH_HISTORY.read_text(encoding="utf-8", errors="ignore").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(record, dict) and record.get("cover"):
+                records.append(record)
+        for record in records[-max_articles:]:
+            cover = str(record["cover"])
+            usage[cover] = usage.get(cover, 0) + 1
+        if records:
+            return usage
+
+    if not ARTICLES_DIR.exists():
+        return usage
+
+    markdown_image_re = re.compile(r"!\[[^\]]*\]\(([^)\s]+)")
+    for path in sorted(ARTICLES_DIR.glob("*.md"), reverse=True)[:max_articles]:
+        try:
+            content = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        match = markdown_image_re.search(content)
+        if match:
+            cover = match.group(1)
+            usage[cover] = usage.get(cover, 0) + 1
+    return usage
+
+
 def article_snapshot() -> dict[Path, int]:
     snapshot: dict[Path, int] = {}
     if not ARTICLES_DIR.exists():
@@ -667,20 +706,31 @@ def choose_drama_sequence(
 def choose_cover(
     pool: dict[str, list[str]],
     title: str,
-    used_recent: set[str],
+    recent_usage: dict[str, int],
     used_batch: set[str],
     offset: int,
     index: int,
 ) -> str:
     theme = cover_theme_for_title(title)
     themed_key = f"COVER_{theme}"
-    candidates = pool.get(themed_key) or pool["COVER"]
-    used = used_recent | used_batch
-    if title:
-        available = [candidate for candidate in candidates if candidate not in used]
-        cover = (available or candidates)[0]
-    else:
-        cover = candidates_with_recent_fallback(candidates, used, offset + index, 1)[0]
+    all_candidates = list(dict.fromkeys(pool["COVER"]))
+    candidates = list(dict.fromkeys(pool.get(themed_key) or all_candidates))
+    candidates = rotate_candidates(candidates, offset + index)
+    all_candidates = rotate_candidates(all_candidates, offset + index)
+    themed_candidates = set(candidates)
+    order = {candidate: position for position, candidate in enumerate(all_candidates)}
+    available = [candidate for candidate in all_candidates if candidate not in used_batch]
+    ranked = sorted(
+        available or all_candidates,
+        key=lambda candidate: (
+            recent_usage.get(candidate, 0),
+            0 if candidate in themed_candidates else 1,
+            order[candidate],
+        ),
+    )
+    cover = ranked[0] if ranked else ""
+    if not cover:
+        raise RuntimeError(f"封面图池为空，请检查 {IMAGE_POOL}")
     used_batch.add(cover)
     return cover
 
@@ -689,6 +739,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
     """为每篇文章分配封面图、影视剧照、正文氛围图。"""
     pool = parse_image_pool()
     used_recent = recent_image_refs()
+    cover_usage = recent_cover_usage()
     used_recent_drama = recent_image_refs(max_articles=RECENT_ARTICLES_FOR_DRAMA_IMAGES)
     if not pool["COVER"] or len(pool["BODY"]) < 2:
         raise RuntimeError(f"图片池不足，请检查 {IMAGE_POOL}")
@@ -705,7 +756,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
     used_batch_covers: set[str] = set()
     for index in range(article_count):
         title = titles[index] if titles and index < len(titles) else ""
-        cover = choose_cover(pool, title, used_recent, used_batch_covers, offset, index)
+        cover = choose_cover(pool, title, cover_usage, used_batch_covers, offset, index)
         start = (index * 2) % len(bodies)
         body_ids = [bodies[(start + body_index) % len(bodies)] for body_index in range(2)]
         drama = dramas[index % len(dramas)]
@@ -903,7 +954,6 @@ class EmotionWomenAutomation:
             dedup_block = "\n".join(f"- {title}" for title in existing_titles)
         else:
             dedup_block = "- 暂无"
-        title_template_guidance = format_title_template_guidance(self.article_count, existing_titles)
 
         if self.publish and self.provider != "claude":
             publish_step = f"""- 保存后依次运行：
@@ -943,7 +993,8 @@ class EmotionWomenAutomation:
 ## 已发标题，必须避开近似选题
 {dedup_block}
 
-{title_template_guidance}
+## 标题要求
+标题从文章里最具体的冲突或动作提炼，不套数字、疑问、对比等固定公式。本批标题的句式和长度要自然变化。
 
 ## 第二步：并行启动 emotion-writer agent
 
@@ -955,17 +1006,19 @@ class EmotionWomenAutomation:
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
-3. 写一篇 1200-1800 字的情感深度文章。
+3. 写一篇约 {ARTICLE_TARGET_CJK} 个中文字符的情感文章，成稿必须在 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK} 个中文字符之间（Markdown 与图片地址不计）。
 4. 保存为 `./articles/YYYYMMDD_HHMM_topic.md`。
 {publish_step}
 
 **文章要求**：
-- 标题 ≤20 字，只聚焦一个爆点，含敏感词；按上面的标题模板轮换分配来取标题，不要写"论…""如何…""关于…的思考"这类概括式标题。
-- 开篇 3 秒抓住读者，前 3 句必须制造悬念或共鸣。
-- 全文套用 4 个框架结构之一（观点+N事例 / 大观点+N小观点 / 观点+N角度 / 观点+人物N故事），主线清晰。
-- 至少 1 个完整故事场景，有冲突、有情绪爆点、用具象细节而非情绪标签。
-- 至少 3 个值得截图的金句。
-- 结尾有力量，并补齐互动引导三件套：开放性问题 + 点赞理由 + 分享动机。
+- 标题 ≤20 字，只聚焦一个具体矛盾；不硬塞热词，不写"论…""如何…""关于…的思考"这类概括式标题。
+- 前 80 个中文字符内进入具体矛盾；一篇只写一个核心判断，不套固定三段式。
+- 每篇必须有一条完整故事线，包含起因、具体冲突、人物反应和冲突后的变化，故事占正文至少 75%。
+- 素材没有真人案例时允许写场景化故事；正文不插入“人物虚构/情节合成”免责声明，也不声称来自朋友、读者投稿或咨询案例。
+- 固定使用 2 个具体事件小标题和 1 处加粗；加粗必须是人物现场说的话或带具体物件的句子，不能是普适道理。
+- 作者分析最多两小段、每段不超过 60 个中文字符；结尾停在动作、对话、环境声或物件上，不解释故事意义。
+- 结尾在观点落地处自然停住，最多留 1 个具体问题，不同时索要评论、点赞和转发。
+- 删除排比升华、成串反问、机械枚举，以及“不是……而是……”“真正的……是……”等连续口号句。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
 - 正文配图至少 4 张（含封面），封面按标题主题从 COVER_* 本地精选封面池匹配；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
@@ -1038,7 +1091,6 @@ class EmotionWomenAutomation:
     def build_openai_prompt(self, image_allocations: list[list[str]] | None = None) -> list[dict]:
         existing_title_list = list_existing_titles()
         existing_titles = "\n".join(f"- {title}" for title in existing_title_list) or "- 暂无"
-        title_template_guidance = format_title_template_guidance(self.article_count, existing_title_list)
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
         if image_allocations:
@@ -1050,7 +1102,7 @@ class EmotionWomenAutomation:
             image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，封面后的第一张正文图从 drama_image_pool.txt 选，后 2 张从 BODY 选。"
 
         system = """你是情感女性公众号的资深主编和主笔。
-你要生成可直接保存为微信公众号草稿的 Markdown 文章，风格与 emotion-writer agent 保持一致：真实故事切入，观点犀利但温暖，面向 25-45 岁女性，覆盖恋爱、婚姻、育儿、职场与家庭照护压力，像有阅历的女性朋友认真聊天，不像 AI 课堂。
+你要生成可直接保存为微信公众号草稿的 Markdown 文章。像有生活经验的真人主笔，只讲一个具体矛盾并给出有边界的判断；不扮演专家，不套爆款结构，不虚构案例冒充真人经历。
 只输出 JSON，不要输出解释、代码围栏、参考资料列表。"""
 
         user = f"""今天是北京时间 {today}。请一次生成 {self.article_count} 篇情感女性公众号文章。
@@ -1063,7 +1115,8 @@ class EmotionWomenAutomation:
 ## 已发标题，必须避开近似选题
 {existing_titles}
 
-{title_template_guidance}
+## 标题要求
+标题从文章里最具体的冲突或动作提炼，不套数字、疑问、对比等固定公式。本批标题的句式和长度要自然变化。
 
 ## 固定配图
 每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
@@ -1083,14 +1136,16 @@ class EmotionWomenAutomation:
 }}
 
 ## 每篇硬性要求
-- 1200-1800 字中文，标题≤20字，聚焦一个爆点，并按标题模板轮换分配生成，不要“论/如何/关于...的思考”。
-- 开篇 3 句必须抓人，有悬念或共鸣。
-- 至少 1 个完整故事场景，有冲突、有动作、有细节。
-- 至少 3 条加粗或引用格式金句。
-- 至少 2 个二级小标题。
-- 结尾包含开放性问题、点赞理由、分享动机。
+- 正文目标 {ARTICLE_TARGET_CJK} 个中文字符，必须在 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK} 个中文字符之间（Markdown 与图片地址不计）；标题≤20字，只写一个具体矛盾。
+- 前 80 个中文字符内进入具体矛盾，不以泛泛提问、宏大判断或情绪标签开场。
+- 写一条占正文至少 75% 的完整故事线，包含起因、具体冲突、人物反应和冲突后的变化；至少一处推动情节的对话和一次时间/场景推进。
+- 没有真人素材时允许写场景化故事；正文不插入“人物虚构/情节合成”免责声明，也不声称来自朋友经历、读者投稿或咨询案例。
+- 固定 2 个具体事件小标题、1 处加粗；加粗必须来自人物现场对话或具体物件，不能是脱离故事也成立的道理。
+- 作者分析最多两小段、每段不超过 60 个中文字符；结尾停在动作、对话、环境声或物件上，不解释故事意义。
+- 不列三条建议，不用整齐的“观点-解释-总结”段落，不连续使用反问、排比或“不是……而是……”句式。
+- 结尾自然停止，最多留一个具体问题，不同时索要评论、点赞和转发，不写“愿你”“请相信”式祝福。
 - 文末绝不列参考资料/来源链接。
-- 不要出现这些 AI 感表达：每个人都值得被爱、时间会治愈一切、我们应该认识到、综上所述、由此可见、女性要学会、正确的做法是。
+- 不要出现这些模型化表达：每个人都值得被爱、时间会治愈一切、我们应该认识到、综上所述、由此可见、女性要学会、正确的做法是、这告诉我们、在这个快节奏的时代、你有没有发现、真正的爱从来不是。
 
 ## emotion-writer 风格摘要
 {style_digest}
@@ -1114,10 +1169,11 @@ class EmotionWomenAutomation:
 {errors_text}
 
 必须满足：
-- 1200-1800 字中文；
+- 正文目标 {ARTICLE_TARGET_CJK} 个中文字符，保持在 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK} 个中文字符之间；
 - 至少 4 张正文图片，且只用这些 URL：{', '.join(image_urls)}；
-- 至少 3 条加粗或引用格式金句；
-- 至少 2 个二级小标题；
+- 固定 2 个具体事件小标题和 1 处来自故事现场的加粗句；
+- 只修复质检指出的问题，不用套话扩字，不新增虚构案例；
+- 删除机械枚举、排比升华、互动三件套和重复总结；
 - frontmatter 只写 title。
 
 只输出：
