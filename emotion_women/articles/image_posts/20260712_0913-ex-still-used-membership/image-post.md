@@ -1,6 +1,7 @@
 ---
-title: 分手半年，他还在用她的会员
+title: 分手半年，他竟还在蹭她的会员
 format: image-post
+source_title: 分手半年，他还在用她的会员
 source: ../../20260712_0913-ex-still-used-membership.md
 ---
 

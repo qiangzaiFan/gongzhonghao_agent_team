@@ -1,6 +1,7 @@
 ---
-title: 女儿不肯再去外婆家
+title: 女儿死活不肯再去外婆家
 format: image-post
+source_title: 女儿不肯再去外婆家
 source: ../../20260712_0912-daughter-refused-grandma.md
 ---
 

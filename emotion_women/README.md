@@ -93,7 +93,7 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 ### 配图图池
 
-文章第一张图会作为公众号封面，从 `image_pool.txt` 的 `COVER_*` 本地精选封面池读取。脚本会按标题关键词自动匹配封面主题，例如婚姻/家庭、分手/前任、职场、亲密关系、女性成长、朋友关系。
+文章第一张图会作为公众号封面，从 `image_pool.txt` 的 `COVER_*` 本地精选封面池读取。默认封面固定使用同一位 28 岁成年女性形象，通过晨间咖啡、通勤、咖啡馆、居家阅读和城市夜晚等生活场景保持账号视觉识别；保留真实皮肤纹理和生活化表情，通过露肩、锁骨、修身剪裁和姿态增强吸引力，但不使用裸露、内衣特写或低俗挑逗姿势。脚本仍会按标题关键词自动匹配封面主题。
 
 ```text
 ## COVER_BREAKUP
@@ -114,6 +114,32 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 本地图统一为 `900x600`。发布前的质量门槛会检查本地正文图尺寸，并对封面图做亮度、清晰度、色彩吸引力检测，对封面后的影视剧图做清晰度检测，避免公众号里出现随机、偏暗、偏糊或尺寸不一致的图片。
 
+### 本地图像生成环境
+
+当前地区直接访问 OpenAI 图片端点会返回 `unsupported_country_region_territory`。项目使用 Codex 已配置的 `apexapi` OpenAI 兼容端点运行官方 `imagegen` 技能自带 CLI，不在仓库保存 API Key。
+
+一次性安装独立依赖：
+
+```bash
+cd /Users/xiao/codeworkspace/自媒体/autoAirtic
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-imagegen.txt
+```
+
+验证图像生成环境：
+
+```bash
+OPENAI_API_KEY="$(node -p 'require(process.env.HOME + "/.codex/auth.json").OPENAI_API_KEY')" \
+OPENAI_BASE_URL="https://apexapi.roixw.com/v1" \
+.venv/bin/python "$HOME/.codex/skills/.system/imagegen/scripts/image_gen.py" generate \
+  --model gpt-image-2 \
+  --prompt "A tasteful editorial portrait of an adult woman" \
+  --size 1536x1024 --quality low \
+  --out output/imagegen/test-cover.png
+```
+
+`.venv/`、`output/` 和真实凭证都已被 Git 忽略。生成公众号封面时使用 `1536x1024` 横图，最终裁切为 `900x600` JPG 后再加入 `images/cover/` 和 `image_pool.txt`。
+
 ### 发布到公众号草稿箱
 
 发布前先从模板生成 `emotion_women/.mcp.json`，填好 `wenyan-mcp` 路径和情感女性公众号的 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`。
@@ -131,7 +157,7 @@ python daily_emotion_women.py --now --count 1 --publish -v
 
 ### 把已有文章制作成公众号贴图版
 
-贴图版会写入 `articles/image_posts/`，不会覆盖或修改原文章。转换最新 3 篇并推送到公众号草稿箱：
+贴图版会自动重写一个 20 字以内的新标题，使用独立的轻熟性感女性图片作为封面，并把正文排成纯文字卡片，不再复用原文章的旧封面或剧照。输出写入 `articles/image_posts/`，不会覆盖或修改原文章。转换最新 3 篇并推送到公众号草稿箱：
 
 ```bash
 python article_to_images.py --latest 3 --publish -v
@@ -142,6 +168,8 @@ python article_to_images.py --latest 3 --publish -v
 ```bash
 python article_to_images.py articles/20260712_0913-ex-still-used-membership.md
 ```
+
+确实需要沿用原标题时，显式添加 `--keep-title`。
 
 在项目对话中可使用固定口令：
 

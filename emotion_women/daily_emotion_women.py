@@ -372,7 +372,7 @@ def parse_image_pool() -> dict[str, list[str]]:
             continue
         if current and is_image_reference(line):
             pool[current].append(line)
-            if current.startswith("COVER_"):
+            if current.startswith("COVER_") and current != "COVER_LEGACY":
                 pool["COVER"].append(line)
     return pool
 
@@ -1002,7 +1002,7 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
+2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，默认使用明确为成年女性的轻熟性感风格，有吸引力但不裸露、不低俗，并按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
@@ -1021,7 +1021,7 @@ class EmotionWomenAutomation:
 - 删除排比升华、成串反问、机械枚举，以及“不是……而是……”“真正的……是……”等连续口号句。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
-- 正文配图至少 4 张（含封面），封面按标题主题从 COVER_* 本地精选封面池匹配；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
+- 正文配图至少 4 张（含封面），封面默认使用成年女性轻熟性感风格，按标题主题从 COVER_* 本地精选封面池匹配，同时避免裸露、内衣特写和低俗姿势；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
 
 ## 第三步：汇总结果
 

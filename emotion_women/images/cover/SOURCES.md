@@ -2,6 +2,22 @@
 
 These local cover images are cached and cropped to `900x600` for WeChat draft publishing.
 
+- `cover_sensual_city_editorial_900x600.jpg`
+  - Generated with `gpt-image-2` through the configured `apexapi` OpenAI-compatible endpoint on 2026-07-12.
+  - Prompt: candid editorial portrait of an unmistakably adult East Asian woman age 28, natural facial asymmetry, freckles and visible skin texture, confident warm half-smile, black off-shoulder knit dress, city apartment at night; tasteful and platform-safe.
+- `cover_sensual_life_morning_900x600.jpg`
+  - Identity-preserving `gpt-image-2` edit using `cover_sensual_city_editorial_900x600.jpg` as the person reference.
+  - Scene: left-facing profile, sleepy private smile while holding coffee, loose hair and an opaque white shirt with one shoulder naturally exposed.
+- `cover_sensual_life_commute_900x600.jpg`
+  - Identity-preserving `gpt-image-2` edit using `cover_sensual_city_editorial_900x600.jpg` as the person reference.
+  - Scene: frontal walking pose, focused determined expression, tailored charcoal blazer and fitted square-neck top at blue hour.
+- `cover_sensual_life_cafe_900x600.jpg`
+  - Identity-preserving `gpt-image-2` edit using `cover_sensual_city_editorial_900x600.jpg` as the person reference.
+  - Scene: torso facing the rainy window, turning back with a spontaneous open laugh, burgundy wide-neck knit top.
+- `cover_sensual_life_home_900x600.jpg`
+  - Identity-preserving `gpt-image-2` edit using `cover_sensual_city_editorial_900x600.jpg` as the person reference.
+  - Scene: seated on the rug beside a sofa, playful raised-brow eye contact and asymmetric smile, cream wide-neck knit top.
+
 - `cover_breakup_anxious_900x600.jpg`
   - Source: `https://images.unsplash.com/photo-1519699047748-de8e457a634e`
 - `cover_breakup_city_night_900x600.jpg`
