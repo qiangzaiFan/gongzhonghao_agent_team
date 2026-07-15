@@ -7,8 +7,8 @@
         "/你的实际路径/wenyan-mcp/dist/index.js"
       ],
       "env": {
-        "WECHAT_APP_ID": "你的情感公众号AppID",
-        "WECHAT_APP_SECRET": "你的情感公众号AppSecret"
+        "WECHAT_APP_ID": "wx44f15d29dc8ebb02",
+        "WECHAT_APP_SECRET": "03f1b383e2b9c6fbc7e987340904996e"
       }
     },
     "xiaohongshu-mcp": {
