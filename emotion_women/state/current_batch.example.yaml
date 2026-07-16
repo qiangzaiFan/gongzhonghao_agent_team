@@ -1,0 +1,16 @@
+# 复制为 current_batch.yaml 后可记录当前批次状态。
+# current_batch.yaml 属于运行态文件，不建议提交。
+
+project: emotion_women
+phase: idea
+date: "2026-07-16"
+provider: claude
+publish: false
+count: 1
+
+current_topics: []
+
+checks:
+  article_images: pending
+  quality_gate: pending
+  publish: skipped

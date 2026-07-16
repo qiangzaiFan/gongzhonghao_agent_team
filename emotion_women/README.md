@@ -186,66 +186,6 @@ python article_to_images.py articles/20260712_0913-ex-still-used-membership.md
 python publish_existing_article.py articles/20260703_2200_roommate-marriage.md -v
 ```
 
-### 发布到小红书（图文笔记）
-
-小红书没有官方发文 API，也**没有草稿箱**，这里通过本地运行的
-[`xiaohongshu-mcp`](https://github.com/xpzouying/xiaohongshu-mcp)（浏览器自动化）发布。
-详细步骤见 `使用说明.md` 的「发布到小红书」一节，概览：
-
-1. 用 Docker 启动 xiaohongshu-mcp（服务在 `http://localhost:18060/mcp`）：
-
-   ```bash
-   cd /Users/xiao/codeworkspace/自媒体/xiaohongshu-mcp
-   docker compose up -d
-   ```
-
-2. 首次需**手机扫码登录**（cookie 存到 `./data` 复用，只做一次）。
-
-3. 公众号长文不能直接发小红书（硬约束：**标题≤20字、正文≤1000字**）。
-   先把文章改写成「小红书笔记」，存到 `articles/xhs/<slug>.xhs.md`，再发布
-   （**默认以「仅自己可见」发布**，验证无误后再改公开）：
-
-   ```bash
-   # 验证：仅自己可见，发布前会打印内容并要人工确认
-   python publish_to_xiaohongshu.py articles/xhs/20260705_1502_solo-recovery.xhs.md -v
-
-   # 正式公开
-   python publish_to_xiaohongshu.py articles/xhs/20260705_1502_solo-recovery.xhs.md --visibility 公开可见
-   ```
-
-### 发布到今日头条（图文长文）
-
-头条走开源的 [Wechatsync](https://github.com/wechatsync/Wechatsync)（Chrome 扩展 + CLI），
-**支持长文，公众号原文可直接同步、无需改写**，且**默认进草稿箱**。详见 `使用说明.md`「发布到今日头条」。
-
-一次性准备：Chrome 加载扩展（`../wechatsync-ext/ext/`）、登录 mp.toutiao.com、扩展设置里开启 CLI 桥接。之后：
-
-```bash
-# 预览
-wechatsync sync articles/20260705_1502_solo-recovery.md -p toutiao --dry-run
-# 同步到头条草稿箱（可多平台：-p toutiao,zhihu,baijiahao）
-wechatsync sync articles/20260705_1502_solo-recovery.md -p toutiao
-```
-
-> 小红书也可以走 Wechatsync（`-p xiaohongshu`），进的是小红书「长文」草稿，不截断。
-> 这与 `publish_to_xiaohongshu.py` 发的「图文短笔记」是两种形态，按需选用。
-
-### 生成时自动同步到多平台草稿（一步到位）
-
-`daily_emotion_women.py` 支持 `--sync`：文章成稿后自动用 wechatsync 把**本轮新文章**同步到各平台草稿箱。
-前提同上（扩展已连接、平台已登录、`WECHATSYNC_TOKEN` 或 `.wechatsync_token` 已配）。
-
-```bash
-# 生成 1 篇 → 公众号草稿 + 头条/小红书草稿（--sync 默认 toutiao,xiaohongshu）
-python daily_emotion_women.py --now --count 1 --publish --sync
-
-# 只同步、指定平台（头条+知乎+掘金），不发公众号
-python daily_emotion_women.py --now --count 2 --sync toutiao,zhihu,juejin
-
-# 定时：每天 21:00 生成 1 篇，公众号草稿 + 多平台草稿
-python daily_emotion_women.py --time 21:00 --count 1 --publish --sync
-```
-
 ### 定时生成
 
 ```bash

@@ -6,6 +6,7 @@
 # 生成的草稿与发布记录
 **/output/
 **/sources/
+**/state/current_batch.yaml
 **/*.log
 
 # Python

@@ -37,6 +37,7 @@ IMAGES_DIR = BASE_DIR / "images"
 IMAGE_POOL = BASE_DIR / "image_pool.txt"
 DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
 PUBLISH_HISTORY = LOG_DIR / "publish_history.jsonl"
+SPECS_DIR = BASE_DIR / "specs"
 MAX_LOG_OUTPUT_CHARS = 4000
 RECENT_ARTICLES_FOR_DRAMA_IMAGES = 12
 RECENT_ARTICLES_FOR_COVER_IMAGES = 12
@@ -66,6 +67,13 @@ BASE_TOOLS = [
 ]
 PUBLISH_TOOLS = [
     "mcp__wenyan-mcp__publish_article",
+]
+SPEC_FILES = [
+    "account_positioning.md",
+    "article_quality.md",
+    "image_policy.md",
+    "platform_rules.md",
+    "workflow.md",
 ]
 
 
@@ -111,9 +119,93 @@ def list_existing_titles(max_items: int = 30) -> list[str]:
     return titles
 
 
+TITLE_SURFACE_RECENT_WINDOW = 12
+TITLE_SURFACE_AVOID_WINDOW = 6
+TITLE_SURFACE_REPEAT_LIMIT = 2
+TITLE_BANNED_PREFIXES = (
+    "她不再",
+    "她没有再",
+    "她没",
+    "她把",
+    "这次，她",
+)
+
+
+def classify_title_surface(title: str) -> str:
+    """Classify repeated title shells that make a batch feel samey."""
+    compact = re.sub(r"\s+", "", title.strip().strip("'\""))
+    compact = compact.removeprefix("title:").strip().strip("'\"")
+    for prefix in TITLE_BANNED_PREFIXES:
+        if compact.startswith(prefix):
+            return prefix
+    if re.match(r"^她[^，,]{0,5}(不|没|把|下班|终于|再)", compact):
+        return "她 + 动作/否定"
+    if compact.startswith("你"):
+        return "你 + 判断"
+    if compact.startswith("他"):
+        return "他 + 行为"
+    if re.match(r"^[那这有]\d|^这[一二三四五六七八九十0-9]", compact):
+        return "数字/指代开头"
+    if any(mark in compact for mark in ("「", "」", "“", "”", '"')):
+        return "对话开头"
+    if re.search(r"\d|[一二三四五六七八九十]+(?=天|年|次|句|双|元|个)", compact):
+        return "时间/数字物件"
+    return "其他"
+
+
+def title_surface_counts(titles: list[str], window: int = TITLE_SURFACE_RECENT_WINDOW) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for title in titles[:window]:
+        label = classify_title_surface(title)
+        counts[label] = counts.get(label, 0) + 1
+    return counts
+
+
+def format_title_diversity_guidance(titles: list[str] | None = None) -> str:
+    """Generate prompt guidance to avoid repeated title shells."""
+    recent_titles = (titles if titles is not None else list_existing_titles(TITLE_SURFACE_RECENT_WINDOW))[
+        :TITLE_SURFACE_RECENT_WINDOW
+    ]
+    if not recent_titles:
+        return "最近无标题样本；标题仍需避免连续使用同一种开头。"
+
+    recent_counts = title_surface_counts(recent_titles)
+    avoid_counts = title_surface_counts(recent_titles, TITLE_SURFACE_AVOID_WINDOW)
+    overloaded = [
+        label
+        for label, count in avoid_counts.items()
+        if count >= TITLE_SURFACE_REPEAT_LIMIT or label in TITLE_BANNED_PREFIXES
+    ]
+    recent_brief = "\n".join(f"- {title}" for title in recent_titles)
+    count_brief = "；".join(f"{label}{count}次" for label, count in sorted(recent_counts.items()))
+    avoid_brief = "、".join(overloaded) if overloaded else "最近 6 篇暂无明显过载开头"
+    examples = "\n".join(
+        [
+            "- 物件型：那双268元的鞋，她藏了三天",
+            "- 对话型：「我没事」这句话最累",
+            "- 时间型：分手半年，他还在用她的会员",
+            "- 反常识型：婚姻里最怕的不是吵架",
+            "- 动作后果型：饭局散后，她删了家庭群",
+        ]
+    )
+    return f"""## 标题去同质化规则
+最近 {TITLE_SURFACE_RECENT_WINDOW} 篇标题：
+{recent_brief}
+
+最近标题外壳统计：{count_brief}
+本批必须避开的过载开头/外壳：{avoid_brief}
+
+禁止只换物件复用“她不再.../她没有再.../她把.../这次，她...”这类女性主语开头；如果确实要用“她”，必须换成完全不同语序。
+每篇先写 5 个不同外壳候选标题，再选最终标题：
+{examples}
+
+最终标题优先使用“具体物件/场景/时间 + 冲突”，不要连续使用同一种主语开头。"""
+
+
 TITLE_TEMPLATE_RECENT_WINDOW = 12
 TITLE_TEMPLATE_RECENT_AVOID = 3
 TITLE_TEMPLATE_MIN_VARIETY = 3
+TITLE_TEMPLATE_COMBO_SIZE = 3
 TITLE_TEMPLATES = [
     {
         "name": "数字法",
@@ -270,40 +362,84 @@ def select_title_templates(article_count: int, titles: list[str] | None = None) 
     return selected[:article_count]
 
 
-def format_title_template_guidance(article_count: int, titles: list[str] | None = None) -> str:
-    """生成可注入 Prompt 的标题模板轮换说明。"""
+def select_title_template_combos(article_count: int, titles: list[str] | None = None) -> list[list[str]]:
+    """为每篇文章分配 3 个标题模板，鼓励标题融合多个钩子。"""
+    if article_count <= 0:
+        return []
+
     recent_titles = (titles if titles is not None else list_existing_titles(TITLE_TEMPLATE_RECENT_WINDOW))[
         :TITLE_TEMPLATE_RECENT_WINDOW
     ]
     counts = title_template_counts(recent_titles)
-    plan = select_title_templates(article_count, recent_titles)
+    recent_labels = {
+        label
+        for title in recent_titles[:TITLE_TEMPLATE_RECENT_AVOID]
+        for label in classify_title_templates(title)
+        if label in counts
+    }
+    ranked = sorted(
+        TITLE_TEMPLATE_NAMES,
+        key=lambda name: (
+            1 if name in recent_labels else 0,
+            counts[name],
+            TITLE_TEMPLATE_NAMES.index(name),
+        ),
+    )
+
+    combos: list[list[str]] = []
+    used_combo_keys: set[tuple[str, ...]] = set()
+    for index in range(article_count):
+        combo = [ranked[(index * TITLE_TEMPLATE_COMBO_SIZE + offset) % len(ranked)] for offset in range(TITLE_TEMPLATE_COMBO_SIZE)]
+        combo_key = tuple(sorted(combo))
+        shift = 1
+        while combo_key in used_combo_keys and shift < len(ranked):
+            combo = [ranked[(index * TITLE_TEMPLATE_COMBO_SIZE + offset + shift) % len(ranked)] for offset in range(TITLE_TEMPLATE_COMBO_SIZE)]
+            combo_key = tuple(sorted(combo))
+            shift += 1
+        used_combo_keys.add(combo_key)
+        combos.append(combo)
+    return combos
+
+
+def format_title_template_guidance(article_count: int, titles: list[str] | None = None) -> str:
+    """生成可注入 Prompt 的标题模板组合说明。"""
+    recent_titles = (titles if titles is not None else list_existing_titles(TITLE_TEMPLATE_RECENT_WINDOW))[
+        :TITLE_TEMPLATE_RECENT_WINDOW
+    ]
+    counts = title_template_counts(recent_titles)
+    plan = select_title_template_combos(article_count, recent_titles)
     template_brief = "\n".join(
         f"- {template['name']}：{template['short']}例：{template['example']}"
         for template in TITLE_TEMPLATES
     )
     count_brief = "；".join(f"{name}{counts[name]}次" for name in TITLE_TEMPLATE_NAMES)
     plan_brief = "\n".join(
-        f"{index + 1}. 第 {index + 1} 篇优先用「{name}」"
-        for index, name in enumerate(plan)
+        f"{index + 1}. 第 {index + 1} 篇必须融合：{' + '.join(combo)}"
+        for index, combo in enumerate(plan)
     )
-
-    batch_rule = (
-        f"本批 {article_count} 篇至少使用 {min(article_count, TITLE_TEMPLATE_MIN_VARIETY)} 种不同标题模板"
-        if article_count >= TITLE_TEMPLATE_MIN_VARIETY
-        else "本批标题不要重复使用最近 3 篇刚用过的模板"
+    examples = "\n".join(
+        [
+            "- 数字法 + 热词法 + 好奇法：分手半年，他还在用她的会员",
+            "- 对话法 + 对比法 + 热词法：「我没事」才是婚姻里最累的话",
+            "- 电影台词法 + 对比法 + 疑问法：其实我不是冷漠，你懂吗",
+            "- 俗语法 + 数字法 + 对比法：这3次心软，谁先低头谁先累",
+        ]
     )
-    return f"""## 标题模板轮换规则
-{batch_rule}，优先补最近 {TITLE_TEMPLATE_RECENT_WINDOW} 篇里使用次数最低的模板；不要连续几篇都用同一种“你不是/别把/越...越...”风格。
+    return f"""## 标题模板组合规则
+每篇最终标题必须同时融合 8 个模板中的 {TITLE_TEMPLATE_COMBO_SIZE} 个，不是只选 1 个模板。优先补最近 {TITLE_TEMPLATE_RECENT_WINDOW} 篇里使用次数最低的模板；不要连续几篇都用同一种“你不是/别把/越...越...”风格。
 
 最近 {TITLE_TEMPLATE_RECENT_WINDOW} 篇标题模板使用估算：{count_brief}
 
-本批标题模板分配：
+本批标题模板组合分配：
 {plan_brief}
 
 8 个可用标题模板：
 {template_brief}
 
-每篇先按指定模板写 3 个候选标题，再挑最有点击欲的 1 个作为最终 title；最终标题仍要 ≤20 字、只聚焦一个爆点、有情感敏感词。"""
+组合示例：
+{examples}
+
+每篇先按指定 3 模板组合写 5 个候选标题，再挑最自然、最有点击欲、最不像近期标题的 1 个作为最终 title；最终标题仍要 ≤20 字、只聚焦一个爆点。"""
 
 
 def truncate_for_log(text: str) -> str:
@@ -318,6 +454,24 @@ def strip_agent_frontmatter(text: str) -> str:
         if len(parts) == 3:
             return parts[2].strip()
     return text.strip()
+
+
+def read_project_specs_digest(max_chars: int = 8000) -> str:
+    """Read stable account rules for non-file-aware providers."""
+    if not SPECS_DIR.exists():
+        return ""
+
+    chunks: list[str] = []
+    for name in SPEC_FILES:
+        path = SPECS_DIR / name
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8", errors="ignore").strip()
+        if content:
+            chunks.append(f"## specs/{name}\n{content}")
+
+    digest = "\n\n".join(chunks).strip()
+    return digest[:max_chars]
 
 
 def read_writer_style_digest() -> str:
@@ -954,6 +1108,8 @@ class EmotionWomenAutomation:
             dedup_block = "\n".join(f"- {title}" for title in existing_titles)
         else:
             dedup_block = "- 暂无"
+        title_diversity = format_title_diversity_guidance(existing_titles)
+        title_template_guidance = format_title_template_guidance(self.article_count, existing_titles)
 
         if self.publish and self.provider != "claude":
             publish_step = f"""- 保存后依次运行：
@@ -995,6 +1151,20 @@ class EmotionWomenAutomation:
 
 ## 标题要求
 标题从文章里最具体的冲突或动作提炼，不套数字、疑问、对比等固定公式。本批标题的句式和长度要自然变化。
+
+{title_template_guidance}
+
+{title_diversity}
+
+## 长期规则文件
+账号定位、文章质量、图片策略、平台规则和职责边界已沉淀到 `specs/`：
+- `specs/account_positioning.md`
+- `specs/article_quality.md`
+- `specs/image_policy.md`
+- `specs/platform_rules.md`
+- `specs/workflow.md`
+
+如临时 prompt 与 `specs/` 冲突，以更具体、更靠近当前任务的规则为准；不要为了确认通用规则去读取 README 全文。
 
 ## 第二步：并行启动 emotion-writer agent
 
@@ -1091,6 +1261,9 @@ class EmotionWomenAutomation:
     def build_openai_prompt(self, image_allocations: list[list[str]] | None = None) -> list[dict]:
         existing_title_list = list_existing_titles()
         existing_titles = "\n".join(f"- {title}" for title in existing_title_list) or "- 暂无"
+        title_diversity = format_title_diversity_guidance(existing_title_list)
+        title_template_guidance = format_title_template_guidance(self.article_count, existing_title_list)
+        project_specs = read_project_specs_digest()
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
         if image_allocations:
@@ -1117,6 +1290,13 @@ class EmotionWomenAutomation:
 
 ## 标题要求
 标题从文章里最具体的冲突或动作提炼，不套数字、疑问、对比等固定公式。本批标题的句式和长度要自然变化。
+
+{title_template_guidance}
+
+{title_diversity}
+
+## 长期规则摘要
+{project_specs}
 
 ## 固定配图
 每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
