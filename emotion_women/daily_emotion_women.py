@@ -1172,7 +1172,7 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，默认使用明确为成年女性的轻熟性感风格，有吸引力但不裸露、不低俗，并按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
+2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，且新文章封面必须优先使用 `images/persona/scenes/` 里的同一人设图；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
@@ -1272,7 +1272,7 @@ class EmotionWomenAutomation:
                 for index, urls in enumerate(image_allocations)
             )
         else:
-            image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，封面后的第一张正文图从 drama_image_pool.txt 选，后 2 张从 BODY 选。"
+            image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，且优先使用 images/persona/scenes/ 同一人设图；封面后的第一张正文图从 drama_image_pool.txt 选，后 2 张从 BODY 选。"
 
         system = """你是情感女性公众号的资深主编和主笔。
 你要生成可直接保存为微信公众号草稿的 Markdown 文章。像有生活经验的真人主笔，只讲一个具体矛盾并给出有边界的判断；不扮演专家，不套爆款结构，不虚构案例冒充真人经历。

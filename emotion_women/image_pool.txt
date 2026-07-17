@@ -3,50 +3,54 @@
 # 发布前 validate_article_images.py 会真实请求远程图片，404 / 非图片会直接拦住。
 #
 # 注意：
-# - 第一张封面图从 COVER_* 段读取，默认使用成年女性轻熟性感风格：有吸引力但不裸露、不低俗。
-# - 各主题段只放符合该风格的本地精选封面，并继续按标题主题匹配。
+# - 第一张封面图从 COVER_* 段读取，当前必须优先使用 images/persona/scenes/ 下的同一人设图。
+# - 各主题段只放符合该人设的本地精选封面，并继续按标题主题匹配。
 # - 封面后的第一张正文图优先从 drama_image_pool.txt 读取，用影视/生活剧男女主合照或官方剧照。
 # - BODY 是正文中间其余氛围图。
 
 ## COVER_RELATIONSHIP（亲密关系 / 边界感 / 情绪价值）
-../images/cover/cover_sensual_city_editorial_900x600.jpg
-../images/cover/cover_sensual_life_cafe_900x600.jpg
-../images/cover/cover_sensual_life_home_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_car_window_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_convenience_store_1536x1024.jpg
 ## COVER_MARRIAGE（婚姻 / 家庭 / 育儿 / 家务压力）
-../images/cover/cover_sensual_life_morning_900x600.jpg
-../images/cover/cover_sensual_life_home_900x600.jpg
-../images/cover/cover_sensual_life_cafe_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_home_window_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_kitchen_sink_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_balcony_morning_1536x1024.jpg
 ## COVER_BREAKUP（分手 / 前任 / 失恋 / 深夜内耗）
-../images/cover/cover_sensual_city_editorial_900x600.jpg
-../images/cover/cover_sensual_life_cafe_900x600.jpg
-../images/cover/cover_sensual_life_commute_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_city_night_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_car_window_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_convenience_store_1536x1024.jpg
 ## COVER_WORK（职场 / 外派 / 涨薪 / 加班）
-../images/cover/cover_sensual_life_commute_900x600.jpg
-../images/cover/cover_sensual_life_morning_900x600.jpg
-../images/cover/cover_sensual_city_editorial_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_commute_night_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_office_window_1536x1024.jpg
 ## COVER_SELF（女性成长 / 完美主义 / 独立 / 内耗）
-../images/cover/cover_sensual_city_editorial_900x600.jpg
-../images/cover/cover_sensual_life_morning_900x600.jpg
-../images/cover/cover_sensual_life_commute_900x600.jpg
-../images/cover/cover_sensual_life_cafe_900x600.jpg
-../images/cover/cover_sensual_life_home_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_city_night_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_commute_night_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_home_window_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_hiking_sunset_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_bookstore_weekend_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_balcony_morning_1536x1024.jpg
 ## COVER_FRIENDSHIP（闺蜜 / 朋友 / 室友 / 社交关系）
-../images/cover/cover_sensual_life_cafe_900x600.jpg
-../images/cover/cover_sensual_life_morning_900x600.jpg
-../images/cover/cover_sensual_life_home_900x600.jpg
+../images/persona/scenes/persona_cafe_900x600.jpg
 
+../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_bookstore_weekend_1536x1024.jpg
+../images/persona/scenes/persona_wanxiang_friend_dinner_1536x1024.jpg
 ## COVER_LEGACY（仅供旧文章重发质检，不参与新文章封面分配）
-../images/cover/cover_breakup_anxious_900x600.jpg
 ../images/cover/cover_breakup_city_night_900x600.jpg
-../images/cover/cover_marriage_mature_home_900x600.jpg
 ../images/cover/cover_relationship_sunset_900x600.jpg
 ../images/cover/cover_self_hair_close_900x600.jpg
-../images/cover/cover_self_soft_portrait_900x600.jpg
 ../images/cover/cover_self_winter_smile_900x600.jpg
 ../images/cover/cover_friendship_rooftop_900x600.jpg
 

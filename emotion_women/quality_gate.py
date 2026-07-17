@@ -58,7 +58,11 @@ AUTHOR_SUMMARY_PATTERNS = (
     r"忽然明白|终于明白|这说明|这意味着|归根结底|说到底|"
     r"本质上|本来就该|道理很简单|真正的[^。！？\n]{0,30}(?:是|在于)"
 )
-EXPECTED_LOCAL_IMAGE_SIZE = (900, 600)
+RECOMMENDED_LOCAL_IMAGE_SIZE = (900, 600)
+MIN_LOCAL_IMAGE_WIDTH = 900
+MIN_LOCAL_IMAGE_HEIGHT = 600
+MIN_LOCAL_IMAGE_ASPECT = 1.25
+MAX_LOCAL_IMAGE_ASPECT = 1.95
 MIN_LOCAL_COVER_EDGE_RMS = 10.0
 MIN_LOCAL_COVER_BRIGHTNESS = 45.0
 MAX_LOCAL_COVER_BRIGHTNESS = 235.0
@@ -197,10 +201,18 @@ def validate_local_image_dimensions(article_path: Path, images: list[str]) -> li
                 size = im.size
         except OSError:
             continue
-        if size != EXPECTED_LOCAL_IMAGE_SIZE:
+        width, height = size
+        aspect = width / height if height else 0
+        if width < MIN_LOCAL_IMAGE_WIDTH or height < MIN_LOCAL_IMAGE_HEIGHT:
             errors.append(
-                f"正文图片 #{index} 本地尺寸不统一：{image} 为 {size[0]}x{size[1]}，"
-                f"应为 {EXPECTED_LOCAL_IMAGE_SIZE[0]}x{EXPECTED_LOCAL_IMAGE_SIZE[1]}"
+                f"正文图片 #{index} 本地尺寸过小：{image} 为 {width}x{height}，"
+                f"至少 {MIN_LOCAL_IMAGE_WIDTH}x{MIN_LOCAL_IMAGE_HEIGHT}，推荐 "
+                f"{RECOMMENDED_LOCAL_IMAGE_SIZE[0]}x{RECOMMENDED_LOCAL_IMAGE_SIZE[1]}"
+            )
+        if aspect < MIN_LOCAL_IMAGE_ASPECT or aspect > MAX_LOCAL_IMAGE_ASPECT:
+            errors.append(
+                f"正文图片 #{index} 横图比例不适合：{image} 为 {width}x{height}，"
+                f"宽高比 {aspect:.2f}，建议保持 {MIN_LOCAL_IMAGE_ASPECT:.2f}-{MAX_LOCAL_IMAGE_ASPECT:.2f}"
             )
     return errors
 
@@ -263,7 +275,7 @@ def validate_local_drama_clarity(article_path: Path, images: list[str]) -> list[
     if edge_rms < MIN_LOCAL_DRAMA_EDGE_RMS:
         return [
             f"封面后的影视剧照清晰度偏低：{drama_image} edge_rms={edge_rms:.2f}，"
-            f"至少 {MIN_LOCAL_DRAMA_EDGE_RMS:.1f}。请换高清源图裁成 900x600"
+            f"至少 {MIN_LOCAL_DRAMA_EDGE_RMS:.1f}。请换高清横图，推荐 900x600 或更高分辨率"
         ]
     return []
 
