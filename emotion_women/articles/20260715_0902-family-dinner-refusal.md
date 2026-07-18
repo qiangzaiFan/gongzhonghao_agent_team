@@ -1,8 +1,8 @@
 ---
-title: 她不再安排全家饭局
+title: 婚姻里，那顿外卖不是小事吗
 ---
 
-![](../images/cover/cover_self_winter_smile_900x600.jpg)
+![](../images/persona/scenes/persona_cafe_900x600.jpg)
 
 周六早上，宋瑶刚把床单塞进洗衣机，婆婆电话来了。
 
@@ -14,7 +14,7 @@ title: 她不再安排全家饭局
 
 她对电话那头说：“妈，今晚我不做饭。”
 
-![](../images/drama/young_couple_food_900x600.jpg)
+![](../images/drama/young_margate_candid_900x600.jpg)
 
 ## 厨房突然安静了
 
@@ -52,7 +52,7 @@ title: 她不再安排全家饭局
 
 陈川说：“他们吃得挺好。”
 
-![](https://picsum.photos/seed/emotion-family-dinner-1/900/600)
+![](../images/body/emotion_body_8.jpg)
 
 宋瑶走出商场，夜风吹得裙摆贴在腿上。闺蜜问她回家会不会挨说。
 

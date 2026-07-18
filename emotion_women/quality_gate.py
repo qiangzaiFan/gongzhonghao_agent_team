@@ -21,6 +21,15 @@ except ImportError:  # pragma: no cover - optional local image dimension check
 BASE_DIR = Path(__file__).parent
 IMAGE_POOL = BASE_DIR / "image_pool.txt"
 DRAMA_IMAGE_POOL = BASE_DIR / "drama_image_pool.txt"
+TITLE_BANNED_PREFIXES = (
+    "她不再",
+    "她没有再",
+    "她没",
+    "她把",
+    "这次，她",
+)
+TITLE_BANNED_SURFACE_RE = re.compile(r"^她[^，,]{0,5}(不|没|把|下班|终于|再)")
+TITLE_TEMPLATE_MIN_COUNT = 3
 
 BANNED_PHRASES = [
     "每个人都值得被爱",
@@ -106,19 +115,95 @@ def cover_image_paths() -> set[str]:
 
     paths: set[str] = set()
     in_cover = False
+    in_legacy = False
     for raw_line in IMAGE_POOL.read_text(encoding="utf-8", errors="ignore").splitlines():
         line = raw_line.strip()
         upper = line.upper()
         if upper.startswith("## COVER"):
             in_cover = True
+            in_legacy = upper.startswith("## COVER_LEGACY")
             continue
         if upper.startswith("## BODY"):
             in_cover = False
+            in_legacy = False
             continue
-        if not in_cover or not line or line.startswith("#") or not is_image_reference(line):
+        if (
+            not in_cover
+            or in_legacy
+            or not line
+            or line.startswith("#")
+            or not is_image_reference(line)
+        ):
             continue
         paths.add(image_reference_to_markdown_path(line))
     return paths
+
+
+def title_errors(title: str) -> list[str]:
+    compact = re.sub(r"\s+", "", title.strip().strip("'\""))
+    errors: list[str] = []
+    for prefix in TITLE_BANNED_PREFIXES:
+        if compact.startswith(prefix):
+            errors.append(f"title 使用了近期已禁用的同质化开头：{prefix}")
+            break
+    if TITLE_BANNED_SURFACE_RE.match(compact):
+        errors.append("title 仍是“她 + 动作/否定”的旧外壳，请改成物件/场景/对话/时间钩子")
+    labels = classify_title_templates(compact)
+    if len(labels) < TITLE_TEMPLATE_MIN_COUNT:
+        errors.append(
+            f"title 只识别到 {len(labels)} 种方法：{'、'.join(labels) or '无'}；"
+            f"至少需要融合 {TITLE_TEMPLATE_MIN_COUNT} 种标题方法"
+        )
+    return errors
+
+
+def classify_title_templates(title: str) -> list[str]:
+    labels: list[str] = []
+    if re.search(r"\d|[一二三四五六七八九十百千万]+(?=个|种|句|点|次|年|岁|万|元|%)", title):
+        labels.append("数字法")
+    if re.search(r"[?？]|(吗|呢|么)$|为什么|怎么|到底|哪天|值不值|去不去|该不该|凭什么|算什么", title):
+        labels.append("疑问法")
+    if any(mark in title for mark in ("「", "」", "“", "”", '"')) or re.search(
+        r".+[，,：:].+(关你|谢谢|够了|停下|算了|凭什么|别装)",
+        title,
+    ):
+        labels.append("对话法")
+    if re.search(r"不是|不再|别把|别再|却|一边.+一边|越.+越|只是不|而是|才是|和别人比|拿你.+比|没必要", title):
+        labels.append("对比法")
+
+    hot_words = (
+        "边界感",
+        "情绪价值",
+        "恋爱脑",
+        "冷暴力",
+        "PUA",
+        "原生家庭",
+        "前任",
+        "分手",
+        "婚姻",
+        "离婚",
+        "催婚",
+        "婆媳",
+        "彩礼",
+        "断亲",
+        "内耗",
+        "松弛感",
+        "娘家",
+        "饭桌",
+        "家庭",
+        "姐姐",
+        "丈夫",
+        "婆婆",
+    )
+    if any(word in title for word in hot_words):
+        labels.append("热词法")
+    if re.search(r"有一种|这[0-9一二三四五六七八九十]+|那[张顿只句个]|那些|后来.+怎么样|最.+的|永远是|压根|其实|凭什么|算什么", title):
+        labels.append("好奇法")
+    if any(phrase in title for phrase in ("一生一起走", "各自安好", "来都来了", "万一", "谁先", "人间值得", "算了", "不撞南墙", "体面")):
+        labels.append("俗语法")
+    if any(phrase in title for phrase in ("其实我不是", "我不是一个", "我猜中了", "曾经有一份", "后来的我们", "如果爱有天意", "这个杀手不太冷")):
+        labels.append("电影台词法")
+    return labels
 
 
 def cjk_len(text: str) -> int:
@@ -314,6 +399,7 @@ def main() -> int:
         errors.append(f"title 太短：{title}")
     elif len(title) > 20:
         errors.append(f"title 太长：{len(title)} 字，最多 20 字")
+    errors.extend(title_errors(title))
 
     length = cjk_len(body)
     if length < args.min_cjk:
@@ -331,7 +417,8 @@ def main() -> int:
     elif not images:
         errors.append("封面图缺失：正文第一张图片必须作为公众号封面")
     elif images[0] not in cover_paths:
-        errors.append(f"正文第一张图不是精选封面图池图片：{images[0]}")
+        legacy_note = "；COVER_LEGACY 旧封面不再允许作为普通文章封面" if "images/cover/" in images[0] else ""
+        errors.append(f"正文第一张图不是当前人设封面图池图片：{images[0]}{legacy_note}")
 
     drama_paths = drama_image_paths()
     if not drama_paths:
@@ -346,6 +433,9 @@ def main() -> int:
     errors.extend(validate_local_image_dimensions(article_path, images))
     errors.extend(validate_local_cover_quality(article_path, images))
     errors.extend(validate_local_drama_clarity(article_path, images))
+    for index, image in enumerate(images[2:], start=3):
+        if is_url(image):
+            errors.append(f"正文氛围图 #{index} 必须使用本地稳定素材，不能使用远程接口图：{image}")
 
     golden = bold_or_quote_count(body)
     if golden < args.min_golden:

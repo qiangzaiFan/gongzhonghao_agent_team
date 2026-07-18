@@ -34,7 +34,7 @@ export OPENAI_API_KEY="你的 OpenAI API Key"
 python daily_emotion_women.py --now --count 1 --provider openai
 
 # 指定模型
-python daily_emotion_women.py --now --count 1 --provider openai --openai-model gpt-5.5
+python daily_emotion_women.py --now --count 1 --provider openai --openai-model gpt-5.6-luna
 ```
 
 OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质量门槛；带 `--publish` 时同样发布到公众号草稿箱。
@@ -90,6 +90,10 @@ python rewrite_direct_from_link.py --source-file /path/to/source.txt
 ```bash
 python rewrite_direct_from_link.py "https://example.com/source-article" --publish
 ```
+
+### 标题硬规则
+
+普通文章标题必须在 20 字以内，并同时融合至少 3 种标题方法：数字法、对比法、热词法、疑问法、对话法、好奇法、俗语法、电影台词法。补救稿、重发稿和新生成稿都走同一套 `quality_gate.py` 发布前质检；只命中 1-2 种方法会直接停止发布。禁止继续使用 `她不再...`、`她没有再...`、`她把...`、`这次，她...` 这类旧标题外壳。
 
 ### 配图图池
 

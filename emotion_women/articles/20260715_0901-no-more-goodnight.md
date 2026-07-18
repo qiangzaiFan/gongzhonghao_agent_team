@@ -1,8 +1,8 @@
 ---
-title: 她没有再等他的晚安
+title: 凌晨2点，那句晚安算什么？
 ---
 
-![](../images/cover/cover_breakup_city_night_900x600.jpg)
+![](../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg)
 
 凌晨一点十七分，沈棠第三次点开和陈序的聊天框。
 
@@ -14,7 +14,7 @@ title: 她没有再等他的晚安
 
 沈棠盯着那四个字，忽然没有力气回。
 
-![](../images/drama/young_about_to_kiss_900x600.jpg)
+![](../images/drama/young_boyfriend_girlfriend_900x600.jpg)
 
 ## 她曾经很会替他解释
 
@@ -38,11 +38,11 @@ title: 她没有再等他的晚安
 
 十一点二十，她睡了。
 
-早上醒来，陈序发了三条消息：“昨天睡这么早？”“怎么不回我？”“你最近是不是有情绪？”
+早上醒来，陈序发了三条消息：“昨天睡这么早啊。”“怎么不回我？”“你最近是不是有情绪？”
 
 沈棠靠在枕头上看了很久。她没有解释自己等过多少晚，也没有翻旧账，只回：“我以后不等临睡前的消息了，有事白天说。”
 
-![](https://picsum.photos/seed/emotion-no-goodnight-1/900/600)
+![](../images/body/emotion_body_7.jpg)
 
 陈序过了半天才回：“你这样搞得我压力很大。”
 

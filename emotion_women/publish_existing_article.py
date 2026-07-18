@@ -66,7 +66,7 @@ def find_node() -> str:
 
 
 def load_wenyan_config() -> tuple[str, dict[str, str]]:
-    with MCP_CONFIG.open("r", encoding="utf-8") as fh:
+    with MCP_CONFIG.open("r", encoding="utf-8-sig") as fh:
         config = json.load(fh)
     server = config["mcpServers"]["wenyan-mcp"]
     index_path = server["args"][0]
@@ -140,18 +140,38 @@ def main() -> int:
         return quality_preflight.returncode
 
     wenyan_index, wechat_env = load_wenyan_config()
-    # publishArticle 从 dist/publish.js 导出（dist/index.js 只是 MCP server 入口）
-    wenyan_module = Path(wenyan_index).resolve().with_name("publish.js")
+    # This wenyan-mcp build exposes the draft API from dist/customPublish.js.
+    wenyan_module = Path(wenyan_index).resolve().with_name("customPublish.js")
     if not wenyan_module.exists():
         wenyan_module = Path(wenyan_index).resolve()
+    wenyan_root = Path(wenyan_index).resolve().parents[1]
+    wrapper_module = wenyan_root / "node_modules" / "@wenyan-md" / "core" / "dist" / "wrapper.js"
     script = f"""
-import {{ publishArticle }} from {json.dumps(str(wenyan_module))};
+import {{ getGzhContent }} from {json.dumps(wrapper_module.as_uri())};
+import {{ publishToDraft }} from {json.dumps(wenyan_module.as_uri())};
+import {{ readFile }} from "fs/promises";
+import {{ dirname, isAbsolute, resolve }} from "path";
 
 const file = {json.dumps(str(article_path))};
 const theme = {json.dumps(args.theme)};
 
 try {{
-  const res = await publishArticle("", file, "", theme, undefined, "direct-cli");
+  const articleDir = dirname(file);
+  const markdown = (await readFile(file, "utf-8")).replace(
+    /!\\[([^\\]]*)\\]\\(([^)]+)\\)/g,
+    (match, alt, src) => {{
+      if (/^(https?:|data:)/i.test(src) || isAbsolute(src)) return match;
+      const absoluteSrc = resolve(articleDir, src).replace(/\\\\/g, "/");
+      return `![${{alt}}](${{absoluteSrc}})`;
+    }}
+  );
+  const gzhContent = await getGzhContent(markdown, theme, "solarized-light", true, true);
+  const res = await publishToDraft(
+    gzhContent.title ?? "Untitled",
+    gzhContent.content,
+    gzhContent.cover ?? "",
+    "Agent"
+  );
   console.log(JSON.stringify(res, null, 2));
 }} catch (err) {{
   console.error(err && err.stack ? err.stack : err);
