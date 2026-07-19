@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from difflib import SequenceMatcher
 import re
 import sys
 from pathlib import Path
@@ -235,10 +236,32 @@ def style_errors(body: str) -> list[str]:
     if question_count > 5:
         errors.append(f"问句过多：识别到 {question_count} 个，最多 5 个")
 
+    awakening_count = len(re.findall(r"忽然|终于|第一次|那一刻|她明白了|她想明白了", body))
+    if awakening_count > 2:
+        errors.append(f"人物觉醒词过密：识别到 {awakening_count} 处，最多 2 处")
+
     ending = body[-350:]
     engagement_hits = [word for word in ("评论", "点赞", "转发", "分享") if word in ending]
     if len(engagement_hits) >= 3:
         errors.append(f"结尾出现互动三件套：{', '.join(engagement_hits)}，最多保留一个自然互动动作")
+    return errors
+
+
+def highlighted_sentence_errors(body: str) -> list[str]:
+    """Reject generic aphorisms while retaining the required single highlight."""
+    highlighted = re.findall(r"\*\*([^*\n]{8,80})\*\*", body)
+    highlighted.extend(re.findall(r"(?m)^>\s*(.{8,80})$", body))
+    errors: list[str] = []
+    generic_patterns = (
+        r"^(?:有些|很多|真正的|好的)(?:女人|委屈|关系|婚姻|爱情)",
+        r"^让人[^。！？]{0,20}的关系",
+        r"^她不是[^。！？]{0,35}她是",
+        r"(?:所有|永远|从来)[^。！？]{0,25}(?:都|不|是)",
+    )
+    for sentence in highlighted:
+        compact = re.sub(r"\s+", "", sentence)
+        if any(re.search(pattern, compact) for pattern in generic_patterns):
+            errors.append(f"加粗句仍是可套用到其他文章的万能判断：{sentence}")
     return errors
 
 
@@ -251,6 +274,75 @@ def narrative_errors(body: str) -> list[str]:
     if time_count < 1:
         errors.append("故事缺少推进：至少需要 1 个时间或场景变化信号")
     return errors
+
+
+def structure_skeleton(body: str) -> list[str]:
+    """Capture template-element order while ignoring wording and paragraph count."""
+    blocks = [block.strip() for block in re.split(r"\n\s*\n", body) if block.strip()]
+    first_prose = next((block for block in blocks if not block.startswith(("!", "## "))), "")
+    if re.match(r"^(?:凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|周[一二三四五六日天]|\d{1,2}[点时])", first_prose):
+        opening = "OT"
+    elif re.match(r"^[“\"]", first_prose):
+        opening = "OD"
+    else:
+        opening = "OA"
+
+    tokens: list[str] = [opening]
+    for text in blocks:
+        if text.startswith("!"):
+            token = "I"
+        elif text.startswith("## "):
+            token = "H"
+        elif "**" in text or text.startswith("> "):
+            token = "B"
+        else:
+            token = "P"
+        if token != "P" or tokens[-1] != "P":
+            tokens.append(token)
+
+    last_prose = next((block for block in reversed(blocks) if not block.startswith(("!", "## "))), "")
+    if re.search(r"[？?]\s*$", last_prose):
+        ending = "EQ"
+    elif re.search(r"[”\"]\s*$", last_prose):
+        ending = "ED"
+    elif re.search(r"水声|风声|绿萝|账单|灯光|铃声|叶子|阳光", last_prose):
+        ending = "ES"
+    else:
+        ending = "EA"
+    tokens.append(ending)
+    return tokens
+
+
+def recent_structure_errors(article_path: Path, body: str, limit: int = 12) -> list[str]:
+    """Catch recent articles that arrange the required template in the same order."""
+    current = structure_skeleton(body)
+    if article_path.parent.name != "articles":
+        return []
+    candidates = sorted(
+        (path for path in article_path.parent.glob("*.md") if path.resolve() != article_path.resolve()),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )[:limit]
+    closest: tuple[float, str] | None = None
+    for path in candidates:
+        try:
+            _, other_body = parse_frontmatter(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError):
+            continue
+        ratio = SequenceMatcher(
+            None,
+            current,
+            structure_skeleton(other_body),
+            autojunk=False,
+        ).ratio()
+        if closest is None or ratio > closest[0]:
+            closest = (ratio, path.name)
+    if closest and closest[0] >= 0.96:
+        return [
+            f"模板元素顺序与近期文章 {closest[1]} 过于相似（{closest[0]:.0%}）；"
+            "保留 2 个小标题、1 处重点句和 4 张图，但请调整开头、重点句/图片位置或结尾类型"
+        ]
+    return []
 
 
 def author_summary_errors(body: str) -> list[str]:
@@ -453,8 +545,10 @@ def main() -> int:
         if phrase in body:
             errors.append(f"包含低质/AI感表达：{phrase}")
     errors.extend(style_errors(body))
+    errors.extend(highlighted_sentence_errors(body))
     errors.extend(narrative_errors(body))
     errors.extend(author_summary_errors(body))
+    errors.extend(recent_structure_errors(article_path, body))
 
     if errors:
         print("质量门槛未通过：", file=sys.stderr)
