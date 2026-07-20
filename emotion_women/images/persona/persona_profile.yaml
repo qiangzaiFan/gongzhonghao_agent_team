@@ -1,0 +1,94 @@
+profile_version: 2
+persona_id: emotion_woman_v1
+display_name: 林小满
+identity_type: fictional_adult
+age: 28
+
+identity_reference:
+  source: images/persona/master/persona_master_standard_v2.jpg
+  rule: source_image_is_the_only_identity_truth
+
+previous_identity_reference:
+  source: images/persona/master/persona_master_natural_source.png
+  preview: images/persona/master/persona_master_natural_900x600.jpg
+  status: archived
+
+style_reference:
+  source: images/persona/style/persona_style_sensual_v1.jpg
+  rule: wardrobe_mood_and_styling_only
+
+identity_lock:
+  - same adult woman
+  - preserve exact facial geometry and proportions
+  - preserve eye shape, eye spacing and dark brown eye color
+  - preserve nose shape, lips, jawline and cheek structure
+  - preserve natural skin tone, pores and age
+  - preserve hairline and black shoulder-length hair
+  - no face beautification and no age change
+
+mutable_fields:
+  wardrobe: true
+  makeup: subtle_only
+  expression: true
+  pose: true
+  camera_angle: true
+  background: true
+  time_of_day: true
+  weather: true
+  hairstyle: styling_only
+  hair_color: false
+  apparent_age: false
+  facial_geometry: false
+
+photography_defaults:
+  medium: photorealistic candid lifestyle photography
+  lens: 35mm or 50mm full-frame lens
+  skin: natural pores and fine facial texture
+  lighting: physically plausible natural or practical light
+  color: restrained editorial color with realistic white balance
+  retouching: minimal
+  scene_style: ordinary lived-in daily life, never a staged fashion set
+  behavior: the subject must be doing a specific believable action
+  environment: include restrained signs of real use and minor imperfection
+  output_aspect_ratio: "3:2"
+  generation_size: "1536x1024"
+  final_size: preserve_source_resolution
+  minimum_short_edge: 600
+  minimum_pixels: 540000
+
+default_avoid:
+  - plastic skin
+  - beauty filter
+  - doll face
+  - excessive symmetry
+  - heavy glamour retouching
+  - malformed hands or fingers
+  - asymmetric eyes
+  - fused teeth
+  - fake text
+  - logos
+  - watermark
+  - duplicated objects
+  - impossible reflections
+  - broken background geometry
+  - studio glamour pose
+  - empty luxury showroom
+  - hotel advertisement
+  - influencer posing
+  - standing still only to display clothes
+  - spotless staged apartment
+  - generic cafe portrait
+  - underage appearance
+
+asset_policy:
+  draft_directory: output/persona_jobs
+  approved_directory: images/persona/scenes
+  approved_format: JPEG
+  approved_quality: 94
+  use_generated_scene_as_identity_reference: false
+  require_human_review_before_pool: true
+  automatically_publish: false
+
+known_non_identity_assets:
+  - images/persona/scenes/persona_cafe_source.png
+  - images/persona/scenes/persona_cafe_900x600.jpg

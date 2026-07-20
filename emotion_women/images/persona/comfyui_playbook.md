@@ -140,7 +140,7 @@ low quality, blurry, plastic skin, doll face, watermark, text, extra fingers, ba
 使用：
 
 ```text
-emotion_women/images/persona/master/persona_master_natural_900x600.jpg
+emotion_women/images/persona/master/persona_master_standard_v2.jpg
 ```
 
 这张图的作用是 source face，不一定直接做封面。
@@ -178,9 +178,9 @@ Save Image
 对应关系：
 
 ```text
-source_image = persona_master_natural_900x600.jpg
+source_image = persona_master_standard_v2.jpg
 input_image = persona_cafe_base.jpg
-output = persona_cafe_fixed_900x600.jpg
+output = persona_cafe_fixed.jpg
 ```
 
 先只修咖啡馆这一张。确认自然后，再批量。
@@ -190,17 +190,17 @@ output = persona_cafe_fixed_900x600.jpg
 最终入池图建议是横图：
 
 ```text
-最低 900x600，推荐 1536x1024 / 1280x853 / 1200x800 / 900x600
+高质量 JPG；短边至少 600 像素，不强制固定尺寸
 ```
 
 路径：
 
 ```text
-emotion_women/images/persona/scenes/persona_cafe_900x600.jpg
-emotion_women/images/persona/scenes/persona_night_street_900x600.jpg
-emotion_women/images/persona/scenes/persona_home_900x600.jpg
-emotion_women/images/persona/scenes/persona_office_900x600.jpg
-emotion_women/images/persona/scenes/persona_car_window_900x600.jpg
+emotion_women/images/persona/scenes/persona_cafe.jpg
+emotion_women/images/persona/scenes/persona_night_street.jpg
+emotion_women/images/persona/scenes/persona_home.jpg
+emotion_women/images/persona/scenes/persona_office.jpg
+emotion_women/images/persona/scenes/persona_car_window.jpg
 ```
 
 ## 显存设置建议
@@ -251,5 +251,4 @@ glamour studio, over-posed, heavy retouching, influencer selfie
 - 不像换脸
 - 不低俗
 - 适合公众号封面
-- 横图，至少 900x600
-
+- 短边至少 600 像素，封面优先 3:2 横图

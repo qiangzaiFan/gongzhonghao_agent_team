@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Directly rewrite a linked article title and body without the emotion-agent template."""
+"""Rewrite only a linked article body while preserving its extracted title."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def build_direct_rewrite_messages(source_title: str, source_text: str, source_id
     source_excerpt = compact_source_text(source_text, MAX_DIRECT_SOURCE_CHARS)
 
     system = """你是公众号文章原创改写编辑。
-你的任务是基于用户提供的来源正文，重写标题和正文，让它成为一篇新的原创表达。
+你的任务是基于用户提供的来源正文，保留原标题，只重写正文，让它成为一篇新的原创表达。
 这不是情感 agent 爆款模板，不要套用固定框架，不要强行改成情感号故事文。
 必须尊重原创边界：不得逐段换词，不得保留来源文章的连续表达、独特比喻、小标题和句式。只输出 JSON。"""
 
@@ -57,9 +57,9 @@ def build_direct_rewrite_messages(source_title: str, source_text: str, source_id
 
 ## 硬性要求
 1. 必须基于上面的来源正文改写；如果正文不足或像页面噪声，不要脑补。
-2. 只做标题和正文改写，不使用 emotion-writer 模板，不写“爆款分析”，不套固定三段式。
+2. 来源标题必须逐字保留，只改写正文；不使用 emotion-writer 模板，不写“爆款分析”，不套固定三段式。
 3. 保留来源文章的核心主题、主要论点和信息关系，但改写为新的表达：
-   - 标题必须重写；
+   - 标题必须原样使用：{source_title}
    - 开头必须重写；
    - 小标题必须重写；
    - 段落顺序可以调整；
@@ -87,7 +87,7 @@ def build_direct_rewrite_messages(source_title: str, source_text: str, source_id
 
 只输出 JSON：
 {{
-  "title": "改写后的标题",
+  "title": "{source_title}",
   "topic_slug": "英文小写短横线 slug",
   "rewrite_notes": "说明改写时改动了哪些关键地方",
   "markdown": "完整 Markdown"
@@ -108,11 +108,12 @@ def generate_direct_rewrite(source_title: str, source_text: str, source_id: str,
     data = parse_json_object(text)
     if not isinstance(data.get("markdown"), str):
         raise RuntimeError(f"OpenAI 返回缺少 markdown：{truncate_for_log(json.dumps(data, ensure_ascii=False))}")
+    data["title"] = source_title
     return data
 
 
-def save_direct_article(data: dict, source_text: str) -> tuple[Path, float]:
-    title = str(data.get("title") or "").strip()
+def save_direct_article(data: dict, source_title: str, source_text: str) -> tuple[Path, float]:
+    title = source_title.strip()
     markdown = str(data.get("markdown") or "")
     slug = slugify(str(data.get("topic_slug") or title), "direct-rewrite")
     timestamp = get_beijing_time().strftime("%Y%m%d_%H%M")
@@ -129,7 +130,7 @@ def save_direct_article(data: dict, source_text: str) -> tuple[Path, float]:
     return path, overlap
 
 
-def publish_path(article_path: Path, theme: str) -> tuple[bool, str]:
+def publish_path(article_path: Path, theme: str, title: str) -> tuple[bool, str]:
     result = subprocess.run(
         [
             sys.executable,
@@ -137,6 +138,10 @@ def publish_path(article_path: Path, theme: str) -> tuple[bool, str]:
             str(article_path),
             "--theme",
             theme,
+            "--min-title",
+            "1",
+            "--max-title",
+            str(max(20, len(title))),
         ],
         cwd=BASE_DIR,
         capture_output=True,
@@ -148,7 +153,7 @@ def publish_path(article_path: Path, theme: str) -> tuple[bool, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="从链接直接改写标题和正文，不使用情感 agent 爆款模板",
+        description="从链接保留原标题并只改写正文，不使用情感 agent 爆款模板",
     )
     parser.add_argument("url", nargs="?", default="", help="原文链接")
     parser.add_argument(
@@ -187,9 +192,9 @@ def main() -> int:
     print(f"来源快照：{snapshot_path}")
     print(f"正文预览：{source_preview(source_text)}")
 
-    print("直接改写标题和正文...")
+    print("保留原标题，只改写正文...")
     data = generate_direct_rewrite(source_title, source_text, source_id, args.openai_model)
-    path, overlap = save_direct_article(data, source_text)
+    path, overlap = save_direct_article(data, source_title, source_text)
     print(f"已保存：{path}")
     print(f"来源相似度指纹：{overlap:.2%}")
     if overlap >= OVERLAP_WARN_THRESHOLD:
@@ -201,7 +206,11 @@ def main() -> int:
         for warning in warnings:
             print(f"- {warning}")
 
-    ok, output = run_preflight(path)
+    ok, output = run_preflight(
+        path,
+        min_title=1,
+        max_title=max(20, len(source_title)),
+    )
     if not ok:
         print("本地质检未通过：", file=sys.stderr)
         print(output, file=sys.stderr)
@@ -210,7 +219,7 @@ def main() -> int:
 
     if args.publish:
         print("发布到公众号草稿箱...")
-        published, publish_output = publish_path(path, args.theme)
+        published, publish_output = publish_path(path, args.theme, source_title)
         print(publish_output)
         if not published:
             return 1

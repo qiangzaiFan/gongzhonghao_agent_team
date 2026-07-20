@@ -104,6 +104,8 @@ def main() -> int:
         default=DEFAULT_THEME,
         help=f"wenyan-mcp 排版主题，默认 {DEFAULT_THEME}",
     )
+    parser.add_argument("--min-title", type=int, default=6)
+    parser.add_argument("--max-title", type=int, default=20)
     parser.add_argument("-v", "--verbose", action="store_true", help="显示详细执行过程")
     args = parser.parse_args()
 
@@ -131,10 +133,12 @@ def main() -> int:
     quality_script = "validate_image_post.py" if re.search(
         r"(?m)^format:\s*image-post\s*$", content
     ) else "quality_gate.py"
-    quality_preflight = subprocess.run(
-        [sys.executable, str(BASE_DIR / quality_script), str(article_path)],
-        cwd=BASE_DIR,
-    )
+    quality_command = [sys.executable, str(BASE_DIR / quality_script), str(article_path)]
+    if quality_script == "quality_gate.py":
+        quality_command.extend(
+            ["--min-title", str(args.min_title), "--max-title", str(args.max_title)]
+        )
+    quality_preflight = subprocess.run(quality_command, cwd=BASE_DIR)
     if quality_preflight.returncode != 0:
         print("错误：质量门槛未通过，已停止发布。请修复文章后重试。")
         return quality_preflight.returncode

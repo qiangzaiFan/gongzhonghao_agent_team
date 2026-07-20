@@ -9,7 +9,7 @@
 - **风格**：真实故事 + 犀利观点 + 温暖底色（像有阅历的女性朋友认真聊天）
 - **篇幅**：正文目标约 800 个中文字符，发布质检范围 720-900
 - **表达约束**：故事占正文至少 75%，有冲突、对话和变化；不虚构真人来源，不在正文插免责声明
-- **模板内去重**：保留 2 个小标题、1 处加粗和 4 张图，但轮换开头、重点句/图片位置、冲突结果和结尾；与近期文章同骨架会被质检拦截
+- **模板内去重**：保留 2 个小标题、1 处加粗和 3 张图，但轮换开头、重点句/图片位置、冲突结果和结尾；与近期文章同骨架会被质检拦截
 - **封面去重**：同批封面不重复，并优先选择最近 12 篇里使用次数最少的封面
 
 ## 使用方法
@@ -68,15 +68,22 @@ python rewrite_from_link.py "https://example.com/hot-article" --publish
 
 这个流程只把来源文章当作选题研究样本，要求更换标题、开头、故事、结构、小标题和表达，并会输出来源相似度指纹。不要做逐段改写或搬运；平台风险的核心处理方式是提高原创度、事实准确性和真人编辑质量，而不是研究绕过检测。
 
-### 从链接直接改写标题和正文
+### 从链接保留原标题，只改写正文
 
-如果不想使用情感 agent 的爆款分析和重构模板，只想拿一篇文章的标题和正文做“直接原创改写”，使用独立脚本：
+如果不想使用情感 agent 的爆款分析和重构模板，只想保留来源标题并原创改写正文，使用独立脚本：
 
 ```bash
 python rewrite_direct_from_link.py "https://example.com/source-article"
 ```
 
-这条链路仍然会先确认拿到来源正文、保存来源快照、计算来源相似度，但不会调用 `emotion-writer` 风格摘要，也不会输出爆款分析。它只要求重写标题、开头、小标题、段落表达和正文内容。生成文件名会带 `direct-` 前缀，避免和情感模板改写稿混在一起。
+这条链路仍然会先确认拿到来源正文、保存来源快照、计算来源相似度，但不会调用 `emotion-writer` 风格摘要，也不会输出爆款分析。来源标题由程序强制原样保留，模型只能重写开头、小标题、段落结构和正文表达。生成文件名会带 `direct-` 前缀，避免和情感模板改写稿混在一起。
+
+在 Codex 中可以直接说：
+
+```text
+改写链接：https://example.com/source-article
+标题保持原样，只改写正文。只生成本地草稿，不发布。
+```
 
 微信链接会优先使用移动端页面抓取，并抽取正文容器 `js_content`，自动清理阅读器、预约直播、按钮文案等广告/页面噪声。
 
@@ -98,7 +105,9 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 
 ### 配图图池
 
-文章第一张图会作为公众号封面，从 `image_pool.txt` 的 `COVER_*` 本地精选封面池读取。新文章封面优先使用 `images/persona/scenes/` 里的同一人设图池；`images/cover/` 里的旧封面只作为历史重发或临时兜底。默认封面固定使用同一位 22 岁成年女性形象，通过晨间咖啡、通勤、咖啡馆、居家阅读、便利店、书店和徒步等明亮生活场景保持账号视觉识别；保留真实皮肤纹理和生活化表情，主风格是青春活力、阳光明亮、元气笑容，可用白T、浅色衬衫、牛仔外套、运动短袖、卫衣、清爽裙装和自然姿态增强吸引力，但不使用未成年感、成熟疲惫、低胸、露点、裸露敏感部位、透明衣物、内衣特写或低俗挑逗姿势。脚本仍会按标题关键词自动匹配封面主题。
+以后每篇文章固定使用 3 张图片：1 张封面和 2 张正文图。
+
+文章第一张图会作为公众号封面，从 `image_pool.txt` 的 `COVER_*` 本地精选封面池读取。新文章封面优先使用 `images/persona/scenes/` 里的同一人设图池；`images/cover/` 里的旧封面只作为历史重发或临时兜底。默认封面固定使用同一位 28 岁成年女性形象，通过晨间咖啡、通勤、咖啡馆、居家阅读和城市夜晚等生活场景保持账号视觉识别；保留真实皮肤纹理和生活化表情，通过露肩、锁骨、修身剪裁和自然姿态增强吸引力，但不使用未成年感、裸露、透明衣物、内衣特写或低俗挑逗姿势。脚本仍会按标题关键词自动匹配封面主题。
 
 ```text
 ## COVER_BREAKUP
@@ -115,9 +124,9 @@ python rewrite_direct_from_link.py "https://example.com/source-article" --publis
 ../images/drama/your-drama-still-2_900x600.jpg
 ```
 
-其余正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
+第三张正文氛围图从 `image_pool.txt` 的 BODY 段读取。发布前会真实探测远程图片，404 或非图片资源会被拦下。
 
-本地图不强制裁剪为 `900x600`，但必须是横图，至少 `900x600`，宽高比建议 `1.25-1.95`，推荐 `3:2` 或接近公众号封面比例。发布前的质量门槛会检查本地图片尺寸和比例，并对封面图做亮度、清晰度、色彩吸引力检测，对封面后的影视剧图做清晰度检测，避免公众号里出现随机、偏暗、偏糊或比例不适合的图片。
+本地图不再强制为 `900x600`。发布前只检查最低分辨率：短边至少 600 像素、总像素不少于 540000；封面推荐 3:2 横图，正文允许横图或竖图。质量门槛仍会检查亮度、清晰度和色彩，避免使用偏暗或偏糊的图片。
 
 ### 本地图像生成环境
 
@@ -143,7 +152,66 @@ OPENAI_BASE_URL="https://apexapi.roixw.com/v1" \
   --out output/imagegen/test-cover.png
 ```
 
-`.venv/`、`output/` 和真实凭证都已被 Git 忽略。生成公众号封面时推荐使用 `1536x1024` 横图；如果构图安全，可以直接加入 `images/persona/scenes/` 和 `image_pool.txt`，不必裁剪到 `900x600`。
+`.venv/`、`output/` 和真实凭证都已被 Git 忽略。生成公众号封面时推荐使用 `1536x1024` 横图；如果构图安全，可直接加入 `images/persona/scenes/` 和 `image_pool.txt`，不需要额外保存 `900x600` 副本。
+
+### 同一人物视觉 Agent
+
+项目提供 persona-visual-director 子 agent，用同一张母图生成不同造型、表情、姿势和背景。
+
+在 Codex 中使用时，直接复制
+[Codex 生成人设图指令](./Codex生成人设图指令.md)
+中的单图或文章三图模板。
+
+人物配置：
+
+~~~text
+images/persona/persona_profile.yaml
+~~~
+
+唯一身份母图：
+
+~~~text
+images/persona/master/persona_master_standard_v2.jpg
+~~~
+
+在 Claude Code 中可以直接说：
+
+~~~text
+生成人设图：她穿灰色风衣，雨夜站在便利店门口，
+一手拿透明雨伞，一手看手机，疲惫但平静，中景。
+~~~
+
+或者按文章生成三个分镜：
+
+~~~text
+为最新文章生成人设配图
+~~~
+
+工作流程：
+
+~~~text
+固定母图
+→ 生成2张低质量候选
+→ 对照母图检查身份和AI瑕疵
+→ 生成1张中/高质量定稿
+→ 转成一张高质量JPG并保留原分辨率
+→ 人工确认
+→ 按需加入图池
+~~~
+
+候选图保存在 output/persona_jobs，不提交 Git。人工确认后的正式图片写入 images/persona/scenes，生成记录写入 images/persona/metadata。
+
+正式资产整理命令：
+
+~~~bash
+cd emotion_women
+../.venv/bin/python persona_asset_tool.py finalize \
+  output/persona_jobs/JOB/finals/SCENE.png \
+  --slug 20260720-topic-scene-cover \
+  --prompt-file output/persona_jobs/JOB/prompts/SCENE.txt
+~~~
+
+该 agent 复用上文的 imagegen CLI 和 API 配置，不保存 API Key。它不会自动入图池、修改文章或发布公众号。
 
 ### 发布到公众号草稿箱
 
@@ -231,7 +299,7 @@ emotion_women/
 ├── CLAUDE.md                # 主编指令
 ├── daily_emotion_women.py   # 自动化脚本
 ├── rewrite_from_link.py     # 爆款链接原创转化脚本
-├── rewrite_direct_from_link.py # 链接文章标题/正文直接改写脚本
+├── rewrite_direct_from_link.py # 保留链接原标题、只改写正文
 ├── publish_existing_article.py # 重试发布已有文章到草稿箱
 ├── drama_image_pool.txt     # 封面后第一张正文图：影视/生活剧男女主合照等
 ├── image_pool.txt           # 封面图池 + 正文氛围图池

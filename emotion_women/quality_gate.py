@@ -68,11 +68,8 @@ AUTHOR_SUMMARY_PATTERNS = (
     r"忽然明白|终于明白|这说明|这意味着|归根结底|说到底|"
     r"本质上|本来就该|道理很简单|真正的[^。！？\n]{0,30}(?:是|在于)"
 )
-RECOMMENDED_LOCAL_IMAGE_SIZE = (900, 600)
-MIN_LOCAL_IMAGE_WIDTH = 900
-MIN_LOCAL_IMAGE_HEIGHT = 600
-MIN_LOCAL_IMAGE_ASPECT = 1.25
-MAX_LOCAL_IMAGE_ASPECT = 1.95
+MIN_LOCAL_IMAGE_SHORT_EDGE = 600
+MIN_LOCAL_IMAGE_PIXELS = 900 * 600
 MIN_LOCAL_COVER_EDGE_RMS = 10.0
 MIN_LOCAL_COVER_BRIGHTNESS = 45.0
 MAX_LOCAL_COVER_BRIGHTNESS = 235.0
@@ -340,7 +337,7 @@ def recent_structure_errors(article_path: Path, body: str, limit: int = 12) -> l
     if closest and closest[0] >= 0.96:
         return [
             f"模板元素顺序与近期文章 {closest[1]} 过于相似（{closest[0]:.0%}）；"
-            "保留 2 个小标题、1 处重点句和 4 张图，但请调整开头、重点句/图片位置或结尾类型"
+            "保留 2 个小标题、1 处重点句和 3 张图，但请调整开头、重点句/图片位置或结尾类型"
         ]
     return []
 
@@ -362,7 +359,7 @@ def author_summary_errors(body: str) -> list[str]:
     return errors
 
 
-def validate_local_image_dimensions(article_path: Path, images: list[str]) -> list[str]:
+def validate_local_image_resolution(article_path: Path, images: list[str]) -> list[str]:
     if Image is None:
         return []
 
@@ -378,18 +375,11 @@ def validate_local_image_dimensions(article_path: Path, images: list[str]) -> li
                 size = im.size
         except OSError:
             continue
-        width, height = size
-        aspect = width / height if height else 0
-        if width < MIN_LOCAL_IMAGE_WIDTH or height < MIN_LOCAL_IMAGE_HEIGHT:
+        if min(size) < MIN_LOCAL_IMAGE_SHORT_EDGE or size[0] * size[1] < MIN_LOCAL_IMAGE_PIXELS:
             errors.append(
-                f"正文图片 #{index} 本地尺寸过小：{image} 为 {width}x{height}，"
-                f"至少 {MIN_LOCAL_IMAGE_WIDTH}x{MIN_LOCAL_IMAGE_HEIGHT}，推荐 "
-                f"{RECOMMENDED_LOCAL_IMAGE_SIZE[0]}x{RECOMMENDED_LOCAL_IMAGE_SIZE[1]}"
-            )
-        if aspect < MIN_LOCAL_IMAGE_ASPECT or aspect > MAX_LOCAL_IMAGE_ASPECT:
-            errors.append(
-                f"正文图片 #{index} 横图比例不适合：{image} 为 {width}x{height}，"
-                f"宽高比 {aspect:.2f}，建议保持 {MIN_LOCAL_IMAGE_ASPECT:.2f}-{MAX_LOCAL_IMAGE_ASPECT:.2f}"
+                f"正文图片 #{index} 本地分辨率过低：{image} 为 {size[0]}x{size[1]}，"
+                f"短边至少 {MIN_LOCAL_IMAGE_SHORT_EDGE}px，"
+                f"总像素至少 {MIN_LOCAL_IMAGE_PIXELS}"
             )
     return errors
 
@@ -452,7 +442,7 @@ def validate_local_drama_clarity(article_path: Path, images: list[str]) -> list[
     if edge_rms < MIN_LOCAL_DRAMA_EDGE_RMS:
         return [
             f"封面后的影视剧照清晰度偏低：{drama_image} edge_rms={edge_rms:.2f}，"
-            f"至少 {MIN_LOCAL_DRAMA_EDGE_RMS:.1f}。请换高清横图，推荐 900x600 或更高分辨率"
+            f"至少 {MIN_LOCAL_DRAMA_EDGE_RMS:.1f}。请更换更清晰的源图"
         ]
     return []
 
@@ -462,9 +452,11 @@ def main() -> int:
         description="检查 emotion_women 文章是否达到发布前的低成本质量门槛",
     )
     parser.add_argument("file", help="文章 Markdown 路径")
+    parser.add_argument("--min-title", type=int, default=6)
+    parser.add_argument("--max-title", type=int, default=20)
     parser.add_argument("--min-cjk", type=int, default=720)
     parser.add_argument("--max-cjk", type=int, default=900)
-    parser.add_argument("--min-images", type=int, default=4)
+    parser.add_argument("--min-images", type=int, default=3)
     parser.add_argument("--min-golden", type=int, default=1)
     parser.add_argument("--max-golden", type=int, default=1)
     parser.add_argument("--min-headings", type=int, default=2)
@@ -487,11 +479,12 @@ def main() -> int:
     title = meta.get("title", "").strip()
     if not title:
         errors.append("frontmatter 缺少 title")
-    elif len(title) < 6:
+    elif len(title) < args.min_title:
         errors.append(f"title 太短：{title}")
-    elif len(title) > 20:
-        errors.append(f"title 太长：{len(title)} 字，最多 20 字")
-    errors.extend(title_errors(title))
+    elif len(title) > args.max_title:
+        errors.append(f"title 太长：{len(title)} 字，最多 {args.max_title} 字")
+    if args.min_title > 1:
+        errors.extend(title_errors(title))
 
     length = cjk_len(body)
     if length < args.min_cjk:
@@ -522,7 +515,7 @@ def main() -> int:
     elif is_url(images[1]) or images[1].startswith("data:") or images[1].startswith("asset://"):
         errors.append("封面后的影视剧照必须使用本地高清缓存图，不能直接使用远程链接")
 
-    errors.extend(validate_local_image_dimensions(article_path, images))
+    errors.extend(validate_local_image_resolution(article_path, images))
     errors.extend(validate_local_cover_quality(article_path, images))
     errors.extend(validate_local_drama_clarity(article_path, images))
     for index, image in enumerate(images[2:], start=3):

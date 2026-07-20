@@ -897,7 +897,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
     used_recent = recent_image_refs()
     cover_usage = recent_cover_usage()
     used_recent_drama = recent_image_refs(max_articles=RECENT_ARTICLES_FOR_DRAMA_IMAGES)
-    if not pool["COVER"] or len(pool["BODY"]) < 2:
+    if not pool["COVER"] or not pool["BODY"]:
         raise RuntimeError(f"图片池不足，请检查 {IMAGE_POOL}")
 
     offset = int(get_beijing_time().strftime("%d%H%M"))
@@ -906,15 +906,14 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
         raise RuntimeError(f"影视剧照图池为空，请先维护 {DRAMA_IMAGE_POOL}")
 
     dramas = choose_drama_sequence(drama_source, used_recent_drama, offset, article_count)
-    bodies = candidates_with_recent_fallback(pool["BODY"], used_recent, offset, article_count * 2)
+    bodies = candidates_with_recent_fallback(pool["BODY"], used_recent, offset, article_count)
 
     allocations: list[list[str]] = []
     used_batch_covers: set[str] = set()
     for index in range(article_count):
         title = titles[index] if titles and index < len(titles) else ""
         cover = choose_cover(pool, title, cover_usage, used_batch_covers, offset, index)
-        start = (index * 2) % len(bodies)
-        body_ids = [bodies[(start + body_index) % len(bodies)] for body_index in range(2)]
+        body_ids = [bodies[index % len(bodies)]]
         drama = dramas[index % len(dramas)]
         ids = [cover, drama] + body_ids
         urls = [image_reference_to_markdown_path(image_id) for image_id in ids]
@@ -1003,26 +1002,31 @@ def normalize_markdown(title: str, markdown: str, image_urls: list[str]) -> str:
     body = "\n".join(lines).strip()
 
     body_lines = body.splitlines()
+    body_image_count = max(0, len(image_urls) - 1)
     insert_positions = [
         index for index, line in enumerate(body_lines) if line.startswith("## ")
-    ][1:4]
+    ][1 : 1 + body_image_count]
 
-    if len(insert_positions) < 3:
+    if len(insert_positions) < body_image_count:
         paragraph_positions = [
             index
             for index, line in enumerate(body_lines)
             if line.strip() and not line.startswith(">") and not line.startswith("## ")
         ]
-        for ratio in (0.35, 0.6, 0.8):
+        ratios = [
+            (position + 1) / (body_image_count + 1)
+            for position in range(body_image_count)
+        ]
+        for ratio in ratios:
             if not paragraph_positions:
                 break
             insert_positions.append(paragraph_positions[min(int(len(paragraph_positions) * ratio), len(paragraph_positions) - 1)])
-        insert_positions = sorted(set(insert_positions))[:3]
+        insert_positions = sorted(set(insert_positions))[:body_image_count]
 
     for url, position in sorted(zip(image_urls[1:], insert_positions), key=lambda item: item[1], reverse=True):
         body_lines[position:position] = ["", f"![]({url})", ""]
 
-    if len(insert_positions) < 3:
+    if len(insert_positions) < body_image_count:
         for url in image_urls[1 + len(insert_positions):]:
             body_lines.extend(["", f"![]({url})", ""])
 
@@ -1053,11 +1057,19 @@ def normalize_generated_articles(article_paths: list[Path]) -> tuple[bool, list[
     return all_ok, results
 
 
-def run_preflight(article_path: Path) -> tuple[bool, str]:
+def run_preflight(
+    article_path: Path,
+    *,
+    min_title: int = 6,
+    max_title: int = 20,
+) -> tuple[bool, str]:
     outputs: list[str] = []
     for script in ("validate_article_images.py", "quality_gate.py"):
+        command = [sys.executable, str(BASE_DIR / script), str(article_path)]
+        if script == "quality_gate.py":
+            command.extend(["--min-title", str(min_title), "--max-title", str(max_title)])
         result = subprocess.run(
-            [sys.executable, str(BASE_DIR / script), str(article_path)],
+            command,
             cwd=BASE_DIR,
             capture_output=True,
             text=True,
@@ -1174,7 +1186,7 @@ class EmotionWomenAutomation:
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池直接挑：封面图从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，且新文章封面必须优先使用 `images/persona/scenes/` 里的同一人设图；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；其余正文图从 `image_pool.txt` 的 BODY 段挑 2 张，分散穿插进正文。
+2. 配图全部从固定图池直接挑：每篇共 3 张，包含封面 1 张和正文图 2 张。封面从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，新文章封面优先使用 `images/persona/scenes/` 里的同一人设图，有吸引力但不裸露、不低俗，并按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；另一张正文图从 `image_pool.txt` 的 BODY 段挑选。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
@@ -1197,7 +1209,7 @@ class EmotionWomenAutomation:
 - 删除排比升华、成串反问、机械枚举，以及“不是……而是……”“真正的……是……”等连续口号句。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
-- 正文配图至少 4 张（含封面），封面默认使用成年女性轻熟性感风格，按标题主题从 COVER_* 本地精选封面池匹配，同时避免裸露、内衣特写和低俗姿势；封面后第一张正文图用影视/生活剧男女主合照或官方剧照；其余正文图分散穿插在正文中间；frontmatter 只写 title，不写 cover。
+- 每篇固定 3 张图（含封面）：第一张为成年女性轻熟性感风格封面，按标题主题从 COVER_* 本地精选封面池匹配，同时避免裸露、内衣特写和低俗姿势；第二张用影视/生活剧男女主合照或官方剧照；第三张为 BODY 正文氛围图；frontmatter 只写 title，不写 cover。
 
 ## 第三步：汇总结果
 
@@ -1278,7 +1290,7 @@ class EmotionWomenAutomation:
                 for index, urls in enumerate(image_allocations)
             )
         else:
-            image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，且优先使用 images/persona/scenes/ 同一人设图；封面后的第一张正文图从 drama_image_pool.txt 选，后 2 张从 BODY 选。"
+            image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，且优先使用 images/persona/scenes/ 同一人设图；第二张从 drama_image_pool.txt 选，第三张从 BODY 选。"
 
         system = """你是情感女性公众号的资深主编和主笔。
 你要生成可直接保存为微信公众号草稿的 Markdown 文章。保留规定的标题、篇幅、小标题、加粗、故事和配图模板，但模板只控制数量，不能让同批文章拥有相同的开头、转折、重点句位置和结尾。像有生活经验的真人主笔，只讲一个具体矛盾并给出有边界的判断；不扮演专家，不虚构案例冒充真人经历。
@@ -1305,7 +1317,7 @@ class EmotionWomenAutomation:
 {project_specs}
 
 ## 固定配图
-每篇文章保存时会统一插入 4 张图片。正文第一张图是封面，会按标题主题从本地精选封面池匹配；封面后的第一张正文图优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；后 2 张是正文氛围图。frontmatter 只写 title，不写 cover。
+每篇文章保存时会统一插入 3 张图片：第一张是封面，会按标题主题从本地精选封面池匹配；第二张优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；第三张是正文氛围图。frontmatter 只写 title，不写 cover。
 {image_plan}
 
 ## 输出格式
@@ -1328,7 +1340,7 @@ class EmotionWomenAutomation:
 - 没有真人素材时允许写场景化故事；正文不插入“人物虚构/情节合成”免责声明，也不声称来自朋友经历、读者投稿或咨询案例。
 - 固定 2 个具体事件小标题、1 处加粗；加粗必须来自人物现场对话或具体物件，不能是脱离故事也成立的道理。
 - 作者分析最多两小段、每段不超过 60 个中文字符；结尾停在动作、对话、环境声或物件上，不解释故事意义。
-- 同批文章必须轮换开头方式、加粗位置、4 张图片在段落中的落点、冲突结果和结尾类型；不得复用“精确时间开场—冲突对话—万能金句—第二天立边界—物件升华”。
+- 同批文章必须轮换开头方式、加粗位置、3 张图片在段落中的落点、冲突结果和结尾类型；不得复用“精确时间开场—冲突对话—万能金句—第二天立边界—物件升华”。
 - 人物作出改变后至少留下一个不方便的后果；其他人物不能总被一句话说服或立刻配合。
 - 唯一加粗句必须是现场原话、短信原句或带明确物件和动作的句子；禁止“有些女人/很多女人/真正的关系/好的婚姻/让人失眠的关系”等万能金句。
 - “忽然、终于、第一次、那一刻、她明白了”全文合计不超过 2 次；最近文章用过的水声、风声、绿植、账单和灯光不再换词复用为象征性收尾。
@@ -1360,11 +1372,11 @@ class EmotionWomenAutomation:
 
 必须满足：
 - 正文目标 {ARTICLE_TARGET_CJK} 个中文字符，保持在 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK} 个中文字符之间；
-- 至少 4 张正文图片，且只用这些 URL：{', '.join(image_urls)}；
+- 固定使用 3 张图片（含封面），且只用这些 URL：{', '.join(image_urls)}；
 - 固定 2 个具体事件小标题和 1 处来自故事现场的加粗句；
 - 只修复质检指出的问题，不用套话扩字，不新增虚构案例；
 - 删除机械枚举、排比升华、互动三件套、万能加粗句和重复总结；
-- 改变与近期文章重复的开头、加粗/图片位置、转折和结尾，但仍保持 2 个小标题、1 处加粗和 4 张图片；
+- 改变与近期文章重复的开头、加粗/图片位置、转折和结尾，但仍保持 2 个小标题、1 处加粗和 3 张图片；
 - 不把冲突修成一句话解决，至少保留一个人物需要承担的实际后果；
 - frontmatter 只写 title。
 
