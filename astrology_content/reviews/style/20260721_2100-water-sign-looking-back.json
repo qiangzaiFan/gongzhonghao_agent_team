@@ -1,0 +1,16 @@
+{
+  "profile": "/Users/wangqiang/workspace/自媒体/autoAirtic/astrology_content/specs/benchmark_style.md",
+  "profile_sha256": "688eb2a5f1474867b243e25ce5d6d087e2564dbd17228ce3d9e54112de7a61cf",
+  "style_similarity": 100,
+  "dimensions": {
+    "标题代入": 15,
+    "开头判断": 15,
+    "评论而非故事": 20,
+    "机制与关系表现": 20,
+    "星座差异": 10,
+    "手机阅读节奏": 10,
+    "结尾收束": 10
+  },
+  "notes": [],
+  "text_overlap": null
+}

@@ -1,0 +1,7 @@
+# Optional local AIGC detector dependencies.
+# Install into the project venv: ../.venv/bin/pip install -r requirements-ai-detector.txt
+torch>=2.0,<3
+transformers==4.57.3
+safetensors>=0.4
+# PyTorch 2.2 macOS wheels were compiled against the NumPy 1.x ABI.
+numpy>=1.24,<2
