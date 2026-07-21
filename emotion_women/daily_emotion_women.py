@@ -54,6 +54,9 @@ OPENAI_ENABLE_WEB_SEARCH = os.getenv("OPENAI_ENABLE_WEB_SEARCH", "1").strip().lo
 ARTICLE_TARGET_CJK = 800
 ARTICLE_MIN_CJK = 720
 ARTICLE_MAX_CJK = 900
+LIFESTYLE_SHARE = 0.4
+MIN_LOCAL_IMAGE_SHORT_EDGE = 768
+MIN_LOCAL_IMAGE_PIXELS = 1_200_000
 
 BASE_TOOLS = [
     "WebSearch",
@@ -117,6 +120,23 @@ def list_existing_titles(max_items: int = 30) -> list[str]:
                 titles.append(line.removeprefix("title:").strip().strip("'\""))
                 break
     return titles
+
+
+def planned_content_mix(article_count: int) -> tuple[int, int]:
+    """返回（关系故事数，第一人称生活日记数）。"""
+    if article_count <= 0:
+        return 0, 0
+    lifestyle_count = max(1, min(article_count, round(article_count * LIFESTYLE_SHARE)))
+    return article_count - lifestyle_count, lifestyle_count
+
+
+def format_content_mix_guidance(article_count: int) -> str:
+    relationship_count, lifestyle_count = planned_content_mix(article_count)
+    return f"""## 本批内容比例（必须执行）
+- `relationship_story`：{relationship_count} 篇。第三人称的具体关系事件，保留冲突和实际后果。
+- `lifestyle_diary`：{lifestyle_count} 篇。固定用第一人称“我”，从爬山、骑行、游泳、跑步、做饭、烘焙、逛菜场、吃小吃、逛街、整理房间中选一个当天行程。
+- 生活日记必须有量化细节、感官/身体细节、小失误或临时变动、两次行程推进；感想不超过 20%。
+- 不得把 `lifestyle_diary` 写成第三人称女主的关系冲突故事，也不得硬加“她终于学会爱自己”式觉醒。"""
 
 
 TITLE_SURFACE_RECENT_WINDOW = 12
@@ -456,7 +476,7 @@ def strip_agent_frontmatter(text: str) -> str:
     return text.strip()
 
 
-def read_project_specs_digest(max_chars: int = 8000) -> str:
+def read_project_specs_digest(max_chars: int = 16000) -> str:
     """Read stable account rules for non-file-aware providers."""
     if not SPECS_DIR.exists():
         return ""
@@ -482,6 +502,7 @@ def read_writer_style_digest() -> str:
 
     content = strip_agent_frontmatter(agent_path.read_text(encoding="utf-8", errors="ignore"))
     keep_sections = [
+        "双轨内容模式",
         "不变的成稿模板",
         "素材边界",
         "同一模板里的结构轮换",
@@ -579,8 +600,22 @@ def local_image_path_from_reference(value: str) -> Path | None:
 
     if value.startswith("../") or value.startswith("./"):
         return (ARTICLES_DIR / candidate).resolve()
-
     return (BASE_DIR / candidate).resolve()
+
+
+def image_meets_new_resolution(value: str) -> bool:
+    """新文优先分配高清本地图；远程图和无 Pillow 环境交给后续校验。"""
+    if Image is None:
+        return True
+    path = local_image_path_from_reference(value)
+    if path is None or not path.exists():
+        return True
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+    except OSError:
+        return False
+    return min(width, height) >= MIN_LOCAL_IMAGE_SHORT_EDGE and width * height >= MIN_LOCAL_IMAGE_PIXELS
 
 
 @lru_cache(maxsize=256)
@@ -795,14 +830,15 @@ def candidates_with_recent_fallback(items: list[str], used_recent: set[str], off
 
 
 def color_ranked_drama_candidates(items: list[str], offset: int) -> list[str]:
-    """Prefer colorful local drama stills while keeping equal-score items rotated."""
+    """Prefer same-persona life scenes, then colorful local drama stills."""
     rotated = rotate_candidates(items, offset)
     order = {item: index for index, item in enumerate(rotated)}
 
-    def sort_key(item: str) -> tuple[int, float, int]:
+    def sort_key(item: str) -> tuple[int, int, float, int]:
         color_score = drama_image_colorfulness(item)
+        persona_bucket = 0 if "/images/persona/scenes/" in item.replace("\\", "/") else 1
         color_bucket = 0 if color_score >= MIN_COLORFUL_DRAMA_SCORE else 1
-        return (color_bucket, -color_score, order[item])
+        return (persona_bucket, color_bucket, -color_score, order[item])
 
     return sorted(rotated, key=sort_key)
 
@@ -892,8 +928,12 @@ def choose_cover(
 
 
 def choose_images(article_count: int, titles: list[str] | None = None) -> list[list[str]]:
-    """为每篇文章分配封面图、影视剧照、正文氛围图。"""
+    """为每篇文章分配封面、同一人设生活分镜和正文氛围图。"""
     pool = parse_image_pool()
+    pool = {
+        key: [item for item in items if image_meets_new_resolution(item)]
+        for key, items in pool.items()
+    }
     used_recent = recent_image_refs()
     cover_usage = recent_cover_usage()
     used_recent_drama = recent_image_refs(max_articles=RECENT_ARTICLES_FOR_DRAMA_IMAGES)
@@ -901,7 +941,7 @@ def choose_images(article_count: int, titles: list[str] | None = None) -> list[l
         raise RuntimeError(f"图片池不足，请检查 {IMAGE_POOL}")
 
     offset = int(get_beijing_time().strftime("%d%H%M"))
-    drama_source = parse_drama_image_pool()
+    drama_source = [item for item in parse_drama_image_pool() if image_meets_new_resolution(item)]
     if not drama_source:
         raise RuntimeError(f"影视剧照图池为空，请先维护 {DRAMA_IMAGE_POOL}")
 
@@ -1124,6 +1164,7 @@ class EmotionWomenAutomation:
             dedup_block = "- 暂无"
         title_diversity = format_title_diversity_guidance(existing_titles)
         title_template_guidance = format_title_template_guidance(self.article_count, existing_titles)
+        content_mix = format_content_mix_guidance(self.article_count)
 
         if self.publish and self.provider != "claude":
             publish_step = f"""- 保存后依次运行：
@@ -1154,11 +1195,14 @@ class EmotionWomenAutomation:
 2. 允许最多 4 次 WebSearch 获取近期热点钩子，总搜索词从这些里选最相关的组合：`微博 情感 热搜`、`女性成长 热议`、`亲密关系 边界感`、`分手 心理 内耗`、`婚姻 情绪价值`。不要展开无关网页。
 3. 筛出 {self.article_count} 个题。优先“热点钩子 + 普世痛点 + 反常识洞察”，热点只是引子，不为追热点牺牲文章完成度。与已发标题去重，宁缺毋滥。
 4. 每个选题都要整理好：
+   - 内容类型：`relationship_story` 或 `lifestyle_diary`
    - 选题标题/方向
    - 热点钩子：今天为什么值得写，相关事件/话题/讨论是什么
    - 女性读者的情绪入口
    - 核心反常识洞察
    - 1-2 条参考链接或素材摘要
+
+{content_mix}
 
 ## 已发标题，必须避开近似选题
 {dedup_block}
@@ -1182,11 +1226,11 @@ class EmotionWomenAutomation:
 
 ## 第二步：并行启动 emotion-writer agent
 
-为每个选定主题启动一个 emotion-writer agent，传递上面的选题信息和输出文件路径。
+为每个选定主题启动一个 emotion-writer agent，传递上面的选题信息、明确的内容类型和输出文件路径。写手不得自行把 `lifestyle_diary` 改成关系故事。
 
 每个 agent 需要：
 1. 不重复热点广搜；仅在素材不足、需要确认最新表述、或需要找真实讨论入口时，最多 1 次精准 WebSearch。
-2. 配图全部从固定图池直接挑：每篇共 3 张，包含封面 1 张和正文图 2 张。封面从 `image_pool.txt` 的 COVER_* 本地精选封面池挑 1 张，新文章封面优先使用 `images/persona/scenes/` 里的同一人设图，有吸引力但不裸露、不低俗，并按标题主题匹配；封面后的第一张正文图优先从 `drama_image_pool.txt` 挑 1 张影视/生活剧男女主合照或官方剧照；另一张正文图从 `image_pool.txt` 的 BODY 段挑选。
+2. 配图全部从固定图池直接挑：每篇共 3 张，包含封面 1 张和正文图 2 张。封面从 `image_pool.txt` 的 COVER_* 高清本地人设池挑 1 张；第二张优先从 `drama_image_pool.txt` 挑同一人设的生活分镜，第三张从 BODY 段挑同一人设的结尾/氛围图。人设图不足才兜底彩色现代剧照。
    - 图池条目可以是完整 URL、本地图片路径，或旧的 `photo-...` ID；写入正文时直接使用已分配好的图片路径。
    - 严禁临时搜图、严禁下载图片、严禁跑 Python/PIL 做图像分析。
    - 同一批文章的影视剧照优先使用年轻、现代、彩色、生活剧关系感图片；尽量避开最近 12 篇已用影视剧照，并尽量避免同一来源场景。不要使用年代感强的黑白老片剧照。
@@ -1197,19 +1241,19 @@ class EmotionWomenAutomation:
 **文章要求**：
 - 标题 ≤20 字，只聚焦一个具体矛盾；不硬塞热词，不写"论…""如何…""关于…的思考"这类概括式标题。
 - 前 80 个中文字符内进入具体矛盾；一篇只写一个核心判断，不套固定三段式。
-- 每篇必须有一条完整故事线，包含起因、具体冲突、人物反应和冲突后的变化，故事占正文至少 75%。
+- `relationship_story` 必须有一条完整故事线，故事占正文至少 75%。`lifestyle_diary` 必须用第一人称记录一次具体生活行程，现场细节占至少 80%，不强行对话或人际冲突。
 - 素材没有真人案例时允许写场景化故事；正文不插入“人物虚构/情节合成”免责声明，也不声称来自朋友、读者投稿或咨询案例。
 - 固定使用 2 个具体事件小标题和 1 处加粗；加粗必须是人物现场说的话或带具体物件的句子，不能是普适道理。
 - 作者分析最多两小段、每段不超过 60 个中文字符；结尾停在动作、对话、环境声或物件上，不解释故事意义。
 - 保留上述模板数量，但同批文章的开头方式、加粗位置、图片落点、冲突结果和结尾类型必须轮换；不得复用近期文章的段落功能顺序。
-- 人物改变以后保留至少一个实际后果；对方不能总在一句边界宣言后立刻理解、沉默或接管家务。
+- 关系文的人物改变以后保留至少一个实际后果；生活日记只需保留腿酸、迷路、做糊、突然下雨或白跑一趟等真实阻力，不得为了戏剧性硬编伴侣/朋友冲突。
 - 加粗句若是“有些女人/很多女人/真正的关系/好的婚姻/让人失眠的关系”一类万能判断，直接重写成现场原话或带物件的句子。
 - “忽然、终于、第一次、那一刻、她明白了”全文合计不超过 2 次；不总用精确钟点开场，不总用水声、风声、绿植、账单和灯光收尾。
 - 结尾在观点落地处自然停住，最多留 1 个具体问题，不同时索要评论、点赞和转发。
 - 删除排比升华、成串反问、机械枚举，以及“不是……而是……”“真正的……是……”等连续口号句。
 - 文末绝不列「参考资料/参考来源/资料来源/References」等出处链接清单，资料用大白话融进正文即可。
 - 无 AI 鸡汤味。
-- 每篇固定 3 张图（含封面）：第一张为成年女性轻熟性感风格封面，按标题主题从 COVER_* 本地精选封面池匹配，同时避免裸露、内衣特写和低俗姿势；第二张用影视/生活剧男女主合照或官方剧照；第三张为 BODY 正文氛围图；frontmatter 只写 title，不写 cover。
+- 每篇固定 3 张图（含封面）：第一张为 28-32 岁成年女性的轻熟妩媚高清封面，精致日常妆容、人脸和眼睛锐利对焦，完整着装且不低俗；后两张优先同一人设的生活分镜，不足时才兜底彩色现代剧照；frontmatter 只写 title。
 
 ## 第三步：汇总结果
 
@@ -1281,6 +1325,7 @@ class EmotionWomenAutomation:
         existing_titles = "\n".join(f"- {title}" for title in existing_title_list) or "- 暂无"
         title_diversity = format_title_diversity_guidance(existing_title_list)
         title_template_guidance = format_title_template_guidance(self.article_count, existing_title_list)
+        content_mix = format_content_mix_guidance(self.article_count)
         project_specs = read_project_specs_digest()
         style_digest = read_writer_style_digest()
         today = get_beijing_time().strftime("%Y年%m月%d日")
@@ -1293,7 +1338,7 @@ class EmotionWomenAutomation:
             image_plan = "保存时由脚本按标题主题自动匹配：封面从 COVER_* 本地精选池选，且优先使用 images/persona/scenes/ 同一人设图；第二张从 drama_image_pool.txt 选，第三张从 BODY 选。"
 
         system = """你是情感女性公众号的资深主编和主笔。
-你要生成可直接保存为微信公众号草稿的 Markdown 文章。保留规定的标题、篇幅、小标题、加粗、故事和配图模板，但模板只控制数量，不能让同批文章拥有相同的开头、转折、重点句位置和结尾。像有生活经验的真人主笔，只讲一个具体矛盾并给出有边界的判断；不扮演专家，不虚构案例冒充真人经历。
+你要生成可直接保存为微信公众号草稿的 Markdown 文章。账号同时包含关系故事和第一人称生活日记。模板只控制标题、篇幅、小标题、加粗和配图数量，不能让同批文章拥有相同的开头、转折、重点句位置和结尾。不扮演专家，不虚构案例冒充真人经历，不把生活日记硬写成第三人称觉醒故事。
 只输出 JSON，不要输出解释、代码围栏、参考资料列表。"""
 
         user = f"""今天是北京时间 {today}。请一次生成 {self.article_count} 篇情感女性公众号文章。
@@ -1313,11 +1358,13 @@ class EmotionWomenAutomation:
 
 {title_diversity}
 
+{content_mix}
+
 ## 长期规则摘要
 {project_specs}
 
 ## 固定配图
-每篇文章保存时会统一插入 3 张图片：第一张是封面，会按标题主题从本地精选封面池匹配；第二张优先是年轻、现代、彩色的影视/生活剧关系图、男女主合照或生活化关系截图，并避开近期重复；第三张是正文氛围图。frontmatter 只写 title，不写 cover。
+每篇文章保存时会统一插入 3 张高清图片：第一张是同一成年女性人设封面，后两张优先同一人设的生活分镜；人设图不足才兜底彩色现代剧照。frontmatter 只写 title。
 {image_plan}
 
 ## 输出格式
@@ -1326,6 +1373,7 @@ class EmotionWomenAutomation:
   "articles": [
     {{
       "title": "20字以内的标题",
+      "content_type": "relationship_story 或 lifestyle_diary",
       "topic_slug": "英文小写短横线 slug",
       "summary": "一句话摘要",
       "markdown": "完整 Markdown，包含 frontmatter 和正文"
@@ -1336,12 +1384,13 @@ class EmotionWomenAutomation:
 ## 每篇硬性要求
 - 正文目标 {ARTICLE_TARGET_CJK} 个中文字符，必须在 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK} 个中文字符之间（Markdown 与图片地址不计）；标题≤20字，只写一个具体矛盾。
 - 前 80 个中文字符内进入具体矛盾，不以泛泛提问、宏大判断或情绪标签开场。
-- 写一条占正文至少 75% 的完整故事线，包含起因、具体冲突、人物反应和冲突后的变化；至少一处推动情节的对话和一次时间/场景推进。
+- `relationship_story`：写一条占正文至少 75% 的完整故事线，有起因、具体冲突、人物反应、变化、对话和实际后果。
+- `lifestyle_diary`：固定用“我”的第一人称，现场细节占至少 80%；包含 1 个量化细节、1 个身体/味觉/触感细节、1 个小失误或临时变动、2 次行程推进；不强制对话或人际冲突，感想不超过 20%。
 - 没有真人素材时允许写场景化故事；正文不插入“人物虚构/情节合成”免责声明，也不声称来自朋友经历、读者投稿或咨询案例。
 - 固定 2 个具体事件小标题、1 处加粗；加粗必须来自人物现场对话或具体物件，不能是脱离故事也成立的道理。
 - 作者分析最多两小段、每段不超过 60 个中文字符；结尾停在动作、对话、环境声或物件上，不解释故事意义。
 - 同批文章必须轮换开头方式、加粗位置、3 张图片在段落中的落点、冲突结果和结尾类型；不得复用“精确时间开场—冲突对话—万能金句—第二天立边界—物件升华”。
-- 人物作出改变后至少留下一个不方便的后果；其他人物不能总被一句话说服或立刻配合。
+- 关系文作出改变后至少留下一个不方便的后果。生活日记只需保留腿酸、迷路、做糊、突然下雨、白跑一趟等真实阻力，不得硬编人际对抗。
 - 唯一加粗句必须是现场原话、短信原句或带明确物件和动作的句子；禁止“有些女人/很多女人/真正的关系/好的婚姻/让人失眠的关系”等万能金句。
 - “忽然、终于、第一次、那一刻、她明白了”全文合计不超过 2 次；最近文章用过的水声、风声、绿植、账单和灯光不再换词复用为象征性收尾。
 - 不列三条建议，不用整齐的“观点-解释-总结”段落，不连续使用反问、排比或“不是……而是……”句式。

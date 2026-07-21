@@ -25,7 +25,7 @@ BACKLOG_PATH = BASE_DIR / "images" / "persona" / "wanxiang_scene_backlog.md"
 SCENES_DIR = BASE_DIR / "images" / "persona" / "scenes"
 IMAGE_POOL_PATH = BASE_DIR / "image_pool.txt"
 PROMPT_EXPORT_PATH = BASE_DIR / "images" / "persona" / "wanxiang_generation_tasks.md"
-DEFAULT_MASTER_REFERENCE = BASE_DIR / "images" / "persona" / "master" / "persona_master_youth_source.jpg"
+DEFAULT_MASTER_REFERENCE = BASE_DIR / "images" / "persona" / "master" / "persona_master_glam_v3.png"
 DEFAULT_MASTER_SEED_REFERENCE = BASE_DIR / "images" / "persona" / "master" / "persona_master_natural_source.png"
 DEFAULT_WANXIANG_MODEL = "wan2.6-image"
 DEFAULT_WANXIANG_SIZE = "2K"
@@ -37,16 +37,17 @@ MIN_ASPECT = 1.25
 MAX_ASPECT = 1.95
 NEGATIVE_PROMPT = (
     "低俗，露点，裸露敏感部位，透明衣物，内衣特写，色情姿势，挑逗动作，"
-    "未成年，幼态，学生制服，年龄偏大，老态，中年感，疲惫憔悴，法令纹重，眼袋重，"
-    "成熟夜店风，表情僵硬，表情单调，所有图片同一表情，浓妆，塑料皮肤，过度磨皮，夸张滤镜，畸形五官，遮挡脸，"
+    "未成年，幼态，学生制服，年龄偏大，老态，疲惫憔悴，法令纹重，眼袋重，"
+    "露点，裸露敏感部位，内衣特写，透明衣物，夸张解剖比例，低俗挑逗姿势，"
+    "成熟夜店风，表情僵硬，表情单调，所有图片同一表情，夸张浓妆，塑料皮肤，过度磨皮，夸张滤镜，畸形五官，遮挡脸，"
     "墨镜，帽子，口罩，影楼写真，AI感，水印，文字"
 )
 YOUTH_MASTER_PROMPT = (
-    "以参考图的脸型、五官比例和齐肩黑发为基础，但整体明显年轻化为 22 岁亚洲成年女性；"
-    "正面高清生活人像，自然淡妆，五官无遮挡，白色T恤搭配浅色牛仔外套，"
-    "阳光露齿笑，青春活力，清爽明亮，元气自然，"
-    "白天自然光，干净浅色背景，真实皮肤纹理，iPhone 原相机质感，清晰照片，"
-    "看起来是 22 岁成年人，不成熟，不疲惫，不幼态，不像影楼写真，无文字无水印"
+    "以参考图的脸型、五官比例和齐肩黑发为唯一身份基础，保持 28-32 岁亚洲成年女性；"
+    "正面高清生活人像，精致日常妆容，清晰眉形，克制眼线，暖色腮红，玫瑰豆沙唇，五官无遮挡，"
+    "酒红方领修身针织上衣，肩颈和锁骨线条自然，健康曲线，温暖直视，自信轻熟，"
+    "柔和窗光，干净暖色生活背景，真实毛孔和皮肤纹理，眼睛和人脸锐利对焦，高分辨率，"
+    "完整着装，不幼态，不低俗，不夸张解剖比例，不像影楼写真，无文字无水印"
 )
 
 
@@ -83,6 +84,29 @@ class WanxiangTask:
         return f"../images/persona/scenes/{self.filename}"
 
 
+def modernize_legacy_prompt(value: str) -> str:
+    """将旧清单中的幼态化表述升级为 v3 轻熟人设。"""
+    replacements = (
+        ("情感号_青春靓丽_01", "情感号_轻熟妩媚_03"),
+        ("22 岁", "30 岁"),
+        ("22岁", "30岁"),
+        ("自然淡妆", "精致日常妆容"),
+        ("青春活力", "轻熟自信"),
+        ("元气满满", "神态生动"),
+        ("元气自然", "自信自然"),
+        ("元气笑容", "自信微笑"),
+        ("初入职场清爽感", "成熟通勤质感"),
+    )
+    result = value
+    for before, after in replacements:
+        result = result.replace(before, after)
+    return (
+        "v3统一人设：30 岁虚构亚洲成年女性，精致日常妆容，"
+        "轻熟妩媚、自信温暖，健康自然曲线，人脸和眼睛锐利对焦，"
+        "完整着装，无低俗姿势；" + result
+    )
+
+
 def parse_tasks(backlog_path: Path) -> list[WanxiangTask]:
     text = backlog_path.read_text(encoding="utf-8")
     matches = list(re.finditer(r"(?m)^###\s+(\d+)\.\s+(.+?)\s*$", text))
@@ -107,7 +131,7 @@ def parse_tasks(backlog_path: Path) -> list[WanxiangTask]:
                 name=match.group(2).strip(),
                 filename=filename_match.group(1).strip(),
                 uses=uses,
-                prompt=prompt_match.group(1).strip(),
+                prompt=modernize_legacy_prompt(prompt_match.group(1).strip()),
             )
         )
 
@@ -140,6 +164,8 @@ def validate_image(path: Path) -> list[str]:
 def export_prompts(tasks: list[WanxiangTask], export_path: Path) -> None:
     lines = [
         "# 通义万相批量生成任务",
+        "",
+        "> v3：使用 28-32 岁、精致日常妆容、轻熟妩媚的虚构成年女性与 persona_master_glam_v3.png。",
         "",
         "使用方式：按每条提示词里的主体名称生成；导出后按目标文件名保存到 `emotion_women/images/persona/scenes/`。",
         "",
@@ -185,8 +211,9 @@ def wanxiang_base_url() -> str:
 def api_prompt(task: WanxiangTask) -> str:
     prompt = re.sub(r"^调用主体库：[^，]+，?", "", task.prompt).strip()
     return (
-        "参考图中的同一位成年女性，保持五官、脸型、发型、肤色、年龄和整体气质一致；"
-        "只改变场景、服装、动作和光线。"
+        "参考图中的同一位 30 岁虚构亚洲成年女性，保持五官、脸型、发型、肤色、年龄和整体气质一致；"
+        "使用清晰眉形、克制眼线、暖色腮红和玫瑰豆沙唇的精致日常妆容，轻熟妩媚、自信温暖，健康自然曲线；"
+        "只改变场景、服装、动作和光线，人脸和眼睛必须锐利对焦。"
         f"{prompt}。构图为公众号封面可用横图，人物脸部不要贴边，画面干净，无文字无水印。"
     )
 
@@ -459,9 +486,9 @@ def generate_master_reference(
         errors = validate_image(output_path)
         if errors:
             return False, "；".join(errors)
-        return True, f"已生成青春活力基准图：{output_path}"
+        return True, f"已生成轻熟妩媚基准图：{output_path}"
     except Exception as exc:  # noqa: BLE001
-        return False, f"生成青春活力基准图失败：{exc}"
+        return False, f"生成轻熟妩媚基准图失败：{exc}"
 
 
 def section_key(line: str) -> str | None:
@@ -532,7 +559,7 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--export-prompts", action="store_true", help="导出通义万相复制用任务表")
-    parser.add_argument("--generate-master", action="store_true", help="生成 22 岁青春活力基准参考图")
+    parser.add_argument("--generate-master", action="store_true", help="生成 28-32 岁轻熟妩媚基准参考图")
     parser.add_argument("--generate-wanxiang", action="store_true", help="调用通义万相 API 生成缺失的人设场景图")
     parser.add_argument("--sync", action="store_true", help="把已存在且合格的人设图写入 image_pool.txt")
     parser.add_argument("--strict", action="store_true", help="存在缺失或不合格图片时返回失败")

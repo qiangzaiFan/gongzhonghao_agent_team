@@ -64,17 +64,30 @@ STORY_TIME_PATTERNS = (
     r"那天|当天|第二天|后来|几天后|一个月后|早上|中午|晚上|"
     r"凌晨|回到家|出门时|下班后|吃饭时"
 )
+LIFESTYLE_ACTIVITY_PATTERN = (
+    r"爬山|徒步|骑行|游泳|跑步|慢跑|做饭|烘焙|咖啡|"
+    r"菜场|夜市|小吃|逛街|购物|露营|瑜伽|健身|整理房间"
+)
+LIFESTYLE_SENSORY_PATTERN = (
+    r"酸|疼|痛|出汗|喘|湿|热|冷|香|苦|甜|辣|脆|软|"
+    r"粘|滑|风|雨|晒|味道|口感|手感|脚感|腿"
+)
+LIFESTYLE_DEVIATION_PATTERN = (
+    r"结果|没想到|忘了|买错|走错|迷路|晚了|临时|改道|"
+    r"换了|突然|下雨|打翻|失败|没开门|卖完|拥堵|取消"
+)
 AUTHOR_SUMMARY_PATTERNS = (
     r"忽然明白|终于明白|这说明|这意味着|归根结底|说到底|"
     r"本质上|本来就该|道理很简单|真正的[^。！？\n]{0,30}(?:是|在于)"
 )
-MIN_LOCAL_IMAGE_SHORT_EDGE = 600
-MIN_LOCAL_IMAGE_PIXELS = 900 * 600
-MIN_LOCAL_COVER_EDGE_RMS = 10.0
+MIN_LOCAL_IMAGE_SHORT_EDGE = 768
+MIN_LOCAL_IMAGE_PIXELS = 1_200_000
+MIN_LOCAL_COVER_EDGE_RMS = 14.0
 MIN_LOCAL_COVER_BRIGHTNESS = 45.0
 MAX_LOCAL_COVER_BRIGHTNESS = 235.0
 MIN_LOCAL_COVER_SATURATION = 18.0
 MIN_LOCAL_DRAMA_EDGE_RMS = 15.0
+STRUCTURE_SIMILARITY_THRESHOLD = 0.99
 
 
 def is_image_reference(value: str) -> bool:
@@ -264,6 +277,27 @@ def highlighted_sentence_errors(body: str) -> list[str]:
 
 def narrative_errors(body: str) -> list[str]:
     errors: list[str] = []
+    first_person_count = len(re.findall(r"我(?:们)?", body))
+    activity_count = len(re.findall(LIFESTYLE_ACTIVITY_PATTERN, body))
+    if first_person_count >= 6 and activity_count >= 1:
+        quantitative_count = len(
+            re.findall(
+                r"(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)"
+                r"\s*(?:公里|米|分钟|小时|块|元|杯|盘|份|个|次|圈|步)",
+                body,
+            )
+        )
+        time_count = len(re.findall(STORY_TIME_PATTERNS, body))
+        if quantitative_count < 1:
+            errors.append("生活日记缺少可核对的量化细节：路程、时长、花费、份量或次数至少写 1 个")
+        if not re.search(LIFESTYLE_SENSORY_PATTERN, body):
+            errors.append("生活日记缺少身体、味觉或触感细节")
+        if not re.search(LIFESTYLE_DEVIATION_PATTERN, body):
+            errors.append("生活日记过于顺滑：至少保留 1 个小失误或临时变动")
+        if time_count < 2:
+            errors.append("生活日记缺少行程推进：至少要有 2 次时间或场景变化")
+        return errors
+
     dialogue_count = len(re.findall(r"[“\"][^”\"\n]{2,80}[”\"]", body))
     time_count = len(re.findall(STORY_TIME_PATTERNS, body))
     if dialogue_count < 1:
@@ -334,7 +368,7 @@ def recent_structure_errors(article_path: Path, body: str, limit: int = 12) -> l
         ).ratio()
         if closest is None or ratio > closest[0]:
             closest = (ratio, path.name)
-    if closest and closest[0] >= 0.96:
+    if closest and closest[0] >= STRUCTURE_SIMILARITY_THRESHOLD:
         return [
             f"模板元素顺序与近期文章 {closest[1]} 过于相似（{closest[0]:.0%}）；"
             "保留 2 个小标题、1 处重点句和 3 张图，但请调整开头、重点句/图片位置或结尾类型"

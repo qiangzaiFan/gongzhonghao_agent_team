@@ -21,14 +21,22 @@ ARTICLES_DIR = BASE_DIR / "articles"
 OUTPUT_DIR = ARTICLES_DIR / "image_posts"
 CARD_SIZE = (900, 1200)
 COVER_SIZE = (900, 600)
-FONT_PATH = Path("/System/Library/Fonts/PingFang.ttc")
-FALLBACK_FONT_PATH = Path("/System/Library/Fonts/STHeiti Medium.ttc")
-MAX_CARD_CJK = 175
-ACCENT_RED = "#F04432"
-SIGNAL_YELLOW = "#FFD447"
-INK = "#171A18"
+FONT_PATHS = (
+    Path("C:/Windows/Fonts/msyh.ttc"),
+    Path("C:/Windows/Fonts/simhei.ttf"),
+    Path("/System/Library/Fonts/PingFang.ttc"),
+    Path("/System/Library/Fonts/STHeiti Medium.ttc"),
+)
+MAX_CARD_CJK = 150
+INK = "#342B3A"
 TITLE_MAX_CHARS = 20
 IMAGE_POST_COVERS = (
+    BASE_DIR / "images" / "persona" / "master" / "persona_master_glam_v3.png",
+    BASE_DIR / "images" / "persona" / "scenes" / "20260720-pool-cycling-river-cover.jpg",
+    BASE_DIR / "images" / "persona" / "scenes" / "20260720-pool-hiking-trail-cover.jpg",
+    BASE_DIR / "images" / "persona" / "scenes" / "20260720-pool-market-morning-cover.jpg",
+    BASE_DIR / "images" / "persona" / "scenes" / "20260720-pool-baking-kitchen-cover.jpg",
+    BASE_DIR / "images" / "persona" / "scenes" / "20260720-pool-yoga-studio-cover.jpg",
     BASE_DIR / "images" / "cover" / "cover_sensual_city_editorial_900x600.jpg",
     BASE_DIR / "images" / "cover" / "cover_sensual_life_morning_900x600.jpg",
     BASE_DIR / "images" / "cover" / "cover_sensual_life_commute_900x600.jpg",
@@ -37,39 +45,36 @@ IMAGE_POST_COVERS = (
 )
 CARD_PALETTES = (
     {
-        "background": "#F7F8F6",
-        "panel": "#D93C2F",
-        "accent": "#FFD447",
-        "ink": "#202522",
-        "muted": "#66706A",
-        "panel_text": "#FFFFFF",
-        "rule": "#D8DDDA",
+        "top": "#FDE6DE",
+        "bottom": "#FFFDF4",
+        "accent": "#E76F86",
+        "accent_2": "#2995A5",
+        "ink": "#3A2D3D",
+        "muted": "#846F7E",
     },
     {
-        "background": "#171C1A",
-        "panel": "#F1C84B",
-        "accent": "#F04432",
-        "ink": "#F4F5F2",
-        "muted": "#AEB7B1",
-        "panel_text": "#151917",
-        "rule": "#3B4540",
+        "top": "#E9DDFB",
+        "bottom": "#FDF7FF",
+        "accent": "#6D4AA1",
+        "accent_2": "#F08D9E",
+        "ink": "#31283F",
+        "muted": "#7B6B8E",
     },
     {
-        "background": "#EAF1EE",
-        "panel": "#236B59",
-        "accent": "#FF684F",
-        "ink": "#1F2925",
-        "muted": "#66736D",
-        "panel_text": "#FFFFFF",
-        "rule": "#C8D5CF",
+        "top": "#F8F1A9",
+        "bottom": "#FFFBEF",
+        "accent": "#87671A",
+        "accent_2": "#F5A145",
+        "ink": "#3B3324",
+        "muted": "#81775E",
     },
 )
 
 
 def font(size: int) -> ImageFont.FreeTypeFont:
-    path = FONT_PATH if FONT_PATH.exists() else FALLBACK_FONT_PATH
-    if not path.exists():
-        raise FileNotFoundError("找不到可用的中文字体（PingFang/STHeiti）")
+    path = next((candidate for candidate in FONT_PATHS if candidate.exists()), None)
+    if path is None:
+        raise FileNotFoundError("找不到可用的中文字体（微软雅黑/黑体/PingFang）")
     return ImageFont.truetype(str(path), size=size)
 
 
@@ -252,6 +257,82 @@ def impact_photo(source: Path, size: tuple[int, int]) -> Image.Image:
     return image.filter(ImageFilter.UnsharpMask(radius=1.2, percent=115, threshold=3))
 
 
+def hex_rgb(value: str) -> tuple[int, int, int]:
+    value = value.lstrip("#")
+    return tuple(int(value[index : index + 2], 16) for index in (0, 2, 4))
+
+
+def vertical_gradient(
+    size: tuple[int, int],
+    top_color: str,
+    bottom_color: str,
+) -> Image.Image:
+    top = hex_rgb(top_color)
+    bottom = hex_rgb(bottom_color)
+    image = Image.new("RGB", size, top)
+    draw = ImageDraw.Draw(image)
+    denominator = max(1, size[1] - 1)
+    for y in range(size[1]):
+        ratio = y / denominator
+        color = tuple(round(start + (end - start) * ratio) for start, end in zip(top, bottom))
+        draw.line((0, y, size[0], y), fill=color)
+    return image
+
+
+def photo_sticker(
+    source: Path,
+    size: tuple[int, int],
+    radius: int = 30,
+    border: int = 9,
+) -> Image.Image:
+    photo = impact_photo(source, size).convert("RGBA")
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, size[0] - 1, size[1] - 1), radius=radius, fill=255)
+    sticker_size = (size[0] + border * 2, size[1] + border * 2)
+    sticker = Image.new("RGBA", sticker_size, (255, 255, 255, 0))
+    sticker_draw = ImageDraw.Draw(sticker)
+    sticker_draw.rounded_rectangle(
+        (0, 0, sticker_size[0] - 1, sticker_size[1] - 1),
+        radius=radius + border,
+        fill=(255, 255, 255, 250),
+    )
+    sticker.paste(photo, (border, border), mask)
+    return sticker
+
+
+def paste_sticker(
+    canvas: Image.Image,
+    source: Path,
+    position: tuple[int, int],
+    size: tuple[int, int],
+    angle: float = 0,
+) -> None:
+    sticker = photo_sticker(source, size)
+    if angle:
+        sticker = sticker.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC)
+    canvas.alpha_composite(sticker, position)
+
+
+def draw_sparkle(
+    draw: ImageDraw.ImageDraw,
+    center: tuple[int, int],
+    radius: int,
+    color: str,
+) -> None:
+    x, y = center
+    points = (
+        (x, y - radius),
+        (x + radius // 4, y - radius // 4),
+        (x + radius, y),
+        (x + radius // 4, y + radius // 4),
+        (x, y + radius),
+        (x - radius // 4, y + radius // 4),
+        (x - radius, y),
+        (x - radius // 4, y - radius // 4),
+    )
+    draw.polygon(points, fill=color)
+
+
 def wrap_text(draw: ImageDraw.ImageDraw, text: str, text_font: ImageFont.FreeTypeFont, width: int) -> list[str]:
     lines: list[str] = []
     for paragraph_line in text.splitlines() or [""]:
@@ -296,34 +377,50 @@ def balanced_title_lines(
     return lines, title_font
 
 
-def render_cover(destination: Path, photo_path: Path, title: str, hook: str) -> None:
-    photo = impact_photo(photo_path, COVER_SIZE).convert("RGBA")
-    overlay = Image.new("RGBA", COVER_SIZE, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
-    overlay_draw.rectangle((0, 250, 900, 600), fill=(8, 10, 9, 205))
-    overlay_draw.rectangle((0, 0, 900, 18), fill=ACCENT_RED)
-    photo = Image.alpha_composite(photo, overlay)
+def render_cover(destination: Path, photo_paths: list[Path], title: str, hook: str) -> None:
+    palette = CARD_PALETTES[0]
+    canvas = vertical_gradient(COVER_SIZE, palette["top"], palette["bottom"]).convert("RGBA")
+    draw = ImageDraw.Draw(canvas)
+    draw.rounded_rectangle((30, 28, 870, 572), radius=36, outline="#FFFFFF", width=5)
+    draw.ellipse((48, 45, 102, 99), fill="#F4A8B6")
+    draw.ellipse((76, 62, 91, 77), fill="#FFFFFF")
+    draw_sparkle(draw, (408, 68), 20, palette["accent_2"])
+    draw_sparkle(draw, (452, 522), 15, palette["accent"])
 
-    draw = ImageDraw.Draw(photo)
-    hook_font = font(28)
+    sources = photo_paths or []
+    if sources:
+        while len(sources) < 3:
+            sources.append(sources[len(sources) % len(sources)])
+        paste_sticker(canvas, sources[1], (405, 54), (188, 208), angle=-4)
+        paste_sticker(canvas, sources[0], (505, 70), (330, 446), angle=2)
+        paste_sticker(canvas, sources[2], (390, 315), (210, 212), angle=-2)
 
-    title_lines, title_font = balanced_title_lines(draw, title, 780)
-    y = 306 if len(title_lines) == 1 else 286
+    draw = ImageDraw.Draw(canvas)
+    badge_font = font(24)
+    draw.rounded_rectangle((54, 116, 318, 160), radius=22, fill="#FFFFFFE8")
+    draw.text((76, 123), "一个成熟女人的真实日常", fill=palette["muted"], font=badge_font)
+
+    title_lines, title_font = balanced_title_lines(draw, title, 360)
+    y = 188
     for line_index, line in enumerate(title_lines):
-        color = SIGNAL_YELLOW if line_index == len(title_lines) - 1 else "white"
-        draw.text((58, y), line, fill=color, font=title_font, stroke_width=1, stroke_fill=INK)
+        color = palette["accent"] if line_index == 0 else palette["ink"]
+        draw.text((54, y), line, fill=color, font=title_font, stroke_width=1, stroke_fill="#FFF8FA")
         y += 78
 
-    hook_text = f"“{hook}”" if hook else "关系里的沉默，往往不是小事"
-    draw.text((60, 542), hook_text, fill="#E9EDE9", font=hook_font)
-    draw.rectangle((828, 528, 846, 570), fill=SIGNAL_YELLOW)
-    draw.rectangle((854, 512, 872, 570), fill=ACCENT_RED)
-    photo.convert("RGB").save(destination, format="JPEG", quality=94, optimize=True)
+    hook_font = font(25)
+    hook_text = hook or "把情绪放回具体的生活里"
+    hook_lines = wrap_text(draw, hook_text, hook_font, 318)
+    hook_y = max(y + 18, 420)
+    for line in hook_lines[:2]:
+        draw.text((58, hook_y), line, fill=palette["muted"], font=hook_font)
+        hook_y += 38
+
+    canvas.convert("RGB").save(destination, format="JPEG", quality=96, optimize=True)
 
 
 def render_card(
     destination: Path,
-    background_path: Path | None,
+    background_paths: list[Path],
     title: str,
     heading: str,
     paragraphs: list[str],
@@ -331,56 +428,66 @@ def render_card(
     total_pages: int,
 ) -> None:
     palette = CARD_PALETTES[(page_number - 1) % len(CARD_PALETTES)]
-    canvas = Image.new("RGB", CARD_SIZE, palette["background"])
-    if background_path and background_path.exists():
-        header = impact_photo(background_path, (900, 312)).convert("RGBA")
-        header_overlay = Image.new("RGBA", (900, 312), (8, 10, 9, 150))
-        header = Image.alpha_composite(header, header_overlay).convert("RGB")
-        canvas.paste(header, (0, 0))
+    canvas = vertical_gradient(CARD_SIZE, palette["top"], palette["bottom"]).convert("RGBA")
     draw = ImageDraw.Draw(canvas)
-    if not background_path or not background_path.exists():
-        draw.rectangle((0, 0, 900, 312), fill=palette["panel"])
-    draw.rectangle((0, 312, 900, 325), fill=palette["accent"])
-    draw.rectangle((0, 325, 14, 1200), fill=palette["accent"])
+    draw.rounded_rectangle((28, 26, 872, 1172), radius=42, outline="#FFFFFF", width=5)
+    draw_sparkle(draw, (818, 128), 18, palette["accent"])
+    draw_sparkle(draw, (82, 355), 16, palette["accent_2"])
+    draw.ellipse((770, 315, 806, 351), fill="#FFFFFFB8")
+    draw.ellipse((806, 346, 825, 365), fill=palette["accent_2"])
 
-    small_font = font(25)
-    heading_font = font(39)
-    body_font = font(35)
-    footer_font = font(23)
-    hook_font = font(48)
-    hook = page_hook(heading, paragraphs, limit=28)
-    hook_lines = wrap_text(draw, hook, hook_font, 760)
-    hook_y = 120 if len(hook_lines) == 1 else 86
+    small_font = font(22)
+    heading_font = font(34)
+    body_font = font(31)
+    footer_font = font(21)
+    hook_font = font(44)
+    hook = page_hook(heading, paragraphs, limit=24)
+    hook_lines = wrap_text(draw, hook, hook_font, 700)
+    hook_y = 52
     for line in hook_lines[:2]:
-        draw.text((58, hook_y), line, fill="white", font=hook_font, stroke_width=1, stroke_fill=INK)
-        hook_y += 67
-    draw.text((790, 40), f"{page_number:02d}", fill="white", font=heading_font, stroke_width=1, stroke_fill=INK)
+        draw.text((58, hook_y), line, fill=palette["accent"], font=hook_font, stroke_width=1, stroke_fill="#FFF9FB")
+        hook_y += 58
+    draw.rounded_rectangle((778, 42, 848, 92), radius=22, fill="#FFFFFFD8")
+    draw.text((790, 47), f"{page_number:02d}", fill=palette["muted"], font=heading_font)
 
-    draw.text((62, 365), title, fill=palette["muted"], font=small_font)
-    y = 424
+    sources = [path for path in background_paths if path.exists()]
+    if sources:
+        while len(sources) < 3:
+            sources.append(sources[len(sources) % len(sources)])
+        paste_sticker(canvas, sources[0], (48, 176), (248, 292), angle=-3)
+        paste_sticker(canvas, sources[1], (314, 160), (266, 318), angle=2)
+        paste_sticker(canvas, sources[2], (600, 185), (244, 282), angle=-2)
+    else:
+        draw = ImageDraw.Draw(canvas)
+        for box in ((48, 176, 296, 468), (314, 160, 580, 478), (600, 185, 844, 467)):
+            draw.rounded_rectangle(box, radius=30, fill="#FFFFFFA8")
+
+    draw = ImageDraw.Draw(canvas)
+    draw.text((60, 505), title, fill=palette["muted"], font=small_font)
+    y = 548
     if heading:
-        for line in wrap_text(draw, heading, heading_font, 690):
+        for line in wrap_text(draw, heading, heading_font, 740):
             draw.text((62, y), line, fill=palette["ink"], font=heading_font)
-            y += 56
-        y += 18
+            y += 48
+        y += 12
 
     body_lines: list[tuple[str, bool]] = []
     for paragraph_index, paragraph in enumerate(paragraphs):
         if paragraph_index:
             body_lines.append(("", True))
-        body_lines.extend((line, False) for line in wrap_text(draw, paragraph, body_font, 776))
+        body_lines.extend((line, False) for line in wrap_text(draw, paragraph, body_font, 770))
 
-    line_height = 54
-    available = 1108 - y
+    line_height = 47
+    available = 1096 - y
     required = sum(28 if blank else line_height for _, blank in body_lines)
     if required > available:
-        body_font = font(31)
-        line_height = 48
+        body_font = font(28)
+        line_height = 43
         body_lines = []
         for paragraph_index, paragraph in enumerate(paragraphs):
             if paragraph_index:
                 body_lines.append(("", True))
-            body_lines.extend((line, False) for line in wrap_text(draw, paragraph, body_font, 776))
+            body_lines.extend((line, False) for line in wrap_text(draw, paragraph, body_font, 770))
 
     for line, blank in body_lines:
         if blank:
@@ -389,10 +496,10 @@ def render_card(
         draw.text((62, y), line, fill=palette["ink"], font=body_font)
         y += line_height
 
-    draw.line((62, 1133, 838, 1133), fill=palette["rule"], width=2)
-    draw.text((62, 1150), "把生活里的感受，认真说清楚", fill=palette["muted"], font=footer_font)
-    draw.text((778, 1150), f"{page_number}/{total_pages}", fill=palette["muted"], font=footer_font)
-    canvas.save(destination, format="JPEG", quality=92, optimize=True)
+    draw.line((62, 1128, 838, 1128), fill="#FFFFFF", width=3)
+    draw.text((62, 1144), "今天也在认真生活", fill=palette["muted"], font=footer_font)
+    draw.text((790, 1144), f"{page_number}/{total_pages}", fill=palette["muted"], font=footer_font)
+    canvas.convert("RGB").save(destination, format="JPEG", quality=95, optimize=True)
 
 
 def stable_cover_index(value: str, cover_count: int) -> int:
@@ -428,32 +535,47 @@ def convert_article(
         print(f"贴图标题：{source_title} -> {title}")
     cover_path = output / "00-cover.jpg"
     image_post_covers = [path for path in IMAGE_POST_COVERS if path.exists()]
-    if image_post_covers:
-        cover_index = (
-            cover_index_override % len(image_post_covers)
-            if cover_index_override is not None
-            else stable_cover_index(source_title, len(image_post_covers))
+    persona_sources = [
+        path
+        for path in local_sources
+        if "/images/persona/scenes/" in path.as_posix()
+    ]
+    use_article_persona_set = len(persona_sources) >= 3
+    visual_sources = list(
+        dict.fromkeys(
+            (persona_sources + image_post_covers)
+            if use_article_persona_set
+            else (image_post_covers + local_sources)
         )
-        cover_source = image_post_covers[cover_index]
-    elif local_sources:
-        cover_index = 0
-        image_post_covers = local_sources
-        cover_source = local_sources[0]
+    )
+    if visual_sources:
+        cover_index = 0 if use_article_persona_set else (
+            cover_index_override % len(visual_sources)
+            if cover_index_override is not None
+            else stable_cover_index(source_title, len(visual_sources))
+        )
+        cover_sources = [
+            visual_sources[(cover_index + offset) % len(visual_sources)]
+            for offset in range(min(3, len(visual_sources)))
+        ]
     else:
         raise ValueError(f"找不到贴图专用封面或文章本地封面：{article_path}")
     first_heading, first_paragraphs = pages[0]
     render_cover(
         cover_path,
-        cover_source,
+        cover_sources,
         title,
         page_hook(first_heading, first_paragraphs, limit=22),
     )
 
     for index, (heading, paragraphs) in enumerate(pages, start=1):
-        background_path = image_post_covers[(cover_index + index) % len(image_post_covers)]
+        background_paths = [
+            visual_sources[(cover_index + index + offset) % len(visual_sources)]
+            for offset in range(min(3, len(visual_sources)))
+        ]
         render_card(
             output / f"{index:02d}-story.jpg",
-            background_path,
+            background_paths,
             title,
             heading,
             paragraphs,

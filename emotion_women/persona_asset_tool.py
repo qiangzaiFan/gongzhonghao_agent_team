@@ -24,11 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent
 PERSONA_DIR = BASE_DIR / "images" / "persona"
 SCENES_DIR = PERSONA_DIR / "scenes"
 METADATA_DIR = PERSONA_DIR / "metadata"
-IDENTITY_REFERENCE = "images/persona/master/persona_master_standard_v2.jpg"
+IDENTITY_REFERENCE = "images/persona/master/persona_master_glam_v3.png"
 MIN_BRIGHTNESS = 45.0
 MAX_BRIGHTNESS = 235.0
 MIN_SATURATION = 18.0
-MIN_EDGE_RMS = 10.0
+MIN_EDGE_RMS = 14.0
+MIN_SHORT_EDGE = 768
+MIN_PIXELS = 1_200_000
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*(?:-v[0-9]{2})?$")
 SIZE_RE = re.compile(r"^([1-9][0-9]*)x([1-9][0-9]*)$")
 
@@ -40,6 +42,8 @@ def metrics(image: Image.Image) -> dict[str, float]:
         "brightness": round(ImageStat.Stat(gray).mean[0], 2),
         "saturation": round(ImageStat.Stat(rgb.convert("HSV").split()[1]).mean[0], 2),
         "edge_rms": round(ImageStat.Stat(gray.filter(ImageFilter.FIND_EDGES)).rms[0], 2),
+        "width": float(rgb.width),
+        "height": float(rgb.height),
     }
 
 
@@ -56,6 +60,13 @@ def quality_errors(values: dict[str, float]) -> list[str]:
         )
     if values["edge_rms"] < MIN_EDGE_RMS:
         errors.append(f"清晰度 {values['edge_rms']:.1f} 低于 {MIN_EDGE_RMS:.0f}")
+    width = int(values["width"])
+    height = int(values["height"])
+    if min(width, height) < MIN_SHORT_EDGE or width * height < MIN_PIXELS:
+        errors.append(
+            f"分辨率 {width}x{height} 过低：短边至少 {MIN_SHORT_EDGE}px，"
+            f"总像素至少 {MIN_PIXELS}"
+        )
     return errors
 
 
@@ -134,6 +145,7 @@ def finalize(args: argparse.Namespace) -> int:
                 )
             else:
                 final = image.copy()
+            final = final.filter(ImageFilter.UnsharpMask(radius=1.0, percent=105, threshold=3))
     except OSError as exc:
         print(f"错误：无法读取候选图：{source}：{exc}", file=sys.stderr)
         return 1
@@ -149,7 +161,7 @@ def finalize(args: argparse.Namespace) -> int:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     metadata_output.parent.mkdir(parents=True, exist_ok=True)
-    final.save(output, format="JPEG", quality=94, optimize=True, progressive=True)
+    final.save(output, format="JPEG", quality=96, optimize=True, progressive=True)
 
     metadata = {
         "schema_version": 1,

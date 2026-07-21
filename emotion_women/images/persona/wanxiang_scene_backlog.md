@@ -1,5 +1,7 @@
 # 通义万相人设图池待生成清单
 
+> v3 执行时由 `sync_wanxiang_persona_pool.py` 把下列历史“22 岁/青春靓丽”提示词自动升级为 28-32 岁、精致日常妆容、轻熟妩媚的虚构成年女性。唯一母图是 `images/persona/master/persona_master_glam_v3.png`。
+
 目标：尽快把封面从旧杂图切换为同一虚拟女生图池。当前先用现有 `persona_cafe_900x600.jpg` 兜底，后续按下面清单补齐至少 12 张高分辨率横图。
 
 所有图片要求：

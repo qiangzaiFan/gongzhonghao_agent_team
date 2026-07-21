@@ -12,12 +12,12 @@
 使用 imagegen 技能生成人设图。
 
 唯一身份参考：
-emotion_women/images/persona/master/persona_master_standard_v2.jpg
+emotion_women/images/persona/master/persona_master_glam_v3.png
 
 造型参考：
 emotion_women/images/persona/style/persona_style_sensual_v1.jpg
 
-身份母图决定她是谁，造型参考只控制穿搭和成熟性感的气质。
+身份母图决定她是谁，造型参考只控制穿搭和成熟妩媚的气质。
 
 必须保持同一个成年女性的脸型、眼睛形状和间距、鼻子、嘴唇、
 下颌、年龄、肤色、发际线和黑色齐肩头发。
@@ -36,7 +36,7 @@ emotion_women/images/persona/style/persona_style_sensual_v1.jpg
 用途：公众号正文配图
 
 图片风格：
-高度写实的生活摄影，真实毛孔、细小皮肤纹理、自然碎发、
+高度写实的生活摄影，精致日常妆容，眼睛和人脸锐利对焦，真实毛孔、细小皮肤纹理、自然碎发、
 真实布料褶皱、合理光影和透视，不使用磨皮和网红滤镜。
 画面必须像人物正在过日子，不是换了背景继续摆拍。
 
@@ -46,6 +46,7 @@ emotion_women/images/persona/style/persona_style_sensual_v1.jpg
 错误反射、重复物体和不合理背景结构。
 避免豪华样板间、酒店广告、时尚写真、网红探店、
 空洞站姿和只为展示衣服的摆拍。
+禁止未成年感、露点、裸露敏感部位、内衣特写、透明衣物、夸张解剖比例和低俗挑逗姿势。
 
 执行要求：
 1. 将两张输入图分别标记为身份参考和造型参考。
@@ -66,7 +67,7 @@ emotion_women/images/persona/style/persona_style_sensual_v1.jpg
 emotion_women/articles/在这里填写文章文件名.md
 
 唯一身份参考：
-emotion_women/images/persona/master/persona_master_standard_v2.jpg
+emotion_women/images/persona/master/persona_master_glam_v3.png
 
 造型参考：
 emotion_women/images/persona/style/persona_style_sensual_v1.jpg

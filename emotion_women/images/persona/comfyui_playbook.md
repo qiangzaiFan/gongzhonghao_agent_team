@@ -140,7 +140,7 @@ low quality, blurry, plastic skin, doll face, watermark, text, extra fingers, ba
 使用：
 
 ```text
-emotion_women/images/persona/master/persona_master_standard_v2.jpg
+emotion_women/images/persona/master/persona_master_glam_v3.png
 ```
 
 这张图的作用是 source face，不一定直接做封面。
@@ -178,7 +178,7 @@ Save Image
 对应关系：
 
 ```text
-source_image = persona_master_standard_v2.jpg
+source_image = persona_master_glam_v3.png
 input_image = persona_cafe_base.jpg
 output = persona_cafe_fixed.jpg
 ```

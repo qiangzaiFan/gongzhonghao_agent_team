@@ -1,16 +1,15 @@
-profile_version: 2
+profile_version: 3
 persona_id: emotion_woman_v1
 display_name: 林小满
 identity_type: fictional_adult
 age: 28
 
 identity_reference:
-  source: images/persona/master/persona_master_standard_v2.jpg
+  source: images/persona/master/persona_master_glam_v3.png
   rule: source_image_is_the_only_identity_truth
 
 previous_identity_reference:
   source: images/persona/master/persona_master_natural_source.png
-  preview: images/persona/master/persona_master_natural_900x600.jpg
   status: archived
 
 style_reference:
@@ -28,7 +27,7 @@ identity_lock:
 
 mutable_fields:
   wardrobe: true
-  makeup: subtle_only
+  makeup: polished_natural_only
   expression: true
   pose: true
   camera_angle: true
@@ -45,16 +44,30 @@ photography_defaults:
   lens: 35mm or 50mm full-frame lens
   skin: natural pores and fine facial texture
   lighting: physically plausible natural or practical light
-  color: restrained editorial color with realistic white balance
+  color: attractive warm editorial color with realistic white balance
   retouching: minimal
   scene_style: ordinary lived-in daily life, never a staged fashion set
   behavior: the subject must be doing a specific believable action
   environment: include restrained signs of real use and minor imperfection
   output_aspect_ratio: "3:2"
-  generation_size: "1536x1024"
+  generation_size: "2048x1360 preferred; 1536x1024 minimum"
   final_size: preserve_source_resolution
-  minimum_short_edge: 600
-  minimum_pixels: 540000
+  minimum_short_edge: 768
+  minimum_pixels: 1200000
+
+visual_positioning:
+  apparent_age: 28-32
+  mood: feminine, sophisticated, confident and warm
+  makeup: defined brows, subtle eyeliner, warm blush and rose-nude lip
+  wardrobe: fitted but movement-friendly square-neck, V-neck, off-shoulder or athletic pieces
+  silhouette: healthy natural curves with anatomically plausible proportions
+  attraction_sources:
+    - polished makeup
+    - direct expressive gaze
+    - shoulder and collarbone lines
+    - flattering fitted tailoring
+    - rich color and mobile-feed composition
+  platform_boundary: fully clothed, non-explicit and suitable for WeChat publishing
 
 default_avoid:
   - plastic skin
@@ -79,6 +92,13 @@ default_avoid:
   - spotless staged apartment
   - generic cafe portrait
   - underage appearance
+  - nudity or exposed intimate areas
+  - lingerie focus
+  - transparent clothing
+  - fetish styling
+  - exaggerated anatomy
+  - low-resolution upscaling
+  - motion blur on face
 
 asset_policy:
   draft_directory: output/persona_jobs

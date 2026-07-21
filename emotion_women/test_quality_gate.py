@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from quality_gate import highlighted_sentence_errors, structure_skeleton
+from quality_gate import highlighted_sentence_errors, narrative_errors, structure_skeleton
 
 
 class TemplateVariationTests(unittest.TestCase):
@@ -97,6 +97,17 @@ class TemplateVariationTests(unittest.TestCase):
     def test_accepts_scene_dialogue_highlight(self) -> None:
         body = "**“三万我拿不出，五千可以。”**"
         self.assertEqual(highlighted_sentence_errors(body), [])
+
+    def test_lifestyle_diary_does_not_require_dialogue(self) -> None:
+        body = """早上我骑行出门，原计划绕江 18 公里。我带了一瓶水，也给自行车补了气。
+到江边后我的腿开始酸，手心也出汗。我在桥下停了 10 分钟。
+后来突然下雨，我临时改道骑进小巷，又在一家店买了杯热豆浆。
+下午我慢慢骑回家，里程表停在 21 公里。"""
+        self.assertEqual(narrative_errors(body), [])
+
+    def test_lifestyle_diary_rejects_empty_checkin(self) -> None:
+        body = "今天我去跑步，我很开心。我觉得我又成长了，我要继续努力，我会更爱自己。"
+        self.assertTrue(narrative_errors(body))
 
 
 if __name__ == "__main__":
