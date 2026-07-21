@@ -21,3 +21,20 @@
 ../images/drama/young_cafe_laughing_900x600.jpg
 ../images/drama/young_kitchen_conversation_900x600.jpg
 ../images/drama/young_couple_food_900x600.jpg
+
+# 同一人设叙事图：用于明确要求全文统一人物视觉的批次。
+../images/persona/scenes/20260720-silent-kitchen-conflict.jpg
+../images/persona/scenes/20260720-lock-wardrobe-conflict.jpg
+../images/persona/scenes/20260720-gym-hallway-conflict.jpg
+../images/persona/scenes/20260720-skirt-laundry-conflict.jpg
+../images/persona/scenes/20260720-phone-hallway-conflict-v02.jpg
+../images/persona/scenes/20260720-pool-cycling-cafe-conflict.jpg
+../images/persona/scenes/20260720-pool-hiking-rain-conflict.jpg
+../images/persona/scenes/20260720-pool-market-kitchen-conflict.jpg
+../images/persona/scenes/20260720-pool-plants-repot-conflict.jpg
+../images/persona/scenes/20260720-pool-tailor-fitting-conflict.jpg
+../images/persona/scenes/20260720-pool-baking-oven-conflict.jpg
+../images/persona/scenes/20260720-pool-moving-clothes-conflict.jpg
+../images/persona/scenes/20260720-pool-camping-rain-conflict.jpg
+../images/persona/scenes/20260720-pool-coffee-scale-conflict.jpg
+../images/persona/scenes/20260720-pool-yoga-balance-conflict.jpg

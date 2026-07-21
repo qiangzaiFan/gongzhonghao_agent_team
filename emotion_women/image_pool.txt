@@ -13,12 +13,17 @@
 
 ../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_car_window_1536x1024.jpg
+../images/persona/scenes/20260720-silent-balcony-cover.jpg
 ## COVER_MARRIAGE（婚姻 / 家庭 / 育儿 / 家务压力）
 ../images/persona/scenes/persona_cafe_900x600.jpg
 
 ../images/persona/scenes/persona_wanxiang_home_window_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_kitchen_sink_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_balcony_morning_1536x1024.jpg
+../images/persona/scenes/20260720-lock-door-cover.jpg
+../images/persona/scenes/20260720-phone-dinner-cover.jpg
+../images/persona/scenes/20260720-pool-market-morning-cover.jpg
+../images/persona/scenes/20260720-pool-moving-box-cover.jpg
 ## COVER_BREAKUP（分手 / 前任 / 失恋 / 深夜内耗）
 ../images/persona/scenes/persona_cafe_900x600.jpg
 
@@ -37,11 +42,21 @@
 ../images/persona/scenes/persona_wanxiang_home_window_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_bookstore_weekend_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_balcony_morning_1536x1024.jpg
+../images/persona/scenes/20260720-gym-lobby-cover.jpg
+../images/persona/scenes/20260720-pool-cycling-river-cover.jpg
+../images/persona/scenes/20260720-pool-hiking-trail-cover.jpg
+../images/persona/scenes/20260720-pool-plants-balcony-cover.jpg
+../images/persona/scenes/20260720-pool-tailor-street-cover.jpg
+../images/persona/scenes/20260720-pool-baking-kitchen-cover.jpg
+../images/persona/scenes/20260720-pool-coffee-window-cover.jpg
+../images/persona/scenes/20260720-pool-yoga-studio-cover.jpg
 ## COVER_FRIENDSHIP（闺蜜 / 朋友 / 室友 / 社交关系）
 ../images/persona/scenes/persona_cafe_900x600.jpg
 
 ../images/persona/scenes/persona_wanxiang_cafe_cake_1536x1024.jpg
 ../images/persona/scenes/persona_wanxiang_bookstore_weekend_1536x1024.jpg
+../images/persona/scenes/20260720-skirt-office-cover.jpg
+../images/persona/scenes/20260720-pool-camping-trail-cover.jpg
 ## COVER_LEGACY（仅供旧文章重发质检，不参与新文章封面分配）
 ../images/cover/cover_breakup_city_night_900x600.jpg
 ../images/cover/cover_relationship_sunset_900x600.jpg
@@ -52,3 +67,13 @@
 ## BODY（正文配图用，本地明亮生活/风景氛围图）
 ../images/body/emotion_body_7.jpg
 ../images/body/emotion_body_8.jpg
+../images/persona/scenes/20260720-pool-cycling-repair-ending.jpg
+../images/persona/scenes/20260720-pool-hiking-summit-ending.jpg
+../images/persona/scenes/20260720-pool-market-dinner-ending.jpg
+../images/persona/scenes/20260720-pool-plants-window-ending.jpg
+../images/persona/scenes/20260720-pool-tailor-gallery-ending.jpg
+../images/persona/scenes/20260720-pool-baking-neighbor-ending.jpg
+../images/persona/scenes/20260720-pool-moving-newhome-ending.jpg
+../images/persona/scenes/20260720-pool-camping-fire-ending.jpg
+../images/persona/scenes/20260720-pool-coffee-share-ending.jpg
+../images/persona/scenes/20260720-pool-yoga-rest-ending.jpg
