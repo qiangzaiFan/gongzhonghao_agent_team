@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-21T20:26:46+08:00",
+  "article": "/Users/wangqiang/workspace/自媒体/autoAirtic/astrology_content/articles/20260721_2100-water-sign-looking-back.md",
+  "article_sha256": "755d65db7fc51bf3a5dc75f85979d6eb064171dc727218b8e7087f65ac4ffbb0",
+  "thresholds": {
+    "human_min": 80.0,
+    "ai_max": 10.0
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.45,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 130,
+      "category": "human",
+      "ai_probability": 1.31,
+      "preview": "水象在关系结束后反复点开旧消息，经常被理解成太恋旧、还爱、没有断干净。这个判断只说对一半。巨蟹、天蝎、双鱼都很难把感情当成一个独立事件。对他们来说，一段关系会渗"
+    },
+    {
+      "order": 2,
+      "chars": 145,
+      "category": "human",
+      "ai_probability": 2.99,
+      "preview": "水象难放下的，是一段完整体验 风象容易从“这段关系还有没有可能”去思考，土象更关心现实是否还能继续。水象却容易回到一种感受里：当时那么相信，为什么后来会变成这样"
+    },
+    {
+      "order": 3,
+      "chars": 159,
+      "category": "human",
+      "ai_probability": 1.03,
+      "preview": "这就是水象容易陷入的地方：他们以为只要把过程想通，情绪就会自然停下。但感情里有太多事，本身就没有唯一解释。水象对细节的敏感，既能让他们在关系里察觉别人的情绪，也"
+    },
+    {
+      "order": 4,
+      "chars": 166,
+      "category": "human",
+      "ai_probability": 1.27,
+      "preview": "他们记得某条回家路线、买菜时默认带上的那一份、遇到事后下意识打开的聊天框。巨蟹以为自己舍不得一个人，其实其中还包含对一种生活秩序的依赖。天蝎卡住的是事实。他们可"
+    },
+    {
+      "order": 5,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "他们会把已经发生的关系，和当时想象过的未来放在一起。一次没去成的旅行，一个没能兑现的约定，在双鱼的记忆里都容易继续往后生长。他舍不得的，也许是那个从来没有经历过"
+    },
+    {
+      "order": 6,
+      "chars": 129,
+      "category": "human",
+      "ai_probability": 1.28,
+      "preview": "回头可以，别把回忆当成答案 水象不需要逼自己立刻忘记。忘记本来就不是一个能主动完成的动作。但水象需要分清，每次回头时自己究竟想拿回什么。不同的缺口，需要的结束方"
+    },
+    {
+      "order": 7,
+      "chars": 145,
+      "category": "human",
+      "ai_probability": 1.33,
+      "preview": "如果想拿回的是生活秩序，就去重建一个人的日常；如果想拿回的是事实，就把已经确认的部分和永远无法确认的部分分开；如果想拿回的是未来，就承认那个未来只完成于想象。反"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

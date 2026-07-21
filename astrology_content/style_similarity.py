@@ -253,6 +253,12 @@ def main() -> int:
                 {
                     "profile": str(args.profile.resolve()),
                     "profile_sha256": hashlib.sha256(args.profile.read_bytes()).hexdigest(),
+                    "source_file": str(args.source_file.resolve()) if args.source_file else None,
+                    "source_sha256": (
+                        hashlib.sha256(args.source_file.read_bytes()).hexdigest()
+                        if args.source_file
+                        else None
+                    ),
                     "style_similarity": score.total,
                     "dimensions": score.dimensions,
                     "notes": score.notes,
