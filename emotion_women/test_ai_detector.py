@@ -29,16 +29,6 @@ class EmotionAIDetectorTests(unittest.TestCase):
         path.write_text(f"---\ntitle: 测试文章\n---\n\n{body}\n", encoding="utf-8")
         return path
 
-    def test_image_post_resolves_to_source_article(self) -> None:
-        source = self.write_article("source.md")
-        image_post = self.articles / "image_posts" / "job" / "image-post.md"
-        image_post.parent.mkdir(parents=True)
-        image_post.write_text(
-            "---\ntitle: 贴图版\nformat: image-post\nsource: ../../source.md\n---\n\n![](00.jpg)\n",
-            encoding="utf-8",
-        )
-        self.assertEqual(ai_detector.resolve_detection_target(image_post), source.resolve())
-
     def test_article_edit_invalidates_saved_report(self) -> None:
         article = self.write_article("draft.md")
         report_path = self.reports / "draft.json"

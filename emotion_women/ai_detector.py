@@ -3,8 +3,7 @@
 
 The model implementation lives in ``astrology_content/ai_detector.py`` so the
 two writing workspaces use the same labels, thresholds and report schema.
-This wrapper owns emotion-specific report paths and resolves image-post files
-back to their source Markdown before detection.
+This wrapper owns emotion-specific report paths and report reuse.
 """
 
 from __future__ import annotations
@@ -13,7 +12,6 @@ import argparse
 import hashlib
 import json
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,37 +32,6 @@ DEFAULT_AI_MAX = 10.0
 def resolve_article_path(value: Path) -> Path:
     path = value if value.is_absolute() else BASE_DIR / value
     return path.resolve()
-
-
-def parse_frontmatter(path: Path) -> dict[str, str]:
-    content = path.read_text(encoding="utf-8", errors="ignore")
-    match = re.match(r"\A---\s*\n(.*?)\n---", content, re.S)
-    if not match:
-        return {}
-    values: dict[str, str] = {}
-    for raw_line in match.group(1).splitlines():
-        if ":" not in raw_line:
-            continue
-        key, value = raw_line.split(":", 1)
-        values[key.strip()] = value.strip().strip("'\"")
-    return values
-
-
-def resolve_detection_target(article_path: Path) -> Path:
-    """Use an image-post's source Markdown because its body contains images only."""
-    metadata = parse_frontmatter(article_path)
-    if metadata.get("format") != "image-post":
-        return article_path
-    source = metadata.get("source", "").strip()
-    if not source:
-        raise ValueError("贴图版缺少 source 字段，无法定位待检测正文")
-    source_path = Path(source)
-    if not source_path.is_absolute():
-        source_path = article_path.parent / source_path
-    source_path = source_path.resolve()
-    if not source_path.is_file():
-        raise ValueError(f"贴图版对应的源文章不存在：{source_path}")
-    return source_path
 
 
 def default_report_path(target: Path) -> Path:
@@ -164,18 +131,11 @@ def main() -> int:
     if not SHARED_DETECTOR.is_file():
         print(f"缺少共用检测器：{SHARED_DETECTOR}", file=sys.stderr)
         return 2
-    try:
-        target = resolve_detection_target(article_path)
-    except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 2
+    target = article_path
 
     report_path = args.report or default_report_path(target)
     if not report_path.is_absolute():
         report_path = (BASE_DIR / report_path).resolve()
-    if target != article_path:
-        print(f"贴图版检测对应源文：{target}")
-
     if not args.force:
         current = read_current_report(
             target,

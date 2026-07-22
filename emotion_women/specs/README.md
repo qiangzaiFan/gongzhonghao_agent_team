@@ -4,7 +4,7 @@
 
 - `account_positioning.md`：账号定位、读者和内容边界
 - `article_quality.md`：正文结构、语言和质检红线
-- `image_policy.md`：封面、正文图和贴图版图片要求
+- `image_policy.md`：封面和正文配图要求
 - `platform_rules.md`：公众号发布约束
 - `workflow.md`：主编、写手、图片和发布环节的职责边界
 
