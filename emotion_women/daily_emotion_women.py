@@ -1104,7 +1104,7 @@ def run_preflight(
     max_title: int = 20,
 ) -> tuple[bool, str]:
     outputs: list[str] = []
-    for script in ("validate_article_images.py", "quality_gate.py"):
+    for script in ("validate_article_images.py", "quality_gate.py", "ai_detector.py"):
         command = [sys.executable, str(BASE_DIR / script), str(article_path)]
         if script == "quality_gate.py":
             command.extend(["--min-title", str(min_title), "--max-title", str(max_title)])
@@ -1170,17 +1170,18 @@ class EmotionWomenAutomation:
             publish_step = f"""- 保存后依次运行：
   `python3 validate_article_images.py <文章绝对路径>`
   `python3 quality_gate.py <文章绝对路径>`
-- 两个本地检查都通过后，调用 `mcp__wenyan-mcp__publish_article`，参数：`file=<文章绝对路径>`、`theme_id={PUBLISH_THEME}`。
+  `python3 ai_detector.py <文章绝对路径>`
+- 三个本地检查都通过后，调用 `mcp__wenyan-mcp__publish_article`，参数：`file=<文章绝对路径>`、`theme_id={PUBLISH_THEME}`。
 - 不要传 `app_id`；不要群发；发布失败只记录原因并继续下一篇。"""
             publish_summary = "、草稿箱 media_id 或发布失败原因"
             publish_note = "- 本次需要发布到微信公众号草稿箱，但不直接群发，最终由人工在公众号后台审核后发布。"
         elif self.publish:
-            publish_step = """- 保存后运行 `python3 validate_article_images.py <文章绝对路径>` 与 `python3 quality_gate.py <文章绝对路径>`。
+            publish_step = """- 保存后运行 `python3 validate_article_images.py <文章绝对路径>`、`python3 quality_gate.py <文章绝对路径>` 与 `python3 ai_detector.py <文章绝对路径>`。
 - 不调用 wenyan-mcp，不发布；主脚本会在生成结束后统一重排配图、复检并发布到公众号草稿箱。"""
             publish_summary = "、本地质检结果"
             publish_note = "- 本次需要发布到微信公众号草稿箱，但发布动作由主脚本在配图后处理通过后统一执行。"
         else:
-            publish_step = "- 保存后运行 `python3 validate_article_images.py <文章绝对路径>` 与 `python3 quality_gate.py <文章绝对路径>`；不调用 wenyan-mcp。"
+            publish_step = "- 保存后运行 `python3 validate_article_images.py <文章绝对路径>`、`python3 quality_gate.py <文章绝对路径>` 与 `python3 ai_detector.py <文章绝对路径>`；不调用 wenyan-mcp。"
             publish_summary = ""
             publish_note = "- 本次只生成本地草稿，不调用 wenyan-mcp，不触碰微信公众号。"
 

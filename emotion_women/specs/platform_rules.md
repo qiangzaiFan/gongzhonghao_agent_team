@@ -8,6 +8,8 @@
 - 发布前必须通过：
   - `python validate_article_images.py <文章路径>`
   - `python quality_gate.py <文章路径>`
+  - `python ai_detector.py <文章路径>`，human≥80%、ai≤10%
+- AIGC 报告必须与当前文章 SHA-256 一致；旧报告不能用于改稿后的文章。
 - `.mcp.json` 存放真实凭证，必须保持本地忽略；`.mcp.example.json` 只能放占位符。
 
 ## 其他

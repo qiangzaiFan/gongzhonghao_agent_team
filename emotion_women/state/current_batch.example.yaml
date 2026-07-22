@@ -13,4 +13,5 @@ current_topics: []
 checks:
   article_images: pending
   quality_gate: pending
+  ai_detector: pending
   publish: skipped

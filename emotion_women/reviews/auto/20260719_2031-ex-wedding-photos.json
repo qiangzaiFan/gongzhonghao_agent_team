@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-21T20:36:24+08:00",
+  "article": "/Users/wangqiang/workspace/自媒体/autoAirtic/emotion_women/articles/20260719_2031-ex-wedding-photos.md",
+  "article_sha256": "f148a41aa7648f9d1535166c0c6dc832f374edd54c1628e5ce582c6a7d205927",
+  "thresholds": {
+    "human_min": 80.0,
+    "ai_max": 10.0
+  },
+  "ratios": {
+    "human": 77.81,
+    "suspected": 0.0,
+    "ai": 22.19
+  },
+  "mean_ai_probability": 22.61,
+  "passed": false,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.22,
+      "preview": "共同朋友发来婚礼照片时，苏遥正在清手机内存。她点开看了一眼，新郎是两年前分手的前任。红色提示同时跳出来：云相册空间不足，建议清理重复照片。那个相册还存着他们去青"
+    },
+    {
+      "order": 2,
+      "chars": 148,
+      "category": "human",
+      "ai_probability": 1.04,
+      "preview": "那是她第一次独自做旅行攻略，店和人后来都散了，可照片里还有她认真排了两小时队的证据。朋友问她是不是看见前任结婚才受刺激。苏遥说不完全是。她没有想去打扰婚礼，也不"
+    },
+    {
+      "order": 3,
+      "chars": 164,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "这个办法很慢，有些照片很难分：前任只露出一只手，桌上却是她喜欢的菜；还有一段海边视频，全程没拍到人，但能听见他在镜头外笑。删除之前，她发了最后一条消息 共同相册"
+    },
+    {
+      "order": 4,
+      "chars": 162,
+      "category": "ai",
+      "ai_probability": 97.99,
+      "preview": "很普通，没有寒暄。苏遥看到“忘了”两个字有点难受：她每月看见扣费提醒，对方可能真的早就不记得这个相册。她退出共同成员，系统提示退出后无法恢复。点下去时没有释然，"
+    },
+    {
+      "order": 5,
+      "chars": 86,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "两年的感情不必靠八百张照片保存，但删掉它们，也不会把那两年退还给她。月底扣款没有再出现。待删除文件夹还剩七天，苏遥看见提醒，直接划了过去。她不知道七天内会不会反"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

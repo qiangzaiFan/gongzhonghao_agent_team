@@ -41,6 +41,24 @@ python daily_emotion_women.py --now --count 1 --provider openai --openai-model g
 
 OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质量门槛；带 `--publish` 时同样发布到公众号草稿箱。
 
+### 自动 AIGC 检测
+
+生成、链接原创转化和发布已统一接入本地中文 AIGC 检测，发布线为 `human≥80%` 且 `ai≤10%`。首次使用先安装共用依赖：
+
+```bash
+../.venv/bin/pip install -r ../astrology_content/requirements-ai-detector.txt
+```
+
+手动检测指定文章：
+
+```bash
+python3 ai_detector.py articles/ARTICLE.md
+```
+
+默认复用 `AnxForever/chinese-ai-detector-bert` 及同一套分段口径，报告保存在 `reviews/auto/`。报告绑定当前正文的 SHA-256：文章未改时直接复用，改稿后自动重新推理。贴图版会自动检测 frontmatter `source` 指向的原始正文。
+
+该结果是主编风险信号，不是作者身份证明，也不与腾讯朱雀等价。未达标时应复核标记段落并做实质性编辑改写，不通过错别字或随机扰乱文字对抗检测。
+
 ### 从爆款链接生成原创转化稿
 
 看到一篇同领域爆款后，可以把链接交给脚本：它会抓取正文，分析标题钩子、读者痛点、结构和互动点，再按 `emotion-writer` 风格重新立项写一篇本账号文章。默认只生成本地草稿。

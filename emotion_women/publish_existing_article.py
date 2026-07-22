@@ -143,6 +143,17 @@ def main() -> int:
         print("错误：质量门槛未通过，已停止发布。请修复文章后重试。")
         return quality_preflight.returncode
 
+    aigc_preflight = subprocess.run(
+        [sys.executable, str(BASE_DIR / "ai_detector.py"), str(article_path)],
+        cwd=BASE_DIR,
+    )
+    if aigc_preflight.returncode != 0:
+        print(
+            "错误：自动 AIGC 门禁未通过，已停止发布。"
+            "需求 human≥80%、ai≤10%。"
+        )
+        return aigc_preflight.returncode
+
     wenyan_index, wechat_env = load_wenyan_config()
     # This wenyan-mcp build exposes the draft API from dist/customPublish.js.
     wenyan_module = Path(wenyan_index).resolve().with_name("customPublish.js")

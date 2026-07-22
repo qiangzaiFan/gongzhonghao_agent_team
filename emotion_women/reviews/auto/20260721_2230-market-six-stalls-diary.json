@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-22T08:55:38+08:00",
+  "article": "/Users/wangqiang/workspace/自媒体/autoAirtic/emotion_women/articles/20260721_2230-market-six-stalls-diary.md",
+  "article_sha256": "24352ea66ee2791fd6136b262b679ed6846531a3362b6f332d3e3524dc05b59a",
+  "thresholds": {
+    "human_min": 80.0,
+    "ai_max": 10.0
+  },
+  "ratios": {
+    "human": 81.12,
+    "suspected": 18.88,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 14.54,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 165,
+      "category": "human",
+      "ai_probability": 1.4,
+      "preview": "早上七点十分，我拎着竹篮走了 1.8 公里去菜场。本来只想买西红柿、鸡蛋和一把青菜，进门却被现炸藕合的香味拦住。我排了八分钟，轮到才发现前面队伍卖的是卤牛肉，藕"
+    },
+    {
+      "order": 2,
+      "chars": 148,
+      "category": "suspected",
+      "ai_probability": 71.23,
+      "preview": "一家颜色红得均匀，一家大小不一，皮上还有小裂口。我挑了后一家，老板说这种熟得快，今天就要吃。我本来要三个，她往秤上又放了几个，三斤只收 10 元。篮子很快沉下来"
+    },
+    {
+      "order": 3,
+      "chars": 131,
+      "category": "human",
+      "ai_probability": 1.03,
+      "preview": "摊主把叶子抖了两下，问我要不要再搭一把空心菜。我看了看已经装满的篮子，只称了 6 元的小青菜。第五摊是豆腐，白布下的热气带着淡淡豆香，我买了两块，一块当天吃，一"
+    },
+    {
+      "order": 4,
+      "chars": 143,
+      "category": "human",
+      "ai_probability": 1.31,
+      "preview": "我在出口的水池边洗掉手上的卤汁，水很冰，竹篮放回手里时还是沉。篮子里有八个西红柿、两盒鸡蛋，没有那把葱。中午先煮了一锅红色的汤 回家后，我先把最软的三个西红柿切"
+    },
+    {
+      "order": 5,
+      "chars": 197,
+      "category": "human",
+      "ai_probability": 1.55,
+      "preview": "晚饭是西红柿鸡蛋、凉拌卤牛肉和一盘青菜，一共用掉 43 元的食材。汤比平时酸，牛肉的卤味却刚好。两盘菜端上桌时已经六点半。我本来想把西红柿鸡蛋装进最好看的白盘子"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}
