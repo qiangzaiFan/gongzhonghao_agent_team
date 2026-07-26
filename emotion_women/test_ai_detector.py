@@ -38,7 +38,7 @@ class EmotionAIDetectorTests(unittest.TestCase):
                 {
                     "article_sha256": hashlib.sha256(article.read_bytes()).hexdigest(),
                     "model": ai_detector.DEFAULT_MODEL,
-                    "thresholds": {"human_min": 80.0, "ai_max": 10.0},
+                    "thresholds": {"human_min": 90.0, "ai_max": 10.0},
                     "ratios": {"human": 100.0, "suspected": 0.0, "ai": 0.0},
                     "passed": True,
                 }
@@ -49,7 +49,7 @@ class EmotionAIDetectorTests(unittest.TestCase):
             article,
             report_path,
             model=ai_detector.DEFAULT_MODEL,
-            human_min=80.0,
+            human_min=90.0,
             ai_max=10.0,
         )
         self.assertIsNotNone(current)
@@ -59,7 +59,7 @@ class EmotionAIDetectorTests(unittest.TestCase):
             article,
             report_path,
             model=ai_detector.DEFAULT_MODEL,
-            human_min=80.0,
+            human_min=90.0,
             ai_max=10.0,
         )
         self.assertIsNone(stale)

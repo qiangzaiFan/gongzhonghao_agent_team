@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T22:59:36+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\food_home_cooking\\articles\\20260726_夫妻二人18元午餐.md",
+  "article_sha256": "6c5a1f68d73ced1240bb429f88ac42815b097453f4e382327f0e3f7e114e4889",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.48,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 135,
+      "category": "human",
+      "ai_probability": 1.38,
+      "preview": "晒晒夫妻二人的午餐，18元做3样，天热吃着真舒服 上午忙完回到家已经不早了，外面又闷又热，进厨房之前我就想好了，今天不做油烟大的菜，也不折腾复杂的面食。冰箱里还"
+    },
+    {
+      "order": 2,
+      "chars": 155,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "算下来大概花了18元左右，肉末用了不到半碗，面条是早上顺手买的鲜面条，25分钟差不多就能端上桌。这顿饭的花费也简单记了一下：鲜面条三块，番茄两块，半个茄子差不多"
+    },
+    {
+      "order": 3,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.09,
+      "preview": "番茄用两个，圆茄子用了半个，切开以后发现皮有点老，我就削掉一层再切丁。肉末不用太多，主要是给这碗面提香。【食材准备】：番茄、圆茄子、猪肉末、鲜面条、蒜末、小葱、"
+    },
+    {
+      "order": 4,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "3、肉末里加一点生抽、白胡椒粉和淀粉，抓拌均匀后放一边腌几分钟。这个步骤别省，肉末炒出来没那么容易发柴。4、锅里放少许油，先把肉末倒进去炒散，炒到颜色发白就盛出"
+    },
+    {
+      "order": 5,
+      "chars": 157,
+      "category": "human",
+      "ai_probability": 1.13,
+      "preview": "番茄下锅后要多炒一会儿，看到锅底有红红的汤汁出来，味道才够。7、把刚才炒好的肉末倒回锅里，加生抽、少许老抽和一点点蚝油调味。颜色不用调得太深，家里吃饭看着清爽一"
+    },
+    {
+      "order": 6,
+      "chars": 134,
+      "category": "human",
+      "ai_probability": 1.05,
+      "preview": "10、把番茄肉末茄丁卤浇到面条上，再撒一点葱花，拌开就能吃。面条不用煮得太软，和热卤拌在一起，稍微带点筋道更好吃。二、蒜蓉空心菜 空心菜是昨天买的，叶子还挺嫩，"
+    },
+    {
+      "order": 7,
+      "chars": 149,
+      "category": "human",
+      "ai_probability": 1.15,
+      "preview": "1、空心菜洗好以后一定要沥一下水，不然一下锅水汽太大，炒出来就不够香。2、锅热以后放油，先下蒜末炒出香味，再把空心菜倒进去，大火快速翻炒。3、看到叶子塌下去以后"
+    },
+    {
+      "order": 8,
+      "chars": 147,
+      "category": "human",
+      "ai_probability": 1.04,
+      "preview": "绿豆提前没有泡，所以我只放了一小把，搭配一点小米，水多加一些，煮出来稀一点，夏天喝着更顺口。1、绿豆和小米淘洗干净，直接加水下锅，大火煮开。2、水开以后转小火慢"
+    },
+    {
+      "order": 9,
+      "chars": 176,
+      "category": "human",
+      "ai_probability": 3.9,
+      "preview": "面条酸香入味，茄丁软乎，肉末不多却能提香；空心菜清爽，绿豆小米汤也不压胃。老公说这个面比干拌面舒服，最后碗底那点汤汁也拿面条拌干净了。两个人在家吃饭，有时候真不"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

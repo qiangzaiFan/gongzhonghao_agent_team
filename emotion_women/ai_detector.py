@@ -25,7 +25,7 @@ REPORT_DIR = BASE_DIR / "reviews" / "auto"
 SHARED_DETECTOR = ROOT_DIR / "astrology_content" / "ai_detector.py"
 VENV_PYTHON = ROOT_DIR / ".venv" / "bin" / "python"
 DEFAULT_MODEL = "AnxForever/chinese-ai-detector-bert"
-DEFAULT_HUMAN_MIN = 80.0
+DEFAULT_HUMAN_MIN = 90.0
 DEFAULT_AI_MAX = 10.0
 
 

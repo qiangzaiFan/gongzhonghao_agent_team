@@ -43,7 +43,7 @@ OpenAI 路径会复用同一套文章格式、固定图池、图片预检和质�
 
 ### 自动 AIGC 检测
 
-生成、链接原创转化和发布已统一接入本地中文 AIGC 检测，发布线为 `human≥80%` 且 `ai≤10%`。首次使用先安装共用依赖：
+生成、链接原创转化和发布已统一接入本地中文 AIGC 检测，发布线为 `human≥90%` 且 `ai≤10%`。首次使用先安装共用依赖：
 
 ```bash
 ../.venv/bin/pip install -r ../astrology_content/requirements-ai-detector.txt

@@ -150,7 +150,7 @@ def main() -> int:
     if aigc_preflight.returncode != 0:
         print(
             "错误：自动 AIGC 门禁未通过，已停止发布。"
-            "需求 human≥80%、ai≤10%。"
+            "需求 human≥90%、ai≤10%。"
         )
         return aigc_preflight.returncode
 
