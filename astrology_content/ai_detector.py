@@ -23,8 +23,10 @@ from quality_gate import markdown_to_plain, parse_article
 
 DEFAULT_MODEL = "AnxForever/chinese-ai-detector-bert"
 DEFAULT_TEMPERATURE = 0.8165
-DEFAULT_HUMAN_MIN = 80.0
+DEFAULT_HUMAN_MIN = 90.0
 DEFAULT_AI_MAX = 10.0
+DEFAULT_MIN_TOTAL_CHARS = 200
+ANXIA_SHORT_MIN_TOTAL_CHARS = 120
 HUMAN_PROBABILITY_CUTOFF = 0.50
 AI_PROBABILITY_CUTOFF = 0.80
 TARGET_CHUNK_CHARS = 190
@@ -49,6 +51,10 @@ class DetectionResult:
 
 def article_digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _weighted_chars(text: str) -> int:
+    return len(re.findall(r"[\u4e00-\u9fffA-Za-z0-9]", text)) or len(text)
 
 
 def _piece_text(text: str) -> list[str]:
@@ -93,14 +99,22 @@ def _piece_text(text: str) -> list[str]:
     return [chunks[min(len(chunks) - 1, math.floor(index * stride))] for index in range(MAX_CHUNKS)]
 
 
-def article_chunks(article_path: Path) -> list[str]:
+def article_chunks(
+    article_path: Path,
+    *,
+    min_total_chars: int = DEFAULT_MIN_TOTAL_CHARS,
+) -> list[str]:
     article = parse_article(article_path)
     body = re.sub(r"!\[[^\]]*\]\([^)]+\)", "", article.body)
     body = re.sub(r"(?m)^#{1,6}\s*", "", body)
     plain = markdown_to_plain(body)
     chunks = _piece_text(plain)
-    if not chunks or sum(len(chunk) for chunk in chunks) < 200:
-        raise ValueError("正文太短，无法进行稳定的自动 AIGC 检测")
+    total_chars = sum(_weighted_chars(chunk) for chunk in chunks)
+    if not chunks or total_chars < min_total_chars:
+        raise ValueError(
+            "正文太短，无法进行稳定的自动 AIGC 检测："
+            f"{total_chars} 字符 < {min_total_chars} 字符"
+        )
     return chunks
 
 
@@ -111,13 +125,13 @@ def load_detector(model_id: str):
     except ImportError as exc:
         raise DetectorUnavailable(
             "缺少本地检测依赖。请运行："
-            "../.venv/bin/pip install -r requirements-ai-detector.txt"
+            "..\\.venv\\Scripts\\pip.exe install -r requirements-ai-detector.txt"
         ) from exc
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         model = AutoModelForSequenceClassification.from_pretrained(model_id)
-    except Exception as exc:  # Model download/load errors differ by backend.
+    except Exception as exc:
         raise DetectorUnavailable(f"无法加载本地检测模型 {model_id}：{exc}") from exc
     model.eval()
     return torch, tokenizer, model
@@ -138,10 +152,11 @@ def detect_article(
     model_id: str = DEFAULT_MODEL,
     human_min: float = DEFAULT_HUMAN_MIN,
     ai_max: float = DEFAULT_AI_MAX,
+    min_total_chars: int = DEFAULT_MIN_TOTAL_CHARS,
     report_path: Path | None = None,
 ) -> DetectionResult:
     torch, tokenizer, model = load_detector(model_id)
-    chunks = article_chunks(article_path)
+    chunks = article_chunks(article_path, min_total_chars=min_total_chars)
     ai_index = find_ai_index(model)
     temperature = DEFAULT_TEMPERATURE if model_id == DEFAULT_MODEL else 1.0
 
@@ -162,7 +177,7 @@ def detect_article(
             category = "suspected"
         else:
             category = "ai"
-        weight = len(re.findall(r"[\u4e00-\u9fffA-Za-z0-9]", chunk)) or len(chunk)
+        weight = _weighted_chars(chunk)
         total_chars += weight
         category_chars[category] += weight
         weighted_ai_probability += ai_probability * weight
@@ -189,7 +204,11 @@ def detect_article(
         "detected_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "article": str(article_path.resolve()),
         "article_sha256": article_digest(article_path),
-        "thresholds": {"human_min": human_min, "ai_max": ai_max},
+        "thresholds": {
+            "human_min": human_min,
+            "ai_max": ai_max,
+            "min_total_chars": min_total_chars,
+        },
         "ratios": ratios,
         "mean_ai_probability": round(mean_probability, 2),
         "passed": passed,
@@ -216,9 +235,17 @@ def validate_report(article_path: Path, report_path: Path) -> list[str]:
         data = json.loads(report_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return [f"自动 AIGC 报告无效：{exc}"]
+
     errors: list[str] = []
     if data.get("article_sha256") != article_digest(article_path):
         errors.append("自动 AIGC 报告已过期：文章内容在检测后发生了变化")
+
+    thresholds = data.get("thresholds") or {}
+    if float(thresholds.get("human_min", 0)) < DEFAULT_HUMAN_MIN:
+        errors.append(f"自动 AIGC 报告 human_min 低于当前发布线：{DEFAULT_HUMAN_MIN}%")
+    if float(thresholds.get("ai_max", 100)) > DEFAULT_AI_MAX:
+        errors.append(f"自动 AIGC 报告 ai_max 高于当前发布线：{DEFAULT_AI_MAX}%")
+
     if data.get("passed") is not True:
         ratios = data.get("ratios") or {}
         errors.append(
@@ -251,6 +278,7 @@ def main() -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--human-min", type=float, default=DEFAULT_HUMAN_MIN)
     parser.add_argument("--ai-max", type=float, default=DEFAULT_AI_MAX)
+    parser.add_argument("--min-total-chars", type=int, default=DEFAULT_MIN_TOTAL_CHARS)
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
 
@@ -263,6 +291,7 @@ def main() -> int:
             model_id=args.model,
             human_min=args.human_min,
             ai_max=args.ai_max,
+            min_total_chars=args.min_total_chars,
             report_path=report_path,
         )
     except (DetectorUnavailable, ValueError) as exc:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local format, style, image, and source-overlap checks for astrology articles."""
+"""Local format and source-overlap checks for Anxia-style short articles."""
 
 from __future__ import annotations
 
@@ -7,16 +7,19 @@ import argparse
 import re
 import struct
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
 
-ARTICLE_MIN_CJK = 900
-ARTICLE_MAX_CJK = 1200
-TITLE_MAX_VISIBLE = 20
-MIN_HEADINGS = 2
-MAX_HEADINGS = 4
-REQUIRED_IMAGES = 3
+ARTICLE_MIN_CJK = 120
+ARTICLE_MAX_CJK = 260
+ARTICLE_EXTENDED_MAX_CJK = 450
+TITLE_MIN_VISIBLE = 12
+TITLE_MAX_VISIBLE = 28
+MIN_HEADINGS = 0
+MAX_HEADINGS = 0
+REQUIRED_IMAGES = None
 MIN_IMAGE_SHORT_EDGE = 600
 MIN_IMAGE_PIXELS = 900 * 600
 SHINGLE_WIDTH = 18
@@ -92,11 +95,50 @@ class Article:
 class GateResult:
     errors: list[str]
     warnings: list[str]
-    metrics: dict[str, float | int]
+    metrics: dict[str, float | int | str]
 
     @property
     def ok(self) -> bool:
         return not self.errors
+
+
+@dataclass(frozen=True)
+class GateProfile:
+    name: str
+    min_cjk: int
+    max_cjk: int
+    extended_max_cjk: int | None
+    title_max_visible: int
+    min_title_visible: int | None
+    min_headings: int
+    max_headings: int
+    required_images: int | None
+    opening_terms_required: bool
+    banned_phrases: tuple[str, ...]
+    enumeration_error_at: int
+    overlap_rewrite_threshold: float
+    overlap_reject_threshold: float
+
+
+ANXIA_SHORT_PROFILE = GateProfile(
+    name="anxia_short",
+    min_cjk=ARTICLE_MIN_CJK,
+    max_cjk=ARTICLE_MAX_CJK,
+    extended_max_cjk=ARTICLE_EXTENDED_MAX_CJK,
+    title_max_visible=TITLE_MAX_VISIBLE,
+    min_title_visible=TITLE_MIN_VISIBLE,
+    min_headings=MIN_HEADINGS,
+    max_headings=MAX_HEADINGS,
+    required_images=REQUIRED_IMAGES,
+    opening_terms_required=False,
+    banned_phrases=BANNED_PHRASES[:-1],
+    enumeration_error_at=4,
+    overlap_rewrite_threshold=0.05,
+    overlap_reject_threshold=0.05,
+)
+STRONG_TITLE_TERMS = ABSOLUTE_PREDICTIONS
+PROFILES = {ANXIA_SHORT_PROFILE.name: ANXIA_SHORT_PROFILE}
+DEFAULT_PROFILE = ANXIA_SHORT_PROFILE.name
 
 
 def parse_article(path: Path) -> Article:
@@ -167,21 +209,7 @@ def _jpeg_size(path: Path) -> tuple[int, int] | None:
             if len(length_bytes) != 2:
                 return None
             segment_length = struct.unpack(">H", length_bytes)[0]
-            if marker[0] in {
-                0xC0,
-                0xC1,
-                0xC2,
-                0xC3,
-                0xC5,
-                0xC6,
-                0xC7,
-                0xC9,
-                0xCA,
-                0xCB,
-                0xCD,
-                0xCE,
-                0xCF,
-            }:
+            if marker[0] in {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}:
                 data = handle.read(5)
                 if len(data) != 5:
                     return None
@@ -209,14 +237,8 @@ def shingle_overlap(source: str, draft: str, width: int = SHINGLE_WIDTH) -> floa
     draft_norm = normalize_for_overlap(draft)
     if len(source_norm) < width or len(draft_norm) < width:
         return 0.0
-    source_parts = {
-        source_norm[index : index + width]
-        for index in range(len(source_norm) - width + 1)
-    }
-    draft_parts = {
-        draft_norm[index : index + width]
-        for index in range(len(draft_norm) - width + 1)
-    }
+    source_parts = {source_norm[index : index + width] for index in range(len(source_norm) - width + 1)}
+    draft_parts = {draft_norm[index : index + width] for index in range(len(draft_norm) - width + 1)}
     return len(source_parts & draft_parts) / min(len(source_parts), len(draft_parts))
 
 
@@ -250,10 +272,68 @@ def paragraph_lengths(body: str) -> list[int]:
     return lengths
 
 
-def validate_article(article: Article, source_text: str | None = None) -> GateResult:
+def corpus_article_paths(source_dir: Path) -> list[Path]:
+    return sorted(
+        path
+        for path in source_dir.glob("*.md")
+        if re.match(r"\d{4}_\d{4}-\d{2}-\d{2}_", path.name)
+    )
+
+
+def load_source_dir(
+    source_dir: Path,
+    *,
+    allow_hot_titles: bool = False,
+    hot_title_min_count: int = 2,
+    allow_all_source_titles: bool = False,
+) -> tuple[set[str], list[tuple[str, str]]]:
+    if not source_dir.is_dir():
+        raise FileNotFoundError(f"来源目录不存在：{source_dir}")
+    titles: set[str] = set()
+    title_counts: Counter[str] = Counter()
+    sources: list[tuple[str, str]] = []
+    for path in corpus_article_paths(source_dir):
+        try:
+            source_article = parse_article(path)
+        except OSError:
+            continue
+        title = source_article.title
+        if title:
+            normalized = re.sub(r"\s+", "", title)
+            titles.add(normalized)
+            title_counts[normalized] += 1
+        sources.append((path.name, source_article.body))
+    if allow_all_source_titles:
+        titles = set()
+    elif allow_hot_titles:
+        hot_titles = {title for title, count in title_counts.items() if count >= hot_title_min_count}
+        titles -= hot_titles
+    return titles, sources
+
+
+def paragraph_count(body: str) -> int:
+    count = 0
+    for block in re.split(r"\n\s*\n", body):
+        block = block.strip()
+        if not block or block.startswith("!") or block.startswith("#"):
+            continue
+        if cjk_len(markdown_to_plain(block)):
+            count += 1
+    return count
+
+
+def validate_article(
+    article: Article,
+    source_text: str | None = None,
+    *,
+    profile: str | GateProfile = DEFAULT_PROFILE,
+    forbidden_titles: set[str] | None = None,
+    source_texts: list[tuple[str, str]] | None = None,
+) -> GateResult:
+    gate_profile = PROFILES[profile] if isinstance(profile, str) else profile
     errors: list[str] = []
     warnings: list[str] = []
-    metrics: dict[str, float | int] = {}
+    metrics: dict[str, float | int | str] = {"profile": gate_profile.name}
 
     if set(article.frontmatter) != {"title"}:
         errors.append("frontmatter 必须存在且只包含 title")
@@ -261,26 +341,38 @@ def validate_article(article: Article, source_text: str | None = None) -> GateRe
         errors.append("title 不能为空")
     title_length = visible_len(article.title)
     metrics["title_visible_chars"] = title_length
-    if title_length > TITLE_MAX_VISIBLE:
-        errors.append(f"title 长度为 {title_length}，最多 {TITLE_MAX_VISIBLE} 个可见字符")
+    if title_length > gate_profile.title_max_visible:
+        errors.append(f"title 长度为 {title_length}，最多 {gate_profile.title_max_visible} 个可见字符")
+    if gate_profile.min_title_visible and title_length < gate_profile.min_title_visible:
+        warnings.append(f"title 长度为 {title_length}，建议不少于 {gate_profile.min_title_visible} 个可见字符")
+    if forbidden_titles and re.sub(r"\s+", "", article.title) in forbidden_titles:
+        errors.append("标题复用了安夏知识库原标题，必须重写")
 
     plain = markdown_to_plain(article.body)
     length = cjk_len(plain)
     metrics["body_cjk"] = length
-    if not ARTICLE_MIN_CJK <= length <= ARTICLE_MAX_CJK:
-        errors.append(
-            f"正文中文字符为 {length}，要求 {ARTICLE_MIN_CJK}-{ARTICLE_MAX_CJK}"
-        )
+    if length < gate_profile.min_cjk:
+        errors.append(f"正文中文字符为 {length}，至少 {gate_profile.min_cjk}")
+    elif length > gate_profile.max_cjk:
+        if gate_profile.extended_max_cjk and length <= gate_profile.extended_max_cjk:
+            warnings.append(f"正文中文字符为 {length}，超过目标 {gate_profile.max_cjk}，属于扩展稿")
+        else:
+            errors.append(f"正文中文字符为 {length}，要求 {gate_profile.min_cjk}-{gate_profile.max_cjk}")
 
     headings = re.findall(r"(?m)^##\s+\S", article.body)
     metrics["h2_count"] = len(headings)
-    if not MIN_HEADINGS <= len(headings) <= MAX_HEADINGS:
-        errors.append(f"二级小标题为 {len(headings)}，要求 {MIN_HEADINGS}-{MAX_HEADINGS} 个")
+    if not gate_profile.min_headings <= len(headings) <= gate_profile.max_headings:
+        errors.append(f"二级小标题为 {len(headings)}，要求 {gate_profile.min_headings}-{gate_profile.max_headings} 个")
+
+    paragraphs = paragraph_count(article.body)
+    metrics["paragraph_count"] = paragraphs
+    if gate_profile.name == "anxia_short" and not 3 <= paragraphs <= 6:
+        errors.append(f"短文段落为 {paragraphs} 段，要求 3-6 段")
 
     images = image_references(article.body)
     metrics["image_count"] = len(images)
-    if len(images) != REQUIRED_IMAGES:
-        errors.append(f"图片为 {len(images)} 张，要求恰好 {REQUIRED_IMAGES} 张")
+    if gate_profile.required_images is not None and len(images) != gate_profile.required_images:
+        errors.append(f"图片为 {len(images)} 张，要求恰好 {gate_profile.required_images} 张")
     for reference in images:
         if re.match(r"https?://", reference):
             errors.append(f"图片必须为本地文件：{reference}")
@@ -300,16 +392,16 @@ def validate_article(article: Article, source_text: str | None = None) -> GateRe
                 f"短边至少 {MIN_IMAGE_SHORT_EDGE}、总像素至少 {MIN_IMAGE_PIXELS}"
             )
 
-    for phrase in BANNED_PHRASES:
+    for phrase in gate_profile.banned_phrases:
         if phrase in plain:
             errors.append(f"出现模板化禁用语：{phrase}")
-    for phrase in ABSOLUTE_PREDICTIONS:
-        if phrase in plain:
-            errors.append(f"出现绝对预测词：{phrase}")
+    strong_terms = [phrase for phrase in STRONG_TITLE_TERMS if phrase in article.title or phrase in plain]
+    if strong_terms:
+        warnings.append("出现强刺激星座词：" + "、".join(strong_terms))
 
     enumeration_count = sum(len(re.findall(pattern, plain)) for pattern in ENUMERATION_PATTERNS)
     metrics["enumeration_markers"] = enumeration_count
-    if enumeration_count >= 2:
+    if enumeration_count >= gate_profile.enumeration_error_at:
         errors.append(f"机械枚举连接词为 {enumeration_count} 个，需要重写段落推进")
 
     question_count = len(re.findall(r"[?？]", plain))
@@ -323,27 +415,44 @@ def validate_article(article: Article, source_text: str | None = None) -> GateRe
         errors.append(f"“不是……而是……”重复 {contrast_count} 次，最多 2 次")
 
     opening = "".join(re.findall(r"[\u4e00-\u9fff]", plain))[:100]
-    if not any(term in opening for term in CONCRETE_OPENING_TERMS):
+    if gate_profile.opening_terms_required and not any(term in opening for term in CONCRETE_OPENING_TERMS):
         warnings.append("前 100 个中文字未识别到常见的具体动作/物件，请人工复核开头")
 
     lengths = paragraph_lengths(article.body)
     if len(lengths) >= 6 and max(lengths) - min(lengths) < 25:
         warnings.append("段落长度过于整齐，建议按信息量重新分段")
 
+    all_sources: list[tuple[str, str]] = []
     if source_text is not None:
-        longest = longest_common_substring_length(source_text, article.body)
-        overlap = shingle_overlap(source_text, article.body)
-        metrics["longest_source_match"] = longest
-        metrics["source_shingle_overlap"] = round(overlap, 6)
-        if longest >= LONGEST_MATCH_REJECT:
+        all_sources.append(("source-file", source_text))
+    if source_texts:
+        all_sources.extend(source_texts)
+
+    max_longest = 0
+    max_overlap = 0.0
+    max_source_name = ""
+    for source_name, candidate_source in all_sources:
+        longest = longest_common_substring_length(candidate_source, article.body)
+        overlap = shingle_overlap(candidate_source, article.body)
+        if longest > max_longest or overlap > max_overlap:
+            max_source_name = source_name
+        max_longest = max(max_longest, longest)
+        max_overlap = max(max_overlap, overlap)
+
+    if all_sources:
+        metrics["longest_source_match"] = max_longest
+        metrics["source_shingle_overlap"] = round(max_overlap, 6)
+        if max_source_name:
+            metrics["source_count"] = len(all_sources)
+        if max_longest >= LONGEST_MATCH_REJECT:
+            errors.append(f"与来源存在 {max_longest} 个连续规范化字符相同，达到驳回线 {LONGEST_MATCH_REJECT}")
+        if max_overlap >= gate_profile.overlap_reject_threshold:
+            errors.append(f"18 字分片重合率 {max_overlap:.2%}，达到 {gate_profile.overlap_reject_threshold:.0%} 驳回线")
+        elif max_overlap >= gate_profile.overlap_rewrite_threshold:
             errors.append(
-                f"与来源存在 {longest} 个连续规范化字符相同，"
-                f"达到驳回线 {LONGEST_MATCH_REJECT}"
+                f"18 字分片重合率 {max_overlap:.2%}，处于 "
+                f"{gate_profile.overlap_rewrite_threshold:.0%}-{gate_profile.overlap_reject_threshold:.0%} 人工重写区间"
             )
-        if overlap >= OVERLAP_REJECT_THRESHOLD:
-            errors.append(f"18 字分片重合率 {overlap:.2%}，达到 8% 驳回线")
-        elif overlap >= OVERLAP_REWRITE_THRESHOLD:
-            errors.append(f"18 字分片重合率 {overlap:.2%}，处于 5%-8% 人工重写区间")
 
     return GateResult(errors=errors, warnings=warnings, metrics=metrics)
 
@@ -361,9 +470,14 @@ def format_result(result: GateResult) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="检查星座公众号 Markdown 草稿")
+    parser = argparse.ArgumentParser(description="检查安夏短文号 Markdown 草稿")
     parser.add_argument("article", type=Path, help="Markdown 文章路径")
+    parser.add_argument("--profile", choices=sorted(PROFILES), default=DEFAULT_PROFILE)
     parser.add_argument("--source-file", type=Path, help="可选的来源正文，用于原创度比较")
+    parser.add_argument("--source-dir", type=Path, help="可选：安夏知识库目录，用于原标题和全库原创度检查")
+    parser.add_argument("--allow-hot-titles", action="store_true", help="允许复用知识库中重复出现过的热标题")
+    parser.add_argument("--hot-title-min-count", type=int, default=2, help="热标题最少重复次数，默认 2")
+    parser.add_argument("--allow-all-source-titles", action="store_true", help="允许复用任意知识库原标题")
     args = parser.parse_args()
 
     if not args.article.is_file():
@@ -373,8 +487,26 @@ def main() -> int:
         if not args.source_file.is_file():
             parser.error(f"来源文件不存在：{args.source_file}")
         source_text = args.source_file.read_text(encoding="utf-8", errors="ignore")
+    forbidden_titles = None
+    source_texts = None
+    if args.source_dir:
+        try:
+            forbidden_titles, source_texts = load_source_dir(
+                args.source_dir,
+                allow_hot_titles=args.allow_hot_titles,
+                hot_title_min_count=args.hot_title_min_count,
+                allow_all_source_titles=args.allow_all_source_titles,
+            )
+        except FileNotFoundError as exc:
+            parser.error(str(exc))
 
-    result = validate_article(parse_article(args.article), source_text=source_text)
+    result = validate_article(
+        parse_article(args.article),
+        source_text=source_text,
+        profile=args.profile,
+        forbidden_titles=forbidden_titles,
+        source_texts=source_texts,
+    )
     print(format_result(result))
     return 0 if result.ok else 1
 

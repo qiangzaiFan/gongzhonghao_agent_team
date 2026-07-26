@@ -13,7 +13,6 @@ from urllib import error, request
 from urllib.parse import urlparse
 
 from quality_gate import cjk_len
-from reference_policy import extract_page_title
 
 
 BASE_DIR = Path(__file__).parent
@@ -81,6 +80,20 @@ NOISE_PHRASES = (
     "赞，轻点两下取消赞",
     "在看，轻点两下取消在看",
 )
+
+
+def extract_page_title(markup: str) -> str:
+    for meta in re.finditer(r"<meta\b[^>]*>", markup, re.I):
+        tag = meta.group(0)
+        if re.search(r"(?:property|name)\s*=\s*['\"]og:title['\"]", tag, re.I):
+            found = re.search(r"content\s*=\s*(['\"])(.*?)\1", tag, re.I | re.S)
+            if found:
+                return html.unescape(found.group(2)).strip()
+    js_title = re.search(r"\bmsg_title\s*=\s*(['\"])(.*?)\1", markup, re.S)
+    if js_title:
+        return html.unescape(js_title.group(2)).strip()
+    title = re.search(r"<title[^>]*>(.*?)</title>", markup, re.I | re.S)
+    return html.unescape(re.sub(r"<[^>]+>", "", title.group(1))).strip() if title else ""
 
 
 def clean_text(text: str) -> str:

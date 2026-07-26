@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-HUMAN_MIN = 80.0
+HUMAN_MIN = 90.0
 AI_MAX = 10.0
 MAX_ROUNDS = 3
 

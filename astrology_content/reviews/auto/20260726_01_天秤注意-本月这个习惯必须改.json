@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T17:00:53+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260726_01_天秤注意-本月这个习惯必须改.md",
+  "article_sha256": "065ab343ae5aefa72cc6bd99211bb1c47f6b1921551b852ccd658781242a2270",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 47.45,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 140,
+      "category": "human",
+      "ai_probability": 47.45,
+      "preview": "天秤最近别小看一个变化：有些拖了很久的事，已经到了必须整理的时候。 你们本来就看重关系平衡，但这段时间容易被琐事分走注意力。临时安排、人情请求、重复沟通，都会一"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}
