@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:05:35+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260729_03_处女接下来必定迎来一波收获.md",
+  "article_sha256": "0bb1e0f2d7adac7e538b2eabd2952c424335c23145cb3a8a8cb9f13c81c7407b",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 0.0,
+    "suspected": 0.0,
+    "ai": 100.0
+  },
+  "mean_ai_probability": 91.14,
+  "passed": false,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 133,
+      "category": "ai",
+      "ai_probability": 91.14,
+      "preview": "处女今天先别急着付款。看到优惠、链接、群里的临时拼单，停十分钟再点。 你们适合重新排优先级，但最近消息太杂，容易顺手答应。以前说好的分摊、会员、订阅，翻出来看一"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

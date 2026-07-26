@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:06:30+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260801_03_金牛在8月有个贵人正在靠近.md",
+  "article_sha256": "067b8a8a8dfe5fa8057df4a601504c93be2120870c1e56b96d5823791e081737",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 47.27,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 132,
+      "category": "human",
+      "ai_probability": 47.27,
+      "preview": "金牛今天先别急着付款。看到优惠、链接、群里的临时拼单，停十分钟再点。 你们适合把账算清楚，但最近消息太杂，容易顺手答应。以前说好的分摊、会员、订阅，翻出来看一眼"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

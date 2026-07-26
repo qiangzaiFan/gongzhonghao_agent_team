@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:06:00+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260731_01_天蝎下半年这个转折很关键.md",
+  "article_sha256": "89f2b4edac9a93a0048bf55f70d33ef415d45f55fb80117e7817284d4fee8628",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 5.58,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 137,
+      "category": "human",
+      "ai_probability": 5.58,
+      "preview": "天蝎最近别小看一个变化：有些拖了很久的事，已经到了必须整理的时候。 你们本来就判断深，但这段时间容易被琐事分走注意力。临时安排、人情请求、重复沟通，都会一点点消"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

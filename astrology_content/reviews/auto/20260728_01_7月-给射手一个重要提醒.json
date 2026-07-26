@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:05:04+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260728_01_7月-给射手一个重要提醒.md",
+  "article_sha256": "3258c24e05bc87aaddc3afccba24d938b44601032ffa6db3e1e342be059b4ded",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.98,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 138,
+      "category": "human",
+      "ai_probability": 1.98,
+      "preview": "射手最近别小看一个变化：有些拖了很久的事，已经到了必须整理的时候。 你们本来就心气会动，但这段时间容易被琐事分走注意力。临时安排、人情请求、重复沟通，都会一点点"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

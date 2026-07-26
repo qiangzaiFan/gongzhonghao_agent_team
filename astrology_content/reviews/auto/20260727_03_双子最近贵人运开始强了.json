@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:04:58+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260727_03_双子最近贵人运开始强了.md",
+  "article_sha256": "e7c3d5f4502d6febae09871a675e8f4a5cf9df3786a2a171140ed85bff4050f0",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 41.41,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 133,
+      "category": "human",
+      "ai_probability": 41.41,
+      "preview": "双子今天先别急着付款。看到优惠、链接、群里的临时拼单，停十分钟再点。 你们容易被新机会点亮，但最近消息太杂，容易顺手答应。以前说好的分摊、会员、订阅，翻出来看一"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

@@ -2,9 +2,9 @@
   "schema_version": 1,
   "detector": "local-chinese-bert",
   "model": "AnxForever/chinese-ai-detector-bert",
-  "detected_at": "2026-07-26T18:04:34+08:00",
-  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260726_02_摩羯这辈子最该珍惜的贵人.md",
-  "article_sha256": "06d2e742452473c9e1ac4a218ac8dbcd8d8ca66ec6770d78ac765c21bcfcc1ee",
+  "detected_at": "2026-07-26T18:05:11+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260728_02_白羊别再为这种关系委屈自己.md",
+  "article_sha256": "1fe9222d9e24735b1b5fbeba274a714b977a2facbfb2ea8041ec4b62e549dcf2",
   "thresholds": {
     "human_min": 90.0,
     "ai_max": 10.0,
@@ -20,10 +20,10 @@
   "segments": [
     {
       "order": 1,
-      "chars": 140,
+      "chars": 138,
       "category": "human",
       "ai_probability": 1.1,
-      "preview": "摩羯不是突然变冷，很多时候是一个细节看多了，心里自然有了答案。 你们愿意长期投入，一开始会给对方余地，也愿意替关系找理由。但只在需要时靠近、平时很少回应的人，最"
+      "preview": "白羊不是突然变冷，很多时候是一个细节看多了，心里自然有了答案。 你们讨厌拖拉，一开始会给对方余地，也愿意替关系找理由。但只在需要时靠近、平时很少回应的人，最容易"
     }
   ],
   "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"

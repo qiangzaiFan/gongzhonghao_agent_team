@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-26T18:04:52+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260727_02_真正懂双鱼的人-藏不住了.md",
+  "article_sha256": "305c82934a072bce06877a071a7435612a530cc9a0a409a656e7d4c44be072c6",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.09,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 138,
+      "category": "human",
+      "ai_probability": 1.09,
+      "preview": "双鱼不是突然变冷，很多时候是一个细节看多了，心里自然有了答案。 你们共情很强，一开始会给对方余地，也愿意替关系找理由。但只在需要时靠近、平时很少回应的人，最容易"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，也不等同于腾讯朱雀的判定。"
+}

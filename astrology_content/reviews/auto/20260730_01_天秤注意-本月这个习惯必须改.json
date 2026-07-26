@@ -2,8 +2,8 @@
   "schema_version": 1,
   "detector": "local-chinese-bert",
   "model": "AnxForever/chinese-ai-detector-bert",
-  "detected_at": "2026-07-26T18:04:28+08:00",
-  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260726_01_天秤注意-本月这个习惯必须改.md",
+  "detected_at": "2026-07-26T18:05:42+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260730_01_天秤注意-本月这个习惯必须改.md",
   "article_sha256": "065ab343ae5aefa72cc6bd99211bb1c47f6b1921551b852ccd658781242a2270",
   "thresholds": {
     "human_min": 90.0,
