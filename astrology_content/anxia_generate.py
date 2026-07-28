@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from html import escape
 import json
 import os
 import re
@@ -78,6 +79,20 @@ class RecentSimilarity:
 
     def conflicts_with(self, *, longest_match: int, overlap: float) -> bool:
         return self.longest_match >= longest_match or self.overlap >= overlap
+
+
+@dataclass(frozen=True)
+class DailyFortuneCard:
+    sign: str
+    summary: str
+    score: int
+    matches: tuple[str, str]
+    advice: str
+    avoid: str
+    metrics: tuple[tuple[str, str], ...]
+    luck_rows: tuple[tuple[str, str], ...]
+    actions: tuple[str, str, str]
+    slogan: str
 
 
 SIGN_TRAITS = {
@@ -271,6 +286,128 @@ DAILY_FORTUNE_ACTIONS = (
     "把一个小邀约认真听完",
     "把未完成的事标出截止点",
     "把注意力从比较里收回来",
+)
+DAILY_CARD_ASSET_DIR = Path(__file__).parent / "assets" / "daily_fortune_cards"
+DAILY_CARD_SIGN_ORDER = tuple(
+    sign
+    for _, group_signs in DAILY_FORTUNE_GROUPS
+    for sign in group_signs
+)
+DAILY_CARD_ZODIAC = {
+    "白羊": "♈︎",
+    "金牛": "♉︎",
+    "双子": "♊︎",
+    "巨蟹": "♋︎",
+    "狮子": "♌︎",
+    "处女": "♍︎",
+    "天秤": "♎︎",
+    "天蝎": "♏︎",
+    "射手": "♐︎",
+    "摩羯": "♑︎",
+    "水瓶": "♒︎",
+    "双鱼": "♓︎",
+}
+DAILY_CARD_AVATAR_FILL = {
+    "白羊": "#e67874",
+    "金牛": "#d8a94a",
+    "双子": "#bf7fc5",
+    "巨蟹": "#7aa6cf",
+    "狮子": "#d38a45",
+    "处女": "#d990b6",
+    "天秤": "#75a9bd",
+    "天蝎": "#8c6aa8",
+    "射手": "#6ba37b",
+    "摩羯": "#8f7b68",
+    "水瓶": "#5f9fc7",
+    "双鱼": "#8aa3d8",
+}
+DAILY_CARD_COMPATIBILITY = {
+    "白羊": ("狮子", "射手", "双子", "水瓶"),
+    "金牛": ("处女", "摩羯", "巨蟹", "双鱼"),
+    "双子": ("天秤", "水瓶", "白羊", "狮子"),
+    "巨蟹": ("天蝎", "双鱼", "金牛", "处女"),
+    "狮子": ("白羊", "射手", "双子", "天秤"),
+    "处女": ("金牛", "摩羯", "巨蟹", "天蝎"),
+    "天秤": ("双子", "水瓶", "狮子", "射手"),
+    "天蝎": ("巨蟹", "双鱼", "处女", "摩羯"),
+    "射手": ("白羊", "狮子", "天秤", "水瓶"),
+    "摩羯": ("金牛", "处女", "天蝎", "双鱼"),
+    "水瓶": ("双子", "天秤", "白羊", "射手"),
+    "双鱼": ("巨蟹", "天蝎", "金牛", "摩羯"),
+}
+DAILY_CARD_SUMMARIES = (
+    "行动感回升日",
+    "稳住节奏日",
+    "寻找平衡日",
+    "整理能量日",
+    "贵人靠近日",
+    "关系转明日",
+    "小财进账日",
+    "灵感闪现日",
+)
+DAILY_CARD_ADVICE = (
+    "先做最关键的小事",
+    "把话说清楚一点",
+    "给自己留出余地",
+    "先确认再答应",
+    "慢一点更容易赢",
+    "把边界放在前面",
+    "选择能沉淀的机会",
+    "别被情绪带节奏",
+)
+DAILY_CARD_AVOID = (
+    "临时冲动消费",
+    "过度解释自己",
+    "把所有事都揽下",
+    "在旧问题里打转",
+    "为了面子硬撑",
+    "替别人补答案",
+    "太快做最终决定",
+    "熬夜刷消息",
+)
+DAILY_CARD_METRICS = {
+    "财富": ("小额进账", "理性消费", "支出收紧", "人脉破财", "账目转清", "优惠谨慎"),
+    "事业": ("效率回升", "合作推进", "家庭分心", "流程卡顿", "贵人助力", "适合收尾"),
+    "感情": ("轻松互动", "暗流流动", "回应变暖", "减少试探", "旧事松动", "边界清晰"),
+    "健康": ("睡眠问题", "注意颈肩", "补水放松", "少点外卖", "早点休息", "慢走舒展"),
+}
+DAILY_CARD_LUCK = {
+    "复合运": (
+        "现实问题未解，联系只会有烦恼。",
+        "先别急着追问，对方会慢慢给反馈。",
+        "旧情绪还在，适合把话说短一点。",
+        "别翻旧账，先看今天有没有行动。",
+    ),
+    "脱单运": (
+        "朋友圈里看似热闹，但多是过眼云烟。",
+        "轻松聊天更加分，别急着证明魅力。",
+        "熟人介绍可听听，先观察稳定度。",
+        "主动一点会有回应，但别过度迎合。",
+    ),
+    "求职运": (
+        "需要多权衡利弊，别被条件带跑。",
+        "适合改简历和投递最匹配岗位。",
+        "面试前确认细节，会少掉很多慌乱。",
+        "机会不止一个，先选能长期积累的。",
+    ),
+}
+DAILY_CARD_ACTION_POOL = (
+    "关掉手机，静心片刻。",
+    "买一束喜欢的鲜花。",
+    "推掉无意义的聚会吧。",
+    "写下今天最重要的一件事。",
+    "把一笔支出记清楚。",
+    "给重要的人回一句准话。",
+    "收拾桌面十分钟。",
+    "提前半小时休息。",
+)
+DAILY_CARD_SLOGANS = (
+    "拒绝绑架，顺从自己的内心吧~",
+    "先稳住自己，好运才有地方落脚~",
+    "把边界说清楚，关系会更轻松~",
+    "今天少一点内耗，多一点确定感~",
+    "别急着证明，慢慢来也是答案~",
+    "把能掌控的小事先做好~",
 )
 
 
@@ -569,6 +706,256 @@ def _daily_first_step(text: str) -> str:
     return text[1:] if text.startswith("先") else text
 
 
+def _daily_card_pick(options: tuple[str, ...], day: date, sign: str, *, salt: int = 0) -> str:
+    sign_index = SIGN_TERMS.index(sign)
+    return options[(day.toordinal() + sign_index * 7 + salt) % len(options)]
+
+
+def build_daily_fortune_card(sign: str, day: date) -> DailyFortuneCard:
+    sign_index = SIGN_TERMS.index(sign)
+    match_options = DAILY_CARD_COMPATIBILITY[sign]
+    match_start = (day.toordinal() + sign_index) % len(match_options)
+    matches = (
+        match_options[match_start],
+        match_options[(match_start + 1) % len(match_options)],
+    )
+    metrics = tuple(
+        (
+            label,
+            _daily_card_pick(tuple(values), day, sign, salt=index * 3),
+        )
+        for index, (label, values) in enumerate(DAILY_CARD_METRICS.items())
+    )
+    luck_rows = tuple(
+        (
+            label,
+            _daily_card_pick(tuple(values), day, sign, salt=index * 5),
+        )
+        for index, (label, values) in enumerate(DAILY_CARD_LUCK.items())
+    )
+    actions = tuple(
+        DAILY_CARD_ACTION_POOL[
+            (day.toordinal() + sign_index * 4 + action_index * 2) % len(DAILY_CARD_ACTION_POOL)
+        ]
+        for action_index in range(3)
+    )
+    return DailyFortuneCard(
+        sign=sign,
+        summary=_daily_card_pick(DAILY_CARD_SUMMARIES, day, sign),
+        score=66 + ((day.toordinal() + sign_index * 5) % 23),
+        matches=matches,
+        advice=_daily_card_pick(DAILY_CARD_ADVICE, day, sign, salt=2),
+        avoid=_daily_card_pick(DAILY_CARD_AVOID, day, sign, salt=4),
+        metrics=metrics,
+        luck_rows=luck_rows,
+        actions=actions,
+        slogan=_daily_card_pick(DAILY_CARD_SLOGANS, day, sign, salt=6),
+    )
+
+
+def _wrap_text(text: str, width: int) -> list[str]:
+    if len(text) <= width:
+        return [text]
+    return [text[index : index + width] for index in range(0, len(text), width)]
+
+
+def _svg_text_lines(
+    text: str,
+    *,
+    x: int,
+    y: int,
+    width: int,
+    size: int,
+    fill: str = "#bf5870",
+    weight: int = 700,
+    line_gap: int | None = None,
+    anchor: str = "start",
+) -> str:
+    gap = line_gap or int(size * 1.28)
+    lines = _wrap_text(text, width)
+    return "\n".join(
+        (
+            f'<text x="{x}" y="{y + index * gap}" text-anchor="{anchor}" '
+            f'font-size="{size}" font-weight="{weight}" fill="{fill}">'
+            f"{escape(line)}</text>"
+        )
+        for index, line in enumerate(lines)
+    )
+
+
+def _daily_metric_pill_svg(index: int, label: str, value: str) -> str:
+    column = index % 2
+    row = index // 2
+    x = 94 + column * 392
+    y = 548 + row * 76
+    return "\n".join(
+        (
+            f'<rect x="{x}" y="{y}" width="342" height="56" rx="22" fill="#fff8fb" '
+            'stroke="#cb6079" stroke-width="3"/>',
+            f'<rect x="{x}" y="{y}" width="110" height="56" rx="22" fill="#cf5f7a"/>',
+            f'<text x="{x + 55}" y="{y + 38}" text-anchor="middle" font-size="33" '
+            f'font-weight="800" fill="#ffffff">{escape(label)}</text>',
+            f'<text x="{x + 226}" y="{y + 38}" text-anchor="middle" font-size="31" '
+            f'font-weight="700" fill="#bd5970">{escape(value)}</text>',
+        )
+    )
+
+
+def _daily_luck_row_svg(index: int, label: str, value: str) -> str:
+    y = 712 + index * 76
+    return "\n".join(
+        (
+            f'<rect x="94" y="{y}" width="772" height="56" rx="22" fill="#cf5f7a"/>',
+            f'<rect x="94" y="{y}" width="148" height="56" rx="22" fill="#fff8fb" '
+            'stroke="#cf5f7a" stroke-width="3"/>',
+            f'<text x="168" y="{y + 38}" text-anchor="middle" font-size="34" '
+            f'font-weight="800" fill="#bd5970">{escape(label)}</text>',
+            f'<text x="270" y="{y + 38}" font-size="30" font-weight="700" '
+            f'fill="#ffffff">{escape(value)}</text>',
+        )
+    )
+
+
+def _daily_action_line_svg(index: int, text: str) -> str:
+    y = 984 + index * 48
+    return "\n".join(
+        (
+            f'<circle cx="282" cy="{y - 10}" r="14" fill="none" stroke="#cf5f7a" stroke-width="4"/>',
+            f'<path d="M274 {y - 12} L281 {y - 4} L295 {y - 21}" fill="none" '
+            'stroke="#cf5f7a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
+            f'<text x="316" y="{y}" font-size="31" font-weight="700" '
+            f'fill="#bd5970">{escape(text)}</text>',
+        )
+    )
+
+
+def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
+    sign_title = f"{card.sign}座"
+    match_text = "、".join(f"{sign}座" for sign in card.matches)
+    avatar_fill = DAILY_CARD_AVATAR_FILL[card.sign]
+    metric_svg = "\n".join(
+        _daily_metric_pill_svg(index, label, value)
+        for index, (label, value) in enumerate(card.metrics)
+    )
+    luck_svg = "\n".join(
+        _daily_luck_row_svg(index, label, value)
+        for index, (label, value) in enumerate(card.luck_rows)
+    )
+    action_svg = "\n".join(
+        _daily_action_line_svg(index, text)
+        for index, text in enumerate(card.actions)
+    )
+    info_lines = "\n".join(
+        (
+            _svg_text_lines(f"今日简述：{card.summary}", x=390, y=254, width=14, size=38),
+            _svg_text_lines(f"今日分数：{card.score}", x=390, y=314, width=14, size=38),
+            _svg_text_lines(f"合拍星座：{match_text}", x=390, y=374, width=14, size=38),
+            _svg_text_lines(f"建议：{card.advice}", x=390, y=434, width=14, size=38),
+            _svg_text_lines(f"避免：{card.avoid}", x=390, y=494, width=14, size=38),
+        )
+    )
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1280" viewBox="0 0 960 1280" role="img" aria-label="{escape(sign_title)}每日好运卡">
+  <defs>
+    <style>
+      text {{
+        font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      }}
+    </style>
+    <pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="18" height="18" fill="#fff8fb"/>
+      <rect width="8" height="18" fill="#fff0f4"/>
+    </pattern>
+    <linearGradient id="pinkFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5b2c1"/>
+      <stop offset="1" stop-color="#e58da3"/>
+    </linearGradient>
+  </defs>
+  <rect x="38" y="24" width="884" height="1232" rx="56" fill="url(#pinkFrame)"/>
+  <rect x="68" y="70" width="824" height="1124" rx="8" fill="url(#stripe)" stroke="#f7d5dd" stroke-width="4"/>
+  <path d="M70 128 H890" stroke="#ffffff" stroke-width="8" opacity="0.9"/>
+  <text x="480" y="156" text-anchor="middle" font-size="84" font-weight="900" fill="#d4667f">{escape(sign_title)}</text>
+  <text x="280" y="134" text-anchor="middle" font-size="42" fill="#d4667f">✧</text>
+  <text x="690" y="150" text-anchor="middle" font-size="42" fill="#d4667f">✦</text>
+  <rect x="110" y="216" width="238" height="278" rx="28" fill="#fff5f8" stroke="#e7a3b3" stroke-width="4"/>
+  <circle cx="229" cy="332" r="78" fill="#fff0da" stroke="#e3bb7a" stroke-width="3"/>
+  <path d="M154 286 C190 236 268 236 304 286 C262 272 196 272 154 286Z" fill="#e3c060"/>
+  <path d="M174 414 C190 376 268 376 286 414 L314 470 H144Z" fill="{avatar_fill}"/>
+  <circle cx="205" cy="334" r="7" fill="#705368"/>
+  <circle cx="253" cy="334" r="7" fill="#705368"/>
+  <path d="M214 364 C224 374 238 374 248 364" fill="none" stroke="#705368" stroke-width="5" stroke-linecap="round"/>
+  <text x="229" y="462" text-anchor="middle" font-size="76" font-weight="800" fill="#ffffff">{escape(DAILY_CARD_ZODIAC[card.sign])}</text>
+  {info_lines}
+  {metric_svg}
+  {luck_svg}
+  <rect x="94" y="928" width="772" height="188" rx="18" fill="#fff8fb" stroke="#cf5f7a" stroke-width="4"/>
+  <text x="168" y="1002" text-anchor="middle" font-size="44" font-weight="900" fill="#bd5970">今日</text>
+  <text x="168" y="1058" text-anchor="middle" font-size="44" font-weight="900" fill="#bd5970">必做</text>
+  <path d="M242 952 V1092" stroke="#cf5f7a" stroke-width="4"/>
+  {action_svg}
+  <text x="94" y="1182" font-size="39" font-weight="900" fill="#bd5970">好运口号：</text>
+  <text x="292" y="1182" font-size="36" font-weight="800" fill="#bd5970">{escape(card.slogan)}</text>
+  <text x="480" y="1226" text-anchor="middle" font-size="24" fill="#ffffff">······  ✧  ······</text>
+</svg>
+"""
+
+
+def daily_fortune_card_paths(
+    day: date,
+    *,
+    asset_dir: Path = DAILY_CARD_ASSET_DIR,
+) -> dict[str, Path]:
+    output_dir = asset_dir / day.strftime("%Y%m%d")
+    return {sign: output_dir / f"{sign}座.svg" for sign in DAILY_CARD_SIGN_ORDER}
+
+
+def write_daily_fortune_cards(
+    day: date,
+    *,
+    asset_dir: Path = DAILY_CARD_ASSET_DIR,
+) -> dict[str, Path]:
+    paths = daily_fortune_card_paths(day, asset_dir=asset_dir)
+    if paths:
+        next(iter(paths.values())).parent.mkdir(parents=True, exist_ok=True)
+    for sign, path in paths.items():
+        card = build_daily_fortune_card(sign, day)
+        path.write_text(render_daily_fortune_card_svg(card, day), encoding="utf-8")
+    return paths
+
+
+def daily_card_markdown_refs(
+    card_paths: dict[str, Path],
+    *,
+    article_dir: Path,
+) -> dict[str, str]:
+    base = article_dir.resolve()
+    return {
+        sign: os.path.relpath(path.resolve(), start=base).replace(os.sep, "/")
+        for sign, path in card_paths.items()
+    }
+
+
+def insert_daily_card_images(body: str, image_refs: dict[str, str]) -> str:
+    if not image_refs:
+        return body
+    group_signs = {
+        f"## {group_name}星座": signs
+        for group_name, signs in DAILY_FORTUNE_GROUPS
+    }
+    output: list[str] = []
+    for line in body.splitlines():
+        output.append(line)
+        signs = group_signs.get(line.strip())
+        if not signs:
+            continue
+        output.append("")
+        for sign in signs:
+            reference = image_refs.get(sign)
+            if reference:
+                output.append(f"![{sign}座每日好运卡]({reference})")
+        output.append("")
+    return "\n".join(output)
+
+
 def render_daily_fortune_with_variant(
     day: date,
     *,
@@ -674,8 +1061,15 @@ def build_daily_fortune_drafts(
     return drafts
 
 
-def render_markdown(draft: Draft) -> str:
-    return f"---\ntitle: {draft.title}\n---\n\n{draft.body}\n"
+def render_markdown(
+    draft: Draft,
+    *,
+    daily_card_images: dict[str, str] | None = None,
+) -> str:
+    body = draft.body
+    if draft.item.theme == DAILY_FORTUNE_THEME and daily_card_images:
+        body = insert_daily_card_images(body, daily_card_images)
+    return f"---\ntitle: {draft.title}\n---\n\n{body}\n"
 
 
 def output_path(output_dir: Path, draft: Draft) -> Path:
@@ -993,6 +1387,21 @@ def main() -> int:
     parser.add_argument("--hot-title-min-count", type=int, default=2, help="热标题最少重复次数，默认 2")
     parser.add_argument("--output-dir", type=Path, default=ARTICLES_DIR)
     parser.add_argument("--record-dir", type=Path, default=DEFAULT_RECORD_DIR)
+    parser.add_argument("--card-dir", type=Path, default=DAILY_CARD_ASSET_DIR)
+    card_group = parser.add_mutually_exclusive_group()
+    card_group.add_argument(
+        "--daily-card-assets",
+        dest="daily_card_assets",
+        action="store_true",
+        help="为十二星座每日好运生成 12 张本地 SVG 信息卡，默认开启",
+    )
+    card_group.add_argument(
+        "--no-daily-card-assets",
+        dest="daily_card_assets",
+        action="store_false",
+        help="只生成日运正文，不生成或引用信息卡图片",
+    )
+    parser.set_defaults(daily_card_assets=True)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     parser.add_argument("--performance-log", type=Path, default=DEFAULT_LOG_PATH)
     parser.add_argument("--performance-min-samples", type=int, default=3)
@@ -1078,9 +1487,15 @@ def main() -> int:
             )
             failures += 1
             continue
-        content = render_markdown(draft)
         path = output_path(args.output_dir, draft)
         if args.dry_run:
+            daily_card_images = None
+            if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
+                daily_card_images = daily_card_markdown_refs(
+                    daily_fortune_card_paths(draft.item.day, asset_dir=args.card_dir),
+                    article_dir=path.parent,
+                )
+            content = render_markdown(draft, daily_card_images=daily_card_images)
             print(f"\n# {path.name}\n{content}")
             continue
         if path.exists() and not args.overwrite:
@@ -1088,6 +1503,12 @@ def main() -> int:
             skipped += 1
             batch_paths.append(path)
             continue
+        daily_card_images = None
+        if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
+            card_paths = write_daily_fortune_cards(draft.item.day, asset_dir=args.card_dir)
+            daily_card_images = daily_card_markdown_refs(card_paths, article_dir=path.parent)
+            print(f"已生成日运卡图：{next(iter(card_paths.values())).parent}")
+        content = render_markdown(draft, daily_card_images=daily_card_images)
         path.write_text(content, encoding="utf-8")
         written += 1
         batch_paths.append(path)

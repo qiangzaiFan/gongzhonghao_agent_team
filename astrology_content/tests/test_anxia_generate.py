@@ -9,10 +9,12 @@ from anxia_calendar import CalendarItem
 from anxia_generate import (
     build_drafts,
     build_daily_fortune_drafts,
+    daily_card_markdown_refs,
     hot_source_title_for_item,
     output_path,
     render_markdown,
     title_formula,
+    write_daily_fortune_cards,
 )
 from quality_gate import parse_article, validate_article
 
@@ -64,6 +66,32 @@ class AnxiaGenerateTests(unittest.TestCase):
             path.write_text(render_markdown(draft), encoding="utf-8")
             result = validate_article(parse_article(path), profile="daily_fortune")
             self.assertEqual(result.errors, [])
+
+    def test_daily_fortune_cards_are_written_and_validated(self) -> None:
+        day = date(2026, 7, 28)
+        draft = build_daily_fortune_drafts(day, days=1, slot=4)[0]
+        article_dir = self.root / "articles"
+        article_dir.mkdir()
+        article_path = output_path(article_dir, draft)
+        card_paths = write_daily_fortune_cards(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+        )
+
+        self.assertEqual(len(card_paths), 12)
+        self.assertTrue(all(path.is_file() for path in card_paths.values()))
+        self.assertIn("天秤座", card_paths["天秤"].read_text(encoding="utf-8"))
+
+        article_path.write_text(
+            render_markdown(
+                draft,
+                daily_card_images=daily_card_markdown_refs(card_paths, article_dir=article_dir),
+            ),
+            encoding="utf-8",
+        )
+        result = validate_article(parse_article(article_path), profile="daily_fortune")
+        self.assertEqual(result.errors, [])
+        self.assertEqual(result.metrics["image_count"], 12)
 
     def test_multi_day_drafts_rotate_bodies_and_keep_title_options(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)

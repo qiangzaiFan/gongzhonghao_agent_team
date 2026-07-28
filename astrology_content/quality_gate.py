@@ -237,9 +237,42 @@ def _jpeg_size(path: Path) -> tuple[int, int] | None:
             handle.seek(max(0, segment_length - 2), 1)
 
 
+def _svg_size(path: Path) -> tuple[int, int] | None:
+    if path.suffix.lower() != ".svg":
+        return None
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    tag_match = re.search(r"<svg\b[^>]*>", text, flags=re.I | re.S)
+    if not tag_match:
+        return None
+    attrs = dict(
+        re.findall(
+            r"([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*['\"]([^'\"]+)['\"]",
+            tag_match.group(0),
+        )
+    )
+    width = _svg_length(attrs.get("width", ""))
+    height = _svg_length(attrs.get("height", ""))
+    if width and height:
+        return width, height
+    view_box = attrs.get("viewBox") or attrs.get("viewbox")
+    if not view_box:
+        return None
+    parts = [float(part) for part in re.findall(r"-?\d+(?:\.\d+)?", view_box)]
+    if len(parts) != 4:
+        return None
+    return int(round(parts[2])), int(round(parts[3]))
+
+
+def _svg_length(value: str) -> int | None:
+    match = re.match(r"\s*(\d+(?:\.\d+)?)(?:px)?\s*\Z", value)
+    if not match:
+        return None
+    return int(round(float(match.group(1))))
+
+
 def image_size(path: Path) -> tuple[int, int] | None:
     try:
-        return _png_size(path) or _jpeg_size(path)
+        return _png_size(path) or _jpeg_size(path) or _svg_size(path)
     except OSError:
         return None
 
