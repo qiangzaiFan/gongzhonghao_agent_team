@@ -10,7 +10,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from ai_detector import ANXIA_SHORT_MIN_TOTAL_CHARS, DetectorUnavailable, default_report_path, detect_article
@@ -33,6 +33,8 @@ ARTICLES_DIR = Path(__file__).parent / "articles"
 RECENT_DRAFT_DAYS = 30
 RECENT_DRAFT_LONGEST_MATCH = 55
 RECENT_DRAFT_OVERLAP = 0.14
+DAILY_RECENT_DRAFT_LONGEST_MATCH = 75
+DAILY_RECENT_DRAFT_OVERLAP = 0.35
 
 
 @dataclass(frozen=True)
@@ -69,10 +71,13 @@ class RecentSimilarity:
 
     @property
     def conflicts(self) -> bool:
-        return (
-            self.longest_match >= RECENT_DRAFT_LONGEST_MATCH
-            or self.overlap >= RECENT_DRAFT_OVERLAP
+        return self.conflicts_with(
+            longest_match=RECENT_DRAFT_LONGEST_MATCH,
+            overlap=RECENT_DRAFT_OVERLAP,
         )
+
+    def conflicts_with(self, *, longest_match: int, overlap: float) -> bool:
+        return self.longest_match >= longest_match or self.overlap >= overlap
 
 
 SIGN_TRAITS = {
@@ -179,6 +184,94 @@ OPENING_STYLES = (
     {"key": "direct-alert", "label": "直接提醒"},
     {"key": "detail-observation", "label": "细节观察"},
 )
+DAILY_FORTUNE_THEME = "每日运势"
+DAILY_FORTUNE_SIGN = "十二星座"
+DAILY_FORTUNE_GROUPS = (
+    ("火象", ("白羊", "狮子", "射手")),
+    ("土象", ("金牛", "处女", "摩羯")),
+    ("风象", ("双子", "天秤", "水瓶")),
+    ("水象", ("巨蟹", "天蝎", "双鱼")),
+)
+DAILY_FORTUNE_VARIANTS = (
+    {
+        "key": "steady-progress",
+        "hook": "把节奏稳住，再推进最关键的一步",
+        "focus": "先稳后动",
+        "closing": "把能控制的事情往前推一点",
+    },
+    {
+        "key": "clear-boundaries",
+        "hook": "把回应和边界说清楚，少替别人补答案",
+        "focus": "看清反馈",
+        "closing": "把精力留给稳定的关系和安排",
+    },
+    {
+        "key": "practical-gains",
+        "hook": "把注意力放到真正能积累的机会和资源上",
+        "focus": "做有效选择",
+        "closing": "让小动作慢慢沉淀成收获",
+    },
+)
+DAILY_FORTUNE_SIGNALS = (
+    {
+        "label": "推进",
+        "lead": "手上的关键任务适合往前推一点",
+        "fit": "先完成最卡的一步",
+        "caution": "别让临时消息替你决定优先级",
+    },
+    {
+        "label": "沟通",
+        "lead": "关系里的真实反馈比猜测更重要",
+        "fit": "把需要确认的话说清楚",
+        "caution": "不必替沉默找太多理由",
+    },
+    {
+        "label": "机会",
+        "lead": "小机会更可能藏在日常邀约里",
+        "fit": "多看一眼能积累资源的安排",
+        "caution": "别为了热闹接下所有事情",
+    },
+    {
+        "label": "财务",
+        "lead": "钱和资源的边界值得提前确认",
+        "fit": "把支出、分摊或回款理清",
+        "caution": "不必为了面子把账算得含糊",
+    },
+    {
+        "label": "减法",
+        "lead": "今天更需要从忙乱里收回一点注意力",
+        "fit": "删掉一件低回报的消耗",
+        "caution": "别把忙碌误当成进展",
+    },
+    {
+        "label": "收尾",
+        "lead": "反复出现的旧问题需要一个明确收口",
+        "fit": "把搁置的沟通或流程定下来",
+        "caution": "少让拖延把情绪越拉越长",
+    },
+    {
+        "label": "表达",
+        "lead": "适合把真实想法放到台面上",
+        "fit": "用简洁的话说出自己的需求",
+        "caution": "不需要急着证明每一个判断",
+    },
+    {
+        "label": "关系",
+        "lead": "人际距离需要跟着真实感受微调",
+        "fit": "把回应稳定的人放在前面",
+        "caution": "别把照顾所有人的期待变成任务",
+    },
+)
+DAILY_FORTUNE_ACTIONS = (
+    "先写下今天最重要的一件事",
+    "发出那句需要确认的话",
+    "收回一项不必要的支出",
+    "结束一段重复沟通",
+    "给自己留二十分钟安静整理",
+    "把一个小邀约认真听完",
+    "把未完成的事标出截止点",
+    "把注意力从比较里收回来",
+)
 
 
 def slugify(text: str) -> str:
@@ -208,6 +301,8 @@ def title_candidates_for_item(item: CalendarItem, selected_title: str) -> tuple[
 
 
 def title_formula(title: str, theme: str) -> str:
+    if theme == DAILY_FORTUNE_THEME:
+        return "全星座日运型"
     if theme == "关系/性格":
         return "关系洞察型"
     if theme == "财运/贵人":
@@ -223,6 +318,27 @@ def title_variants_for_item(item: CalendarItem, selected_title: str) -> tuple[di
             "formula": title_formula(title, item.theme),
         }
         for index, title in enumerate(title_candidates_for_item(item, selected_title), start=1)
+    )
+
+
+def daily_fortune_title_variants(day: date) -> tuple[dict[str, str], ...]:
+    formatted_day = day.strftime("%Y.%m.%d")
+    return (
+        {
+            "key": "title-1",
+            "text": f"十二星座每日好运丨{formatted_day}",
+            "formula": "全星座日运型",
+        },
+        {
+            "key": "title-2",
+            "text": f"十二星座今日好运指南丨{formatted_day}",
+            "formula": "全星座日运型",
+        },
+        {
+            "key": "title-3",
+            "text": f"{formatted_day} 十二星座日运提醒",
+            "formula": "全星座日运型",
+        },
     )
 
 
@@ -383,6 +499,181 @@ def render_body(item: CalendarItem, *, mode: str = "viral-safe") -> str:
     return body
 
 
+def _daily_fortune_variant(day: date, *, offset: int = 0) -> dict[str, str]:
+    return DAILY_FORTUNE_VARIANTS[(day.toordinal() + offset) % len(DAILY_FORTUNE_VARIANTS)]
+
+
+def _daily_fortune_opening(
+    day: date,
+    body_variant: dict[str, str],
+    *,
+    offset: int = 0,
+) -> dict[str, str]:
+    style = (
+        {"key": "daily-keyword", "label": "日运关键词"},
+        {"key": "daily-compass", "label": "十二星座总览"},
+    )[(day.toordinal() + offset) % 2]
+    if style["key"] == "daily-compass":
+        text = (
+            f"{day.month}月{day.day}日，把今天拆成十二个小提醒。"
+            f"先围绕“{body_variant['focus']}”安排节奏，比急着追答案更有用。"
+        )
+    else:
+        text = (
+            f"{day.month}月{day.day}日的十二星座日运关键词是“{body_variant['focus']}”。"
+            "下面按四象星座整理今天更适合抓住的一件小事。"
+        )
+    return {**style, "text": text}
+
+
+def daily_fortune_opening_candidates(
+    day: date,
+    body_variant: dict[str, str],
+    *,
+    selected_key: str,
+) -> tuple[dict[str, str], ...]:
+    candidates = [_daily_fortune_opening(day, body_variant, offset=index) for index in range(2)]
+    candidates.sort(key=lambda candidate: candidate["key"] != selected_key)
+    return tuple(candidates)
+
+
+def _daily_sign_paragraph(
+    sign: str,
+    *,
+    day: date,
+    body_variant: dict[str, str],
+) -> str:
+    sign_index = SIGN_TERMS.index(sign)
+    day_number = day.toordinal()
+    signal = DAILY_FORTUNE_SIGNALS[(day_number * 3 + sign_index * 5) % len(DAILY_FORTUNE_SIGNALS)]
+    action = DAILY_FORTUNE_ACTIONS[(day_number * 5 + sign_index * 3) % len(DAILY_FORTUNE_ACTIONS)]
+    trait_a, trait_b, trait_c = SIGN_TRAITS[sign]
+    pattern = (day_number + sign_index * 2 + len(body_variant["key"])) % 3
+    if pattern == 0:
+        return (
+            f"**{sign}**：{signal['lead']}。你本来{trait_a}，今天{signal['fit']}会更顺。"
+            f"{signal['caution']}。好运动作：{action}。"
+        )
+    if pattern == 1:
+        return (
+            f"**{sign}**：今天更适合{signal['fit']}。{trait_b}会让你对外界反馈格外敏感，"
+            f"{signal['caution']}。好运动作：{action}。"
+        )
+    return (
+        f"**{sign}**：{signal['label']}是今天的关键词。你们{trait_c}，先{_daily_first_step(signal['fit'])}，"
+        f"再决定要不要加码。{signal['caution']}。好运动作：{action}。"
+    )
+
+
+def _daily_first_step(text: str) -> str:
+    return text[1:] if text.startswith("先") else text
+
+
+def render_daily_fortune_with_variant(
+    day: date,
+    *,
+    variant_offset: int = 0,
+    opening_offset: int = 0,
+) -> tuple[str, dict[str, str], dict[str, str]]:
+    body_variant = _daily_fortune_variant(day, offset=variant_offset)
+    opening = _daily_fortune_opening(day, body_variant, offset=opening_offset)
+    paragraphs = [opening["text"]]
+    for group_name, signs in DAILY_FORTUNE_GROUPS:
+        paragraphs.append(f"## {group_name}星座")
+        paragraphs.extend(
+            _daily_sign_paragraph(sign, day=day, body_variant=body_variant)
+            for sign in signs
+        )
+    paragraphs.append(
+        f"今日收束：{body_variant['closing']}。把注意力放回可以行动的部分，"
+        "稳定一点，今天的状态就会更容易接住。"
+    )
+    return "\n\n".join(paragraphs), body_variant, opening
+
+
+def _select_daily_fortune_variant(
+    day: date,
+    *,
+    recent_drafts: list[tuple[str, str]],
+) -> tuple[str, dict[str, str], dict[str, str], RecentSimilarity | None, bool]:
+    candidates: list[
+        tuple[str, dict[str, str], dict[str, str], RecentSimilarity | None, bool]
+    ] = []
+    for variant_offset in range(len(DAILY_FORTUNE_VARIANTS)):
+        for opening_offset in range(2):
+            body, body_variant, opening = render_daily_fortune_with_variant(
+                day,
+                variant_offset=variant_offset,
+                opening_offset=opening_offset,
+            )
+            similarity = recent_similarity(body, recent_drafts)
+            conflicts = similarity is not None and similarity.conflicts_with(
+                longest_match=DAILY_RECENT_DRAFT_LONGEST_MATCH,
+                overlap=DAILY_RECENT_DRAFT_OVERLAP,
+            )
+            candidates.append((body, body_variant, opening, similarity, conflicts))
+            if not conflicts:
+                return body, body_variant, opening, similarity, False
+    return min(
+        candidates,
+        key=lambda candidate: (
+            candidate[3].overlap if candidate[3] is not None else 0.0,
+            candidate[3].longest_match if candidate[3] is not None else 0,
+        ),
+    )
+
+
+def build_daily_fortune_drafts(
+    day: date,
+    *,
+    days: int,
+    slot: int,
+    recent_drafts: list[tuple[str, str]] | None = None,
+) -> list[Draft]:
+    drafts: list[Draft] = []
+    historical = list(recent_drafts or [])
+    batch_recent: list[tuple[str, str]] = []
+    for day_offset in range(days):
+        scheduled_for = day + timedelta(days=day_offset)
+        body, body_variant, opening_variant, similarity, conflicts = _select_daily_fortune_variant(
+            scheduled_for,
+            recent_drafts=historical + batch_recent,
+        )
+        title_variants = daily_fortune_title_variants(scheduled_for)
+        item = CalendarItem(
+            day=scheduled_for,
+            slot=slot,
+            sign=DAILY_FORTUNE_SIGN,
+            theme=DAILY_FORTUNE_THEME,
+            title=title_variants[0]["text"],
+            angle="按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。",
+        )
+        drafts.append(
+            Draft(
+                item=item,
+                title_candidates=tuple(variant["text"] for variant in title_variants),
+                title_variants=title_variants,
+                body=body,
+                body_variant=body_variant,
+                opening_variant=opening_variant,
+                opening_candidates=daily_fortune_opening_candidates(
+                    scheduled_for,
+                    body_variant,
+                    selected_key=opening_variant["key"],
+                ),
+                recent_conflict=(
+                    f"{similarity.source_name}（连续 {similarity.longest_match} 字，"
+                    f"分片 {similarity.overlap:.2%}）"
+                    if conflicts and similarity
+                    else None
+                ),
+            )
+        )
+        if not conflicts:
+            batch_recent.append((f"daily:{scheduled_for.isoformat()}", body))
+    return drafts
+
+
 def render_markdown(draft: Draft) -> str:
     return f"---\ntitle: {draft.title}\n---\n\n{draft.body}\n"
 
@@ -508,7 +799,8 @@ def build_drafts(
         performance_min_samples=performance_min_samples,
     )
     drafts: list[Draft] = []
-    recent = list(recent_drafts or [])
+    historical = list(recent_drafts or [])
+    batch_recent: dict[tuple[str, str], list[tuple[str, str]]] = {}
     for item in items:
         title = None
         if mode == "hot-source":
@@ -517,7 +809,7 @@ def build_drafts(
         body, body_variant, opening_variant, similarity = _select_body_variant(
             item,
             mode="viral-safe" if mode == "hot-source" else mode,
-            recent_drafts=recent,
+            recent_drafts=historical + batch_recent.get((item.sign, item.theme), []),
         )
         title_variants = title_variants_for_item(item, selected_title)
         drafts.append(
@@ -543,7 +835,9 @@ def build_drafts(
             )
         )
         if not similarity or not similarity.conflicts:
-            recent.append((f"batch:{item.day.isoformat()}:{item.slot}", body))
+            batch_recent.setdefault((item.sign, item.theme), []).append(
+                (f"batch:{item.day.isoformat()}:{item.slot}", body)
+            )
     return drafts
 
 
@@ -671,6 +965,25 @@ def main() -> int:
     parser.add_argument("--date", default=date.today().isoformat(), help="起始日期 YYYY-MM-DD")
     parser.add_argument("--days", type=int, default=1, help="连续生成天数，默认 1")
     parser.add_argument("--daily", type=int, default=3, help="每天生成篇数，默认 3")
+    daily_fortune_group = parser.add_mutually_exclusive_group()
+    daily_fortune_group.add_argument(
+        "--include-daily-fortune",
+        dest="include_daily_fortune",
+        action="store_true",
+        help="额外生成一篇十二星座每日好运，默认开启",
+    )
+    daily_fortune_group.add_argument(
+        "--no-daily-fortune",
+        dest="include_daily_fortune",
+        action="store_false",
+        help="只生成单星座短文，不生成十二星座每日好运",
+    )
+    parser.set_defaults(include_daily_fortune=True)
+    parser.add_argument(
+        "--daily-fortune-only",
+        action="store_true",
+        help="只生成十二星座每日好运，适合提前补一周日运",
+    )
     parser.add_argument(
         "--mode",
         choices=("viral-safe", "balanced", "hot-source"),
@@ -700,6 +1013,8 @@ def main() -> int:
         parser.error("--recent-days 必须大于 0")
     if args.performance_min_samples <= 0:
         parser.error("--performance-min-samples 必须大于 0")
+    if args.daily_fortune_only and not args.include_daily_fortune:
+        parser.error("--daily-fortune-only 不能与 --no-daily-fortune 同时使用")
 
     try:
         performance_entries = load_entries(args.performance_log)
@@ -712,20 +1027,31 @@ def main() -> int:
         days=args.recent_days,
     )
 
-    drafts = build_drafts(
-        day,
-        args.daily,
-        args.source_dir,
-        days=args.days,
-        mode=args.mode,
-        hot_title_min_count=args.hot_title_min_count,
-        performance_entries=performance_entries,
-        performance_min_samples=args.performance_min_samples,
-        recent_drafts=recent_drafts,
-    )
+    drafts = []
+    if not args.daily_fortune_only:
+        drafts = build_drafts(
+            day,
+            args.daily,
+            args.source_dir,
+            days=args.days,
+            mode=args.mode,
+            hot_title_min_count=args.hot_title_min_count,
+            performance_entries=performance_entries,
+            performance_min_samples=args.performance_min_samples,
+            recent_drafts=recent_drafts,
+        )
+    if args.include_daily_fortune:
+        drafts.extend(
+            build_daily_fortune_drafts(
+                day,
+                days=args.days,
+                slot=args.daily + 1,
+                recent_drafts=recent_drafts,
+            )
+        )
     forbidden_titles = None
     source_texts = None
-    if args.source_dir:
+    if args.source_dir and not args.daily_fortune_only:
         try:
             forbidden_titles, source_texts = load_source_dir(args.source_dir)
             if args.mode == "hot-source":
@@ -765,7 +1091,13 @@ def main() -> int:
         path.write_text(content, encoding="utf-8")
         written += 1
         batch_paths.append(path)
-        result = validate_article(parse_article(path), forbidden_titles=forbidden_titles, source_texts=source_texts)
+        profile = "daily_fortune" if draft.item.theme == DAILY_FORTUNE_THEME else "anxia_short"
+        result = validate_article(
+            parse_article(path),
+            profile=profile,
+            forbidden_titles=forbidden_titles,
+            source_texts=source_texts,
+        )
         print(f"已生成：{path}")
         print(format_result(result))
         if not result.ok:
@@ -776,7 +1108,7 @@ def main() -> int:
             item=draft.item,
             title_candidates=draft.title_candidates,
             body_variant=draft.body_variant,
-            source_dir=args.source_dir,
+            source_dir=None if draft.item.theme == DAILY_FORTUNE_THEME else args.source_dir,
             record_dir=args.record_dir,
             title_variants=draft.title_variants,
             opening_variants=draft.opening_candidates,

@@ -8,6 +8,7 @@ from pathlib import Path
 from anxia_calendar import CalendarItem
 from anxia_generate import (
     build_drafts,
+    build_daily_fortune_drafts,
     hot_source_title_for_item,
     output_path,
     render_markdown,
@@ -42,6 +43,27 @@ class AnxiaGenerateTests(unittest.TestCase):
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)
         self.assertEqual(len(drafts), 21)
         self.assertEqual(len({draft.item.day for draft in drafts}), 7)
+        self.assertTrue(all(draft.recent_conflict is None for draft in drafts))
+
+    def test_builds_seven_original_daily_fortune_articles(self) -> None:
+        drafts = build_daily_fortune_drafts(
+            date(2026, 7, 28),
+            days=7,
+            slot=4,
+        )
+
+        self.assertEqual(len(drafts), 7)
+        self.assertTrue(all(draft.recent_conflict is None for draft in drafts))
+        self.assertEqual(drafts[0].title, "十二星座每日好运丨2026.07.28")
+        self.assertTrue(all(draft.body.count("## ") == 4 for draft in drafts))
+        self.assertTrue(all(len(draft.opening_candidates) == 2 for draft in drafts))
+        self.assertTrue(all("先先" not in draft.body for draft in drafts))
+
+        for draft in drafts:
+            path = output_path(self.root, draft)
+            path.write_text(render_markdown(draft), encoding="utf-8")
+            result = validate_article(parse_article(path), profile="daily_fortune")
+            self.assertEqual(result.errors, [])
 
     def test_multi_day_drafts_rotate_bodies_and_keep_title_options(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)

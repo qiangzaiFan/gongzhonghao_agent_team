@@ -136,8 +136,27 @@ ANXIA_SHORT_PROFILE = GateProfile(
     overlap_rewrite_threshold=0.05,
     overlap_reject_threshold=0.05,
 )
+DAILY_FORTUNE_PROFILE = GateProfile(
+    name="daily_fortune",
+    min_cjk=700,
+    max_cjk=1400,
+    extended_max_cjk=None,
+    title_max_visible=36,
+    min_title_visible=14,
+    min_headings=4,
+    max_headings=4,
+    required_images=REQUIRED_IMAGES,
+    opening_terms_required=False,
+    banned_phrases=BANNED_PHRASES,
+    enumeration_error_at=4,
+    overlap_rewrite_threshold=0.05,
+    overlap_reject_threshold=0.05,
+)
 STRONG_TITLE_TERMS = ABSOLUTE_PREDICTIONS
-PROFILES = {ANXIA_SHORT_PROFILE.name: ANXIA_SHORT_PROFILE}
+PROFILES = {
+    ANXIA_SHORT_PROFILE.name: ANXIA_SHORT_PROFILE,
+    DAILY_FORTUNE_PROFILE.name: DAILY_FORTUNE_PROFILE,
+}
 DEFAULT_PROFILE = ANXIA_SHORT_PROFILE.name
 
 
@@ -368,6 +387,8 @@ def validate_article(
     metrics["paragraph_count"] = paragraphs
     if gate_profile.name == "anxia_short" and not 3 <= paragraphs <= 6:
         errors.append(f"短文段落为 {paragraphs} 段，要求 3-6 段")
+    if gate_profile.name == "daily_fortune" and not 14 <= paragraphs <= 16:
+        errors.append(f"日运正文段落为 {paragraphs} 段，要求 14-16 段")
 
     images = image_references(article.body)
     metrics["image_count"] = len(images)
