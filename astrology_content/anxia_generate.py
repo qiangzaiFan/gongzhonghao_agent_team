@@ -833,6 +833,96 @@ def _daily_action_line_svg(index: int, text: str) -> str:
     )
 
 
+def _daily_avatar_svg(sign: str, fill: str) -> str:
+    skin = "#fff0da"
+    outline = "#e3bb7a"
+    line = "#705368"
+    accent = "#cf5f7a"
+    glyph = escape(DAILY_CARD_ZODIAC[sign])
+    if sign == "双子":
+        return f"""
+  <path d="M150 462 C166 412 214 390 229 426 C244 390 292 412 308 462 Z" fill="{fill}"/>
+  <circle cx="194" cy="334" r="48" fill="{skin}" stroke="{outline}" stroke-width="3"/>
+  <circle cx="264" cy="334" r="48" fill="{skin}" stroke="{outline}" stroke-width="3"/>
+  <path d="M154 306 C174 276 214 276 234 306" fill="none" stroke="#e3c060" stroke-width="16" stroke-linecap="round"/>
+  <path d="M224 306 C244 276 284 276 304 306" fill="none" stroke="#e3c060" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="181" cy="334" r="6" fill="{line}"/>
+  <circle cx="207" cy="334" r="6" fill="{line}"/>
+  <circle cx="251" cy="334" r="6" fill="{line}"/>
+  <circle cx="277" cy="334" r="6" fill="{line}"/>
+  <path d="M184 356 C192 364 201 364 209 356" fill="none" stroke="{line}" stroke-width="4" stroke-linecap="round"/>
+  <path d="M254 356 C262 364 271 364 279 356" fill="none" stroke="{line}" stroke-width="4" stroke-linecap="round"/>
+  <text x="229" y="452" text-anchor="middle" font-size="54" font-weight="900" fill="#ffffff">{glyph}</text>"""
+
+    behind = ""
+    front = ""
+    if sign == "白羊":
+        behind = f"""
+  <path d="M156 300 C126 260 158 230 194 270" fill="none" stroke="#f4d47c" stroke-width="16" stroke-linecap="round"/>
+  <path d="M302 300 C332 260 300 230 264 270" fill="none" stroke="#f4d47c" stroke-width="16" stroke-linecap="round"/>"""
+    elif sign == "金牛":
+        behind = f"""
+  <path d="M156 292 C118 250 134 224 190 266" fill="none" stroke="#d9b65e" stroke-width="18" stroke-linecap="round"/>
+  <path d="M302 292 C340 250 324 224 268 266" fill="none" stroke="#d9b65e" stroke-width="18" stroke-linecap="round"/>"""
+    elif sign == "巨蟹":
+        front = f"""
+  <path d="M150 392 C122 370 122 334 154 324" fill="none" stroke="{accent}" stroke-width="12" stroke-linecap="round"/>
+  <path d="M308 392 C336 370 336 334 304 324" fill="none" stroke="{accent}" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="142" cy="324" r="15" fill="#fff5f8" stroke="{accent}" stroke-width="6"/>
+  <circle cx="316" cy="324" r="15" fill="#fff5f8" stroke="{accent}" stroke-width="6"/>"""
+    elif sign == "狮子":
+        behind = """
+  <circle cx="229" cy="332" r="88" fill="#f1b957"/>
+  <path d="M229 230 L248 274 L296 260 L270 302 L314 324 L266 336 L286 382 L244 356 L229 404 L214 356 L172 382 L192 336 L144 324 L188 302 L162 260 L210 274 Z" fill="#e89b45"/>"""
+    elif sign == "处女":
+        front = f"""
+  <path d="M292 286 C318 274 326 298 308 314 C330 318 326 346 300 342 C294 364 270 352 280 332 C260 326 266 302 288 308 Z" fill="#ffd6e4" stroke="{accent}" stroke-width="4"/>
+  <circle cx="296" cy="322" r="10" fill="#f0c45d"/>"""
+    elif sign == "天秤":
+        front = f"""
+  <path d="M176 406 H282" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M229 384 V434" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M190 406 C180 428 166 428 156 406" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M302 406 C292 428 278 428 268 406" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>"""
+    elif sign == "天蝎":
+        front = f"""
+  <path d="M292 422 C336 414 342 372 312 362 C350 354 354 320 324 306" fill="none" stroke="{accent}" stroke-width="10" stroke-linecap="round"/>
+  <path d="M324 306 L342 306 L332 322 Z" fill="{accent}"/>"""
+    elif sign == "射手":
+        front = """
+  <path d="M166 434 L296 344" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M274 344 H308 V378" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M178 398 C200 376 224 376 244 398" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>"""
+    elif sign == "摩羯":
+        behind = f"""
+  <path d="M184 276 C170 240 206 238 214 274" fill="none" stroke="#d6c17b" stroke-width="14" stroke-linecap="round"/>
+  <path d="M274 276 C288 240 252 238 244 274" fill="none" stroke="#d6c17b" stroke-width="14" stroke-linecap="round"/>"""
+        front = """
+  <path d="M286 452 C326 448 328 410 300 400 C326 392 326 368 304 358" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>"""
+    elif sign == "水瓶":
+        front = f"""
+  <path d="M284 292 L322 310 L296 364 L258 346 Z" fill="#a9d8ee" stroke="{accent}" stroke-width="4"/>
+  <path d="M176 424 C196 410 216 438 236 424 C256 410 276 438 296 424" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M178 448 C198 434 218 462 238 448 C258 434 278 462 298 448" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>"""
+    elif sign == "双鱼":
+        front = """
+  <path d="M178 424 C198 400 230 400 250 424 C230 448 198 448 178 424Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M280 424 C260 400 228 400 208 424 C228 448 260 448 280 424Z" fill="#ffffff" opacity="0.95"/>
+  <circle cx="202" cy="421" r="4" fill="#6d9ec9"/>
+  <circle cx="256" cy="421" r="4" fill="#6d9ec9"/>"""
+
+    return f"""
+  {behind}
+  <circle cx="229" cy="332" r="72" fill="{skin}" stroke="{outline}" stroke-width="3"/>
+  <path d="M154 286 C190 236 268 236 304 286 C262 272 196 272 154 286Z" fill="#e3c060"/>
+  <path d="M174 414 C190 376 268 376 286 414 L314 470 H144Z" fill="{fill}"/>
+  <circle cx="205" cy="334" r="7" fill="{line}"/>
+  <circle cx="253" cy="334" r="7" fill="{line}"/>
+  <path d="M214 364 C224 374 238 374 248 364" fill="none" stroke="{line}" stroke-width="5" stroke-linecap="round"/>
+  {front}
+  <text x="229" y="462" text-anchor="middle" font-size="54" font-weight="900" fill="#ffffff">{glyph}</text>"""
+
+
 def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
     sign_title = f"{card.sign}座"
     match_text = "、".join(f"{sign}座" for sign in card.matches)
@@ -881,13 +971,7 @@ def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
   <text x="280" y="134" text-anchor="middle" font-size="42" fill="#d4667f">✧</text>
   <text x="690" y="150" text-anchor="middle" font-size="42" fill="#d4667f">✦</text>
   <rect x="110" y="216" width="238" height="278" rx="28" fill="#fff5f8" stroke="#e7a3b3" stroke-width="4"/>
-  <circle cx="229" cy="332" r="78" fill="#fff0da" stroke="#e3bb7a" stroke-width="3"/>
-  <path d="M154 286 C190 236 268 236 304 286 C262 272 196 272 154 286Z" fill="#e3c060"/>
-  <path d="M174 414 C190 376 268 376 286 414 L314 470 H144Z" fill="{avatar_fill}"/>
-  <circle cx="205" cy="334" r="7" fill="#705368"/>
-  <circle cx="253" cy="334" r="7" fill="#705368"/>
-  <path d="M214 364 C224 374 238 374 248 364" fill="none" stroke="#705368" stroke-width="5" stroke-linecap="round"/>
-  <text x="229" y="462" text-anchor="middle" font-size="76" font-weight="800" fill="#ffffff">{escape(DAILY_CARD_ZODIAC[card.sign])}</text>
+  {_daily_avatar_svg(card.sign, avatar_fill)}
   {info_lines}
   {metric_svg}
   {luck_svg}
