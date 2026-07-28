@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import struct
 import unittest
 from datetime import date
 from pathlib import Path
@@ -8,11 +9,14 @@ from pathlib import Path
 from anxia_calendar import CalendarItem
 from anxia_generate import (
     build_drafts,
+    build_daily_fortune_card,
     build_daily_fortune_drafts,
     daily_card_markdown_refs,
+    daily_card_theme,
     daily_fortune_card_paths,
     hot_source_title_for_item,
     output_path,
+    render_daily_fortune_card_svg,
     render_markdown,
     title_formula,
     write_daily_fortune_cards,
@@ -99,6 +103,50 @@ class AnxiaGenerateTests(unittest.TestCase):
         result = validate_article(parse_article(article_path), profile="daily_fortune")
         self.assertEqual(result.errors, [])
         self.assertEqual(result.metrics["image_count"], 12)
+
+    def test_daily_fortune_mint_card_theme_uses_separate_asset_dir(self) -> None:
+        day = date(2026, 7, 28)
+        mint_paths = daily_fortune_card_paths(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="svg",
+            card_theme="mint",
+        )
+        self.assertIn("20260728_mint", str(mint_paths["天秤"]))
+
+        card_paths = write_daily_fortune_cards(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="svg",
+            card_theme="mint",
+        )
+        svg_text = card_paths["天秤"].read_text(encoding="utf-8")
+        self.assertIn(daily_card_theme("mint").frame_start, svg_text)
+        self.assertIn("天秤座", svg_text)
+
+        default_svg = render_daily_fortune_card_svg(build_daily_fortune_card("天秤", day), day)
+        self.assertIn(daily_card_theme("pink").frame_start, default_svg)
+
+    def test_cairosvg_png_renderer_writes_full_size_card(self) -> None:
+        try:
+            import cairosvg  # noqa: F401
+        except (ImportError, OSError):
+            self.skipTest("CairoSVG is not available")
+
+        day = date(2026, 7, 28)
+        card_paths = write_daily_fortune_cards(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="png",
+            card_theme="mint",
+            png_renderer="cairosvg",
+        )
+        image_path = card_paths["天秤"]
+        self.assertTrue(image_path.is_file())
+        header = image_path.read_bytes()[:24]
+        self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+        width, height = struct.unpack(">II", header[16:24])
+        self.assertEqual((width, height), (960, 1280))
 
     def test_multi_day_drafts_rotate_bodies_and_keep_title_options(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)

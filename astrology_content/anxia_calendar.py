@@ -31,6 +31,7 @@ TEMPLATE_POOLS = {
 THEMES = tuple(TEMPLATE_POOLS)
 FALLBACK_SIGNS = SIGN_TERMS
 MONTH_LABELS = tuple(f"{month}月" for month in range(1, 13))
+DEFAULT_DAILY_SHORT_ARTICLES = 2
 
 
 @dataclass(frozen=True)
@@ -144,7 +145,7 @@ def format_calendar(items: list[CalendarItem]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="生成安夏短文号每日选题排期")
     parser.add_argument("--days", type=int, default=7)
-    parser.add_argument("--daily", type=int, default=3)
+    parser.add_argument("--daily", type=int, default=DEFAULT_DAILY_SHORT_ARTICLES)
     parser.add_argument("--profile", default="anxia_short")
     parser.add_argument("--start", default=date.today().isoformat())
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)

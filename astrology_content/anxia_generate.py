@@ -33,6 +33,7 @@ from quality_gate import (
 
 
 ARTICLES_DIR = Path(__file__).parent / "articles"
+DEFAULT_DAILY_SHORT_ARTICLES = 2
 RECENT_DRAFT_DAYS = 30
 RECENT_DRAFT_LONGEST_MATCH = 55
 RECENT_DRAFT_OVERLAP = 0.14
@@ -95,6 +96,36 @@ class DailyFortuneCard:
     luck_rows: tuple[tuple[str, str], ...]
     actions: tuple[str, str, str]
     slogan: str
+
+
+@dataclass(frozen=True)
+class DailyCardTheme:
+    key: str
+    label: str
+    stripe_base: str
+    stripe_band: str
+    frame_start: str
+    frame_end: str
+    frame_stroke: str
+    title: str
+    panel_bg: str
+    panel_stroke: str
+    pill_bg: str
+    pill_stroke: str
+    pill_label_bg: str
+    pill_label_text: str
+    pill_value_text: str
+    bar_fill: str
+    bar_label_bg: str
+    bar_label_text: str
+    bar_text: str
+    action_bg: str
+    action_stroke: str
+    action_text: str
+    avatar_panel_bg: str
+    avatar_panel_stroke: str
+    avatar_accent: str
+    footer: str
 
 
 SIGN_TRAITS = {
@@ -413,6 +444,74 @@ DAILY_CARD_SLOGANS = (
     "别急着证明，慢慢来也是答案~",
     "把能掌控的小事先做好~",
 )
+DEFAULT_DAILY_CARD_THEME = "pink"
+PNG_RENDERERS = ("auto", "resvg", "rsvg-convert", "cairosvg", "chrome")
+DAILY_CARD_THEMES = {
+    "pink": DailyCardTheme(
+        key="pink",
+        label="桃粉",
+        stripe_base="#fff8fb",
+        stripe_band="#fff0f4",
+        frame_start="#f5b2c1",
+        frame_end="#e58da3",
+        frame_stroke="#f7d5dd",
+        title="#d4667f",
+        panel_bg="#fff5f8",
+        panel_stroke="#e7a3b3",
+        pill_bg="#fff8fb",
+        pill_stroke="#cb6079",
+        pill_label_bg="#cf5f7a",
+        pill_label_text="#ffffff",
+        pill_value_text="#bd5970",
+        bar_fill="#cf5f7a",
+        bar_label_bg="#fff8fb",
+        bar_label_text="#bd5970",
+        bar_text="#ffffff",
+        action_bg="#fff8fb",
+        action_stroke="#cf5f7a",
+        action_text="#bd5970",
+        avatar_panel_bg="#fff5f8",
+        avatar_panel_stroke="#e7a3b3",
+        avatar_accent="#cf5f7a",
+        footer="#ffffff",
+    ),
+    "mint": DailyCardTheme(
+        key="mint",
+        label="薄荷绿",
+        stripe_base="#f8fdf9",
+        stripe_band="#edf8f1",
+        frame_start="#bfe8cf",
+        frame_end="#86d3a4",
+        frame_stroke="#d5efdc",
+        title="#4f9f72",
+        panel_bg="#f6fcf8",
+        panel_stroke="#97d7aa",
+        pill_bg="#fbfffc",
+        pill_stroke="#70bd89",
+        pill_label_bg="#66b985",
+        pill_label_text="#ffffff",
+        pill_value_text="#3f8962",
+        bar_fill="#66b985",
+        bar_label_bg="#fbfffc",
+        bar_label_text="#3f8962",
+        bar_text="#ffffff",
+        action_bg="#fbfffc",
+        action_stroke="#66b985",
+        action_text="#3f8962",
+        avatar_panel_bg="#f6fcf8",
+        avatar_panel_stroke="#97d7aa",
+        avatar_accent="#d36a82",
+        footer="#ffffff",
+    ),
+}
+
+
+def daily_card_theme(theme: str) -> DailyCardTheme:
+    try:
+        return DAILY_CARD_THEMES[theme]
+    except KeyError as exc:
+        supported = ", ".join(sorted(DAILY_CARD_THEMES))
+        raise ValueError(f"不支持的信息卡主题：{theme}，可选：{supported}") from exc
 
 
 def slugify(text: str) -> str:
@@ -787,57 +886,56 @@ def _svg_text_lines(
     )
 
 
-def _daily_metric_pill_svg(index: int, label: str, value: str) -> str:
+def _daily_metric_pill_svg(index: int, label: str, value: str, theme: DailyCardTheme) -> str:
     column = index % 2
     row = index // 2
     x = 94 + column * 392
     y = 548 + row * 76
     return "\n".join(
         (
-            f'<rect x="{x}" y="{y}" width="342" height="56" rx="22" fill="#fff8fb" '
-            'stroke="#cb6079" stroke-width="3"/>',
-            f'<rect x="{x}" y="{y}" width="110" height="56" rx="22" fill="#cf5f7a"/>',
+            f'<rect x="{x}" y="{y}" width="342" height="56" rx="22" fill="{theme.pill_bg}" '
+            f'stroke="{theme.pill_stroke}" stroke-width="3"/>',
+            f'<rect x="{x}" y="{y}" width="110" height="56" rx="22" fill="{theme.pill_label_bg}"/>',
             f'<text x="{x + 55}" y="{y + 38}" text-anchor="middle" font-size="33" '
-            f'font-weight="800" fill="#ffffff">{escape(label)}</text>',
+            f'font-weight="800" fill="{theme.pill_label_text}">{escape(label)}</text>',
             f'<text x="{x + 226}" y="{y + 38}" text-anchor="middle" font-size="31" '
-            f'font-weight="700" fill="#bd5970">{escape(value)}</text>',
+            f'font-weight="700" fill="{theme.pill_value_text}">{escape(value)}</text>',
         )
     )
 
 
-def _daily_luck_row_svg(index: int, label: str, value: str) -> str:
+def _daily_luck_row_svg(index: int, label: str, value: str, theme: DailyCardTheme) -> str:
     y = 712 + index * 76
     return "\n".join(
         (
-            f'<rect x="94" y="{y}" width="772" height="56" rx="22" fill="#cf5f7a"/>',
-            f'<rect x="94" y="{y}" width="148" height="56" rx="22" fill="#fff8fb" '
-            'stroke="#cf5f7a" stroke-width="3"/>',
+            f'<rect x="94" y="{y}" width="772" height="56" rx="22" fill="{theme.bar_fill}"/>',
+            f'<rect x="94" y="{y}" width="148" height="56" rx="22" fill="{theme.bar_label_bg}" '
+            f'stroke="{theme.action_stroke}" stroke-width="3"/>',
             f'<text x="168" y="{y + 38}" text-anchor="middle" font-size="34" '
-            f'font-weight="800" fill="#bd5970">{escape(label)}</text>',
+            f'font-weight="800" fill="{theme.bar_label_text}">{escape(label)}</text>',
             f'<text x="270" y="{y + 38}" font-size="30" font-weight="700" '
-            f'fill="#ffffff">{escape(value)}</text>',
+            f'fill="{theme.bar_text}">{escape(value)}</text>',
         )
     )
 
 
-def _daily_action_line_svg(index: int, text: str) -> str:
+def _daily_action_line_svg(index: int, text: str, theme: DailyCardTheme) -> str:
     y = 984 + index * 48
     return "\n".join(
         (
-            f'<circle cx="282" cy="{y - 10}" r="14" fill="none" stroke="#cf5f7a" stroke-width="4"/>',
+            f'<circle cx="282" cy="{y - 10}" r="14" fill="none" stroke="{theme.action_stroke}" stroke-width="4"/>',
             f'<path d="M274 {y - 12} L281 {y - 4} L295 {y - 21}" fill="none" '
-            'stroke="#cf5f7a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
+            f'stroke="{theme.action_stroke}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
             f'<text x="316" y="{y}" font-size="31" font-weight="700" '
-            f'fill="#bd5970">{escape(text)}</text>',
+            f'fill="{theme.action_text}">{escape(text)}</text>',
         )
     )
 
 
-def _daily_avatar_svg(sign: str, fill: str) -> str:
+def _daily_avatar_svg(sign: str, fill: str, accent: str = "#cf5f7a") -> str:
     skin = "#fff0da"
     outline = "#e3bb7a"
     line = "#705368"
-    accent = "#cf5f7a"
     glyph = escape(DAILY_CARD_ZODIAC[sign])
     if sign == "双子":
         return f"""
@@ -923,29 +1021,35 @@ def _daily_avatar_svg(sign: str, fill: str) -> str:
   <text x="229" y="462" text-anchor="middle" font-size="54" font-weight="900" fill="#ffffff">{glyph}</text>"""
 
 
-def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
+def render_daily_fortune_card_svg(
+    card: DailyFortuneCard,
+    day: date,
+    *,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+) -> str:
     sign_title = f"{card.sign}座"
     match_text = "、".join(f"{sign}座" for sign in card.matches)
+    theme = daily_card_theme(card_theme)
     avatar_fill = DAILY_CARD_AVATAR_FILL[card.sign]
     metric_svg = "\n".join(
-        _daily_metric_pill_svg(index, label, value)
+        _daily_metric_pill_svg(index, label, value, theme)
         for index, (label, value) in enumerate(card.metrics)
     )
     luck_svg = "\n".join(
-        _daily_luck_row_svg(index, label, value)
+        _daily_luck_row_svg(index, label, value, theme)
         for index, (label, value) in enumerate(card.luck_rows)
     )
     action_svg = "\n".join(
-        _daily_action_line_svg(index, text)
+        _daily_action_line_svg(index, text, theme)
         for index, text in enumerate(card.actions)
     )
     info_lines = "\n".join(
         (
-            _svg_text_lines(f"今日简述：{card.summary}", x=390, y=254, width=14, size=38),
-            _svg_text_lines(f"今日分数：{card.score}", x=390, y=314, width=14, size=38),
-            _svg_text_lines(f"合拍星座：{match_text}", x=390, y=374, width=14, size=38),
-            _svg_text_lines(f"建议：{card.advice}", x=390, y=434, width=14, size=38),
-            _svg_text_lines(f"避免：{card.avoid}", x=390, y=494, width=14, size=38),
+            _svg_text_lines(f"今日简述：{card.summary}", x=390, y=254, width=14, size=38, fill=theme.action_text),
+            _svg_text_lines(f"今日分数：{card.score}", x=390, y=314, width=14, size=38, fill=theme.action_text),
+            _svg_text_lines(f"合拍星座：{match_text}", x=390, y=374, width=14, size=38, fill=theme.action_text),
+            _svg_text_lines(f"建议：{card.advice}", x=390, y=434, width=14, size=38, fill=theme.action_text),
+            _svg_text_lines(f"避免：{card.avoid}", x=390, y=494, width=14, size=38, fill=theme.action_text),
         )
     )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{DAILY_CARD_WIDTH}" height="{DAILY_CARD_HEIGHT}" viewBox="0 0 {DAILY_CARD_WIDTH} {DAILY_CARD_HEIGHT}" role="img" aria-label="{escape(sign_title)}每日好运卡">
@@ -956,33 +1060,33 @@ def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
       }}
     </style>
     <pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-      <rect width="18" height="18" fill="#fff8fb"/>
-      <rect width="8" height="18" fill="#fff0f4"/>
+      <rect width="18" height="18" fill="{theme.stripe_base}"/>
+      <rect width="8" height="18" fill="{theme.stripe_band}"/>
     </pattern>
-    <linearGradient id="pinkFrame" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f5b2c1"/>
-      <stop offset="1" stop-color="#e58da3"/>
+    <linearGradient id="cardFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="{theme.frame_start}"/>
+      <stop offset="1" stop-color="{theme.frame_end}"/>
     </linearGradient>
   </defs>
-  <rect x="38" y="24" width="884" height="1232" rx="56" fill="url(#pinkFrame)"/>
-  <rect x="68" y="70" width="824" height="1124" rx="8" fill="url(#stripe)" stroke="#f7d5dd" stroke-width="4"/>
+  <rect x="38" y="24" width="884" height="1232" rx="56" fill="url(#cardFrame)"/>
+  <rect x="68" y="70" width="824" height="1124" rx="8" fill="url(#stripe)" stroke="{theme.frame_stroke}" stroke-width="4"/>
   <path d="M70 128 H890" stroke="#ffffff" stroke-width="8" opacity="0.9"/>
-  <text x="480" y="156" text-anchor="middle" font-size="84" font-weight="900" fill="#d4667f">{escape(sign_title)}</text>
-  <text x="280" y="134" text-anchor="middle" font-size="42" fill="#d4667f">✧</text>
-  <text x="690" y="150" text-anchor="middle" font-size="42" fill="#d4667f">✦</text>
-  <rect x="110" y="216" width="238" height="278" rx="28" fill="#fff5f8" stroke="#e7a3b3" stroke-width="4"/>
-  {_daily_avatar_svg(card.sign, avatar_fill)}
+  <text x="480" y="156" text-anchor="middle" font-size="84" font-weight="900" fill="{theme.title}">{escape(sign_title)}</text>
+  <text x="280" y="134" text-anchor="middle" font-size="42" fill="{theme.title}">✧</text>
+  <text x="690" y="150" text-anchor="middle" font-size="42" fill="{theme.title}">✦</text>
+  <rect x="110" y="216" width="238" height="278" rx="28" fill="{theme.avatar_panel_bg}" stroke="{theme.avatar_panel_stroke}" stroke-width="4"/>
+  {_daily_avatar_svg(card.sign, avatar_fill, accent=theme.avatar_accent)}
   {info_lines}
   {metric_svg}
   {luck_svg}
-  <rect x="94" y="928" width="772" height="188" rx="18" fill="#fff8fb" stroke="#cf5f7a" stroke-width="4"/>
-  <text x="168" y="1002" text-anchor="middle" font-size="44" font-weight="900" fill="#bd5970">今日</text>
-  <text x="168" y="1058" text-anchor="middle" font-size="44" font-weight="900" fill="#bd5970">必做</text>
-  <path d="M242 952 V1092" stroke="#cf5f7a" stroke-width="4"/>
+  <rect x="94" y="928" width="772" height="188" rx="18" fill="{theme.action_bg}" stroke="{theme.action_stroke}" stroke-width="4"/>
+  <text x="168" y="1002" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">今日</text>
+  <text x="168" y="1058" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">必做</text>
+  <path d="M242 952 V1092" stroke="{theme.action_stroke}" stroke-width="4"/>
   {action_svg}
-  <text x="94" y="1182" font-size="39" font-weight="900" fill="#bd5970">好运口号：</text>
-  <text x="292" y="1182" font-size="36" font-weight="800" fill="#bd5970">{escape(card.slogan)}</text>
-  <text x="480" y="1226" text-anchor="middle" font-size="24" fill="#ffffff">······  ✧  ······</text>
+  <text x="94" y="1182" font-size="39" font-weight="900" fill="{theme.action_text}">好运口号：</text>
+  <text x="292" y="1182" font-size="36" font-weight="800" fill="{theme.action_text}">{escape(card.slogan)}</text>
+  <text x="480" y="1226" text-anchor="middle" font-size="24" fill="{theme.footer}">······  ✧  ······</text>
 </svg>
 """
 
@@ -992,9 +1096,14 @@ def daily_fortune_card_paths(
     *,
     asset_dir: Path = DAILY_CARD_ASSET_DIR,
     image_format: str = "png",
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
 ) -> dict[str, Path]:
     extension = _daily_card_extension(image_format)
-    output_dir = asset_dir / day.strftime("%Y%m%d")
+    daily_card_theme(card_theme)
+    dirname = day.strftime("%Y%m%d")
+    if card_theme != DEFAULT_DAILY_CARD_THEME:
+        dirname = f"{dirname}_{card_theme}"
+    output_dir = asset_dir / dirname
     return {sign: output_dir / f"{sign}座.{extension}" for sign in DAILY_CARD_SIGN_ORDER}
 
 
@@ -1035,36 +1144,181 @@ def render_svg_to_png(
     png_path: Path,
     *,
     chrome_path: Path | None = None,
+    renderer: str = "auto",
 ) -> None:
+    if renderer not in PNG_RENDERERS:
+        raise ValueError(f"不支持的 PNG 渲染器：{renderer}")
     png_path.parent.mkdir(parents=True, exist_ok=True)
-    browser = chrome_binary(chrome_path)
+    errors: list[str] = []
+    renderers = PNG_RENDERERS[1:] if renderer == "auto" else (renderer,)
+    for candidate in renderers:
+        try:
+            if candidate == "resvg":
+                _render_svg_to_png_resvg(svg_text, png_path)
+            elif candidate == "rsvg-convert":
+                _render_svg_to_png_rsvg_convert(svg_text, png_path)
+            elif candidate == "cairosvg":
+                _render_svg_to_png_cairosvg(svg_text, png_path)
+            elif candidate == "chrome":
+                _render_svg_to_png_chrome(svg_text, png_path, chrome_path=chrome_path)
+            return
+        except FileNotFoundError as exc:
+            if renderer != "auto":
+                raise RuntimeError(str(exc)) from exc
+            errors.append(str(exc))
+        except RuntimeError as exc:
+            if renderer != "auto":
+                raise
+            errors.append(str(exc))
+    detail = "；".join(error for error in errors if error)
+    raise RuntimeError(detail or f"PNG 导出失败：{png_path.resolve()}")
+
+
+def _render_svg_to_png_cairosvg(svg_text: str, png_path: Path) -> None:
+    try:
+        import cairosvg  # type: ignore[import-not-found]
+    except (ImportError, OSError) as exc:
+        raise FileNotFoundError(f"CairoSVG 不可用，跳过 cairosvg PNG 渲染器：{exc}") from exc
+    try:
+        cairosvg.svg2png(
+            bytestring=svg_text.encode("utf-8"),
+            write_to=str(png_path.resolve()),
+            output_width=DAILY_CARD_WIDTH,
+            output_height=DAILY_CARD_HEIGHT,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"CairoSVG PNG 导出失败：{exc}") from exc
+    _ensure_png_created(png_path, renderer="cairosvg")
+
+
+def _render_svg_to_png_resvg(svg_text: str, png_path: Path) -> None:
+    resvg = shutil.which("resvg")
+    if not resvg:
+        raise FileNotFoundError("未找到 resvg，跳过 resvg PNG 渲染器")
     with tempfile.TemporaryDirectory(prefix="daily-fortune-card-") as tmpdir:
         svg_path = Path(tmpdir) / "card.svg"
         svg_path.write_text(svg_text, encoding="utf-8")
-        completed = subprocess.run(
+        _run_png_renderer_command(
             [
-                str(browser),
-                "--headless",
-                "--disable-gpu",
-                "--hide-scrollbars",
-                "--no-first-run",
-                "--force-device-scale-factor=1",
-                f"--screenshot={png_path}",
-                f"--window-size={DAILY_CARD_WIDTH},{DAILY_CARD_HEIGHT}",
-                svg_path.as_uri(),
+                resvg,
+                "--width",
+                str(DAILY_CARD_WIDTH),
+                "--height",
+                str(DAILY_CARD_HEIGHT),
+                str(svg_path),
+                str(png_path.resolve()),
             ],
+            renderer="resvg",
+            png_path=png_path,
+        )
+
+
+def _render_svg_to_png_rsvg_convert(svg_text: str, png_path: Path) -> None:
+    rsvg_convert = shutil.which("rsvg-convert")
+    if not rsvg_convert:
+        raise FileNotFoundError("未找到 rsvg-convert，跳过 rsvg-convert PNG 渲染器")
+    with tempfile.TemporaryDirectory(prefix="daily-fortune-card-") as tmpdir:
+        svg_path = Path(tmpdir) / "card.svg"
+        svg_path.write_text(svg_text, encoding="utf-8")
+        _run_png_renderer_command(
+            [
+                rsvg_convert,
+                "-w",
+                str(DAILY_CARD_WIDTH),
+                "-h",
+                str(DAILY_CARD_HEIGHT),
+                "-o",
+                str(png_path.resolve()),
+                str(svg_path),
+            ],
+            renderer="rsvg-convert",
+            png_path=png_path,
+        )
+
+
+def _run_png_renderer_command(command: list[str], *, renderer: str, png_path: Path) -> None:
+    try:
+        completed = subprocess.run(
+            command,
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=60,
         )
+    except subprocess.TimeoutExpired as exc:
+        output = "\n".join(
+            part.strip()
+            for part in (exc.stderr, exc.stdout)
+            if isinstance(part, str) and part.strip()
+        )
+        detail = output or f"{renderer} PNG 导出超时：{png_path.resolve()}"
+        raise RuntimeError(detail) from exc
+    if completed.returncode != 0:
+        output = "\n".join(
+            part.strip()
+            for part in (completed.stderr, completed.stdout)
+            if part and part.strip()
+        )
+        raise RuntimeError(output or f"{renderer} exit={completed.returncode}")
+    _ensure_png_created(png_path, renderer=renderer)
+
+
+def _ensure_png_created(png_path: Path, *, renderer: str) -> None:
+    if not png_path.is_file():
+        raise RuntimeError(f"{renderer} 未生成文件：{png_path.resolve()}")
+
+
+def _render_svg_to_png_chrome(
+    svg_text: str,
+    png_path: Path,
+    *,
+    chrome_path: Path | None = None,
+) -> None:
+    browser = chrome_binary(chrome_path)
+    with tempfile.TemporaryDirectory(prefix="daily-fortune-card-") as tmpdir:
+        svg_path = Path(tmpdir) / "card.svg"
+        profile_dir = Path(tmpdir) / "chrome-profile"
+        svg_path.write_text(svg_text, encoding="utf-8")
+        png_target = png_path.resolve()
+        command = [
+            str(browser),
+            "--headless",
+            "--disable-gpu",
+            "--disable-dev-shm-usage",
+            "--hide-scrollbars",
+            "--no-first-run",
+            f"--user-data-dir={profile_dir}",
+            "--force-device-scale-factor=1",
+            f"--screenshot={png_target}",
+            f"--window-size={DAILY_CARD_WIDTH},{DAILY_CARD_HEIGHT}",
+            svg_path.as_uri(),
+        ]
+        try:
+            completed = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=60,
+            )
+        except subprocess.TimeoutExpired as exc:
+            output = "\n".join(
+                part.strip()
+                for part in (exc.stderr, exc.stdout)
+                if isinstance(part, str) and part.strip()
+            )
+            detail = output or f"Chrome PNG 导出超时：{png_path.resolve()}"
+            raise RuntimeError(detail) from exc
     if completed.returncode != 0 or not png_path.is_file():
         output = "\n".join(
             part.strip()
             for part in (completed.stderr, completed.stdout)
             if part and part.strip()
         )
-        raise RuntimeError(output or f"PNG 导出失败：{png_path}")
+        detail = output or f"Chrome exit={completed.returncode}，未生成文件：{png_path.resolve()}"
+        raise RuntimeError(detail)
 
 
 def write_daily_fortune_cards(
@@ -1073,18 +1327,30 @@ def write_daily_fortune_cards(
     asset_dir: Path = DAILY_CARD_ASSET_DIR,
     image_format: str = "png",
     chrome_path: Path | None = None,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+    png_renderer: str = "auto",
 ) -> dict[str, Path]:
     extension = _daily_card_extension(image_format)
-    paths = daily_fortune_card_paths(day, asset_dir=asset_dir, image_format=extension)
+    paths = daily_fortune_card_paths(
+        day,
+        asset_dir=asset_dir,
+        image_format=extension,
+        card_theme=card_theme,
+    )
     if paths:
         next(iter(paths.values())).parent.mkdir(parents=True, exist_ok=True)
     for sign, path in paths.items():
         card = build_daily_fortune_card(sign, day)
-        svg_text = render_daily_fortune_card_svg(card, day)
+        svg_text = render_daily_fortune_card_svg(card, day, card_theme=card_theme)
         if extension == "svg":
             path.write_text(svg_text, encoding="utf-8")
         else:
-            render_svg_to_png(svg_text, path, chrome_path=chrome_path)
+            render_svg_to_png(
+                svg_text,
+                path,
+                chrome_path=chrome_path,
+                renderer=png_renderer,
+            )
     return paths
 
 
@@ -1524,7 +1790,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="一步生成安夏短文号草稿")
     parser.add_argument("--date", default=date.today().isoformat(), help="起始日期 YYYY-MM-DD")
     parser.add_argument("--days", type=int, default=1, help="连续生成天数，默认 1")
-    parser.add_argument("--daily", type=int, default=3, help="每天生成篇数，默认 3")
+    parser.add_argument(
+        "--daily",
+        type=int,
+        default=DEFAULT_DAILY_SHORT_ARTICLES,
+        help=f"每天生成单星座短文篇数，默认 {DEFAULT_DAILY_SHORT_ARTICLES}",
+    )
     daily_fortune_group = parser.add_mutually_exclusive_group()
     daily_fortune_group.add_argument(
         "--include-daily-fortune",
@@ -1559,6 +1830,18 @@ def main() -> int:
         choices=("png", "svg"),
         default="png",
         help="日运信息卡输出格式，默认 png；调试模板时可用 svg",
+    )
+    parser.add_argument(
+        "--card-theme",
+        choices=tuple(DAILY_CARD_THEMES),
+        default=DEFAULT_DAILY_CARD_THEME,
+        help="日运信息卡主题，默认 pink；可用 mint 生成薄荷绿 A/B 版",
+    )
+    parser.add_argument(
+        "--png-renderer",
+        choices=PNG_RENDERERS,
+        default="auto",
+        help="日运 PNG 渲染器，默认 auto：优先 resvg/rsvg-convert/cairosvg，最后回退 Chrome",
     )
     parser.add_argument("--chrome-bin", type=Path, help="指定用于导出 PNG 的 Chrome/Chromium 可执行文件")
     card_group = parser.add_mutually_exclusive_group()
@@ -1669,6 +1952,7 @@ def main() -> int:
                         draft.item.day,
                         asset_dir=args.card_dir,
                         image_format=args.card_format,
+                        card_theme=args.card_theme,
                     ),
                     article_dir=path.parent,
                 )
@@ -1687,6 +1971,8 @@ def main() -> int:
                 asset_dir=args.card_dir,
                 image_format=args.card_format,
                 chrome_path=args.chrome_bin,
+                card_theme=args.card_theme,
+                png_renderer=args.png_renderer,
             )
             daily_card_images = daily_card_markdown_refs(card_paths, article_dir=path.parent)
             print(f"已生成日运卡图：{next(iter(card_paths.values())).parent}")
