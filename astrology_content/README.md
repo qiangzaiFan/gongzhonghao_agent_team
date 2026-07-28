@@ -9,7 +9,7 @@
 - `specs/anxia_style.md`：安夏短文风格画像。
 - `specs/`：账号定位、文章质量、来源和工作流规则。
 - `articles/`：本地 Markdown 短文草稿。
-- `assets/daily_fortune_cards/`：十二星座每日好运的信息卡 SVG 图片，每天 12 张。
+- `assets/daily_fortune_cards/`：十二星座每日好运的信息卡 PNG 图片，每天 12 张。
 - `anxia_analyze.py`：分析安夏知识库语料。
 - `anxia_calendar.py`：生成每日 3 篇单星座选题排期。
 - `anxia_generate.py`：默认额外生成一篇“十二星座每日好运”四象日运稿。
@@ -50,7 +50,7 @@ python3 anxia_generate.py --days 3
 python3 anxia_generate.py --days 7
 ```
 
-日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 12 张粉色信息卡 SVG，并在正文对应四象分组下引用；图片保存在 `assets/daily_fortune_cards/YYYYMMDD/`。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
+日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 12 张粉色信息卡 PNG，并在正文对应四象分组下引用；图片保存在 `assets/daily_fortune_cards/YYYYMMDD/`。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
 
 只生成原有单星座短文时：
 
@@ -117,7 +117,7 @@ python3 preflight.py articles/DAILY_FORTUNE.md \
 
 `anxia_short` 面向 120-260 个中文字符的短平快稿件，允许 300-450 字扩展稿；不强制配图和二级小标题。强刺激词允许使用并提示复核；默认拦截普通原标题复用，`--allow-hot-titles` 或 `--mode hot-source` 可放行热标题。连续 30 字相同、18 字分片重合率达到 5% 仍会驳回。
 
-`daily_fortune` 面向十二星座日运：标题 14-36 个可见字符，正文 700-1400 个中文字符，4 个二级小标题（火象、土象、风象、水象）和 14-16 个正文段落；默认包含 12 张本地 SVG 信息卡，质检会校验本地图片是否存在及尺寸是否达标。
+`daily_fortune` 面向十二星座日运：标题 14-36 个可见字符，正文 700-1400 个中文字符，4 个二级小标题（火象、土象、风象、水象）和 14-16 个正文段落；默认包含 12 张本地 PNG 信息卡，质检会校验本地图片是否存在及尺寸是否达标。
 
 发布级预检默认要求有效的编辑记录，并会让 `corpus_style` 稿件带上 `--source-dir` 做全库原创度检查。历史草稿可临时使用 `--allow-untracked`，但新稿不建议跳过记录。自动 AIGC 检测默认是复核提示；确需把它作为硬门槛时添加 `--strict-ai`。
 

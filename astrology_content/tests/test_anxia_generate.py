@@ -10,6 +10,7 @@ from anxia_generate import (
     build_drafts,
     build_daily_fortune_drafts,
     daily_card_markdown_refs,
+    daily_fortune_card_paths,
     hot_source_title_for_item,
     output_path,
     render_markdown,
@@ -73,9 +74,15 @@ class AnxiaGenerateTests(unittest.TestCase):
         article_dir = self.root / "articles"
         article_dir.mkdir()
         article_path = output_path(article_dir, draft)
+        default_card_paths = daily_fortune_card_paths(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+        )
+        self.assertTrue(all(path.suffix == ".png" for path in default_card_paths.values()))
         card_paths = write_daily_fortune_cards(
             day,
             asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="svg",
         )
 
         self.assertEqual(len(card_paths), 12)

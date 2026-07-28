@@ -8,8 +8,10 @@ from html import escape
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -288,6 +290,8 @@ DAILY_FORTUNE_ACTIONS = (
     "把注意力从比较里收回来",
 )
 DAILY_CARD_ASSET_DIR = Path(__file__).parent / "assets" / "daily_fortune_cards"
+DAILY_CARD_WIDTH = 960
+DAILY_CARD_HEIGHT = 1280
 DAILY_CARD_SIGN_ORDER = tuple(
     sign
     for _, group_signs in DAILY_FORTUNE_GROUPS
@@ -854,7 +858,7 @@ def render_daily_fortune_card_svg(card: DailyFortuneCard, day: date) -> str:
             _svg_text_lines(f"避免：{card.avoid}", x=390, y=494, width=14, size=38),
         )
     )
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1280" viewBox="0 0 960 1280" role="img" aria-label="{escape(sign_title)}每日好运卡">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{DAILY_CARD_WIDTH}" height="{DAILY_CARD_HEIGHT}" viewBox="0 0 {DAILY_CARD_WIDTH} {DAILY_CARD_HEIGHT}" role="img" aria-label="{escape(sign_title)}每日好运卡">
   <defs>
     <style>
       text {{
@@ -903,22 +907,100 @@ def daily_fortune_card_paths(
     day: date,
     *,
     asset_dir: Path = DAILY_CARD_ASSET_DIR,
+    image_format: str = "png",
 ) -> dict[str, Path]:
+    extension = _daily_card_extension(image_format)
     output_dir = asset_dir / day.strftime("%Y%m%d")
-    return {sign: output_dir / f"{sign}座.svg" for sign in DAILY_CARD_SIGN_ORDER}
+    return {sign: output_dir / f"{sign}座.{extension}" for sign in DAILY_CARD_SIGN_ORDER}
+
+
+def _daily_card_extension(image_format: str) -> str:
+    normalized = image_format.lower().lstrip(".")
+    if normalized not in {"png", "svg"}:
+        raise ValueError(f"不支持的信息卡格式：{image_format}")
+    return normalized
+
+
+def chrome_binary(explicit: Path | None = None) -> Path:
+    if explicit is not None:
+        if explicit.is_file():
+            return explicit
+        raise FileNotFoundError(f"Chrome 可执行文件不存在：{explicit}")
+    env_value = os.environ.get("CHROME_BIN")
+    if env_value:
+        candidate = Path(env_value)
+        if candidate.is_file():
+            return candidate
+    candidates = (
+        Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+        Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
+        Path("/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"),
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    for command in ("google-chrome", "chromium", "chromium-browser", "chrome"):
+        found = shutil.which(command)
+        if found:
+            return Path(found)
+    raise FileNotFoundError("未找到 Chrome/Chromium，无法把日运卡图导出为 PNG")
+
+
+def render_svg_to_png(
+    svg_text: str,
+    png_path: Path,
+    *,
+    chrome_path: Path | None = None,
+) -> None:
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    browser = chrome_binary(chrome_path)
+    with tempfile.TemporaryDirectory(prefix="daily-fortune-card-") as tmpdir:
+        svg_path = Path(tmpdir) / "card.svg"
+        svg_path.write_text(svg_text, encoding="utf-8")
+        completed = subprocess.run(
+            [
+                str(browser),
+                "--headless",
+                "--disable-gpu",
+                "--hide-scrollbars",
+                "--no-first-run",
+                "--force-device-scale-factor=1",
+                f"--screenshot={png_path}",
+                f"--window-size={DAILY_CARD_WIDTH},{DAILY_CARD_HEIGHT}",
+                svg_path.as_uri(),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    if completed.returncode != 0 or not png_path.is_file():
+        output = "\n".join(
+            part.strip()
+            for part in (completed.stderr, completed.stdout)
+            if part and part.strip()
+        )
+        raise RuntimeError(output or f"PNG 导出失败：{png_path}")
 
 
 def write_daily_fortune_cards(
     day: date,
     *,
     asset_dir: Path = DAILY_CARD_ASSET_DIR,
+    image_format: str = "png",
+    chrome_path: Path | None = None,
 ) -> dict[str, Path]:
-    paths = daily_fortune_card_paths(day, asset_dir=asset_dir)
+    extension = _daily_card_extension(image_format)
+    paths = daily_fortune_card_paths(day, asset_dir=asset_dir, image_format=extension)
     if paths:
         next(iter(paths.values())).parent.mkdir(parents=True, exist_ok=True)
     for sign, path in paths.items():
         card = build_daily_fortune_card(sign, day)
-        path.write_text(render_daily_fortune_card_svg(card, day), encoding="utf-8")
+        svg_text = render_daily_fortune_card_svg(card, day)
+        if extension == "svg":
+            path.write_text(svg_text, encoding="utf-8")
+        else:
+            render_svg_to_png(svg_text, path, chrome_path=chrome_path)
     return paths
 
 
@@ -1388,12 +1470,19 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=ARTICLES_DIR)
     parser.add_argument("--record-dir", type=Path, default=DEFAULT_RECORD_DIR)
     parser.add_argument("--card-dir", type=Path, default=DAILY_CARD_ASSET_DIR)
+    parser.add_argument(
+        "--card-format",
+        choices=("png", "svg"),
+        default="png",
+        help="日运信息卡输出格式，默认 png；调试模板时可用 svg",
+    )
+    parser.add_argument("--chrome-bin", type=Path, help="指定用于导出 PNG 的 Chrome/Chromium 可执行文件")
     card_group = parser.add_mutually_exclusive_group()
     card_group.add_argument(
         "--daily-card-assets",
         dest="daily_card_assets",
         action="store_true",
-        help="为十二星座每日好运生成 12 张本地 SVG 信息卡，默认开启",
+        help="为十二星座每日好运生成 12 张本地 PNG 信息卡，默认开启",
     )
     card_group.add_argument(
         "--no-daily-card-assets",
@@ -1492,7 +1581,11 @@ def main() -> int:
             daily_card_images = None
             if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
                 daily_card_images = daily_card_markdown_refs(
-                    daily_fortune_card_paths(draft.item.day, asset_dir=args.card_dir),
+                    daily_fortune_card_paths(
+                        draft.item.day,
+                        asset_dir=args.card_dir,
+                        image_format=args.card_format,
+                    ),
                     article_dir=path.parent,
                 )
             content = render_markdown(draft, daily_card_images=daily_card_images)
@@ -1505,7 +1598,12 @@ def main() -> int:
             continue
         daily_card_images = None
         if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
-            card_paths = write_daily_fortune_cards(draft.item.day, asset_dir=args.card_dir)
+            card_paths = write_daily_fortune_cards(
+                draft.item.day,
+                asset_dir=args.card_dir,
+                image_format=args.card_format,
+                chrome_path=args.chrome_bin,
+            )
             daily_card_images = daily_card_markdown_refs(card_paths, article_dir=path.parent)
             print(f"已生成日运卡图：{next(iter(card_paths.values())).parent}")
         content = render_markdown(draft, daily_card_images=daily_card_images)
