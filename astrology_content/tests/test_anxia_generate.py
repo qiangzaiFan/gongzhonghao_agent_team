@@ -6,7 +6,13 @@ from datetime import date
 from pathlib import Path
 
 from anxia_calendar import CalendarItem
-from anxia_generate import build_drafts, hot_source_title_for_item, output_path, render_markdown
+from anxia_generate import (
+    build_drafts,
+    hot_source_title_for_item,
+    output_path,
+    render_markdown,
+    title_formula,
+)
 from quality_gate import parse_article, validate_article
 
 
@@ -37,6 +43,29 @@ class AnxiaGenerateTests(unittest.TestCase):
         self.assertEqual(len(drafts), 21)
         self.assertEqual(len({draft.item.day for draft in drafts}), 7)
 
+    def test_multi_day_drafts_rotate_bodies_and_keep_title_options(self) -> None:
+        drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)
+        self.assertEqual(len({draft.body for draft in drafts}), len(drafts))
+        self.assertTrue(all(len(draft.title_candidates) >= 3 for draft in drafts))
+        self.assertTrue(all(draft.title in draft.title_candidates for draft in drafts))
+        self.assertTrue(all(len(draft.opening_candidates) == 2 for draft in drafts))
+        self.assertTrue(
+            all(draft.body.startswith(draft.opening_variant["text"]) for draft in drafts)
+        )
+
+    def test_recent_duplicate_automatically_switches_body_variant(self) -> None:
+        baseline = build_drafts(date(2026, 7, 28), 3, corpus_dir=None)[0]
+        drafts = build_drafts(
+            date(2026, 7, 28),
+            3,
+            corpus_dir=None,
+            recent_drafts=[("recent.md", baseline.body)],
+        )
+
+        self.assertNotEqual(drafts[0].body, baseline.body)
+        self.assertNotEqual(drafts[0].body_variant["key"], baseline.body_variant["key"])
+        self.assertIsNone(drafts[0].recent_conflict)
+
     def test_viral_safe_adds_stronger_hooks(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, mode="viral-safe")
         self.assertTrue(any("！" in draft.title for draft in drafts))
@@ -46,6 +75,12 @@ class AnxiaGenerateTests(unittest.TestCase):
     def test_balanced_keeps_calendar_titles(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, mode="balanced")
         self.assertEqual(drafts[0].title, drafts[0].item.title)
+
+    def test_title_formula_respects_relationship_theme_before_keyword(self) -> None:
+        self.assertEqual(
+            title_formula("天蝎这辈子最该珍惜的一个贵人", "关系/性格"),
+            "关系洞察型",
+        )
 
     def test_hot_source_can_reuse_repeated_title(self) -> None:
         title = "天蝎座7月一定会发生的三件喜事！"

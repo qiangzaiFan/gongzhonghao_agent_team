@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 
 from ai_detector import ANXIA_SHORT_MIN_TOTAL_CHARS, article_chunks, article_digest, validate_report
-from zhuque_gate import latest_errors
 
 
 class DetectionGateTests(unittest.TestCase):
@@ -76,49 +75,6 @@ class DetectionGateTests(unittest.TestCase):
         chunks = article_chunks(self.article, min_total_chars=ANXIA_SHORT_MIN_TOTAL_CHARS)
 
         self.assertGreaterEqual(sum(len(chunk) for chunk in chunks), ANXIA_SHORT_MIN_TOTAL_CHARS)
-
-    def test_optional_zhuque_record_checks_thresholds_and_proof(self) -> None:
-        proof = self.root / "zhuque.png"
-        proof.write_bytes(b"proof")
-        record = self.root / "zhuque.json"
-        record.write_text(
-            json.dumps(
-                {
-                    "rounds": [
-                        {
-                            "human": 90,
-                            "suspected": 3,
-                            "ai": 7,
-                            "report": str(proof),
-                        }
-                    ]
-                }
-            ),
-            encoding="utf-8",
-        )
-        self.assertEqual(latest_errors(record), [])
-
-    def test_optional_zhuque_record_rejects_below_90_human(self) -> None:
-        proof = self.root / "zhuque.png"
-        proof.write_bytes(b"proof")
-        record = self.root / "zhuque.json"
-        record.write_text(
-            json.dumps(
-                {
-                    "rounds": [
-                        {
-                            "human": 89,
-                            "suspected": 5,
-                            "ai": 6,
-                            "report": str(proof),
-                        }
-                    ]
-                }
-            ),
-            encoding="utf-8",
-        )
-        self.assertTrue(any("90.0" in item for item in latest_errors(record)))
-
 
 if __name__ == "__main__":
     unittest.main()

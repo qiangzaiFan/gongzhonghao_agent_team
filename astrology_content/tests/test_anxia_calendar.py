@@ -43,6 +43,46 @@ class AnxiaCalendarTests(unittest.TestCase):
         counts = Counter(item.sign for item in items)
         self.assertLessEqual(max(counts.values()) - min(counts.values()), 1)
 
+    def test_reliable_topic_performance_prioritizes_matching_sign(self) -> None:
+        entries = [
+            {
+                "sign": "天蝎",
+                "theme": "运势/提醒",
+                "read_rate": 0.42,
+                "engagement_rate": 0.18,
+            }
+            for _ in range(3)
+        ]
+        items = generate_calendar(
+            days=1,
+            daily=3,
+            start=date(2026, 7, 28),
+            profile="anxia_short",
+            corpus_dir=None,
+            performance_entries=entries,
+        )
+
+        self.assertEqual(items[0].theme, "运势/提醒")
+        self.assertEqual(items[0].sign, "天蝎")
+
+    def test_single_day_runs_rotate_sign_groups_by_date(self) -> None:
+        first_day = generate_calendar(
+            days=1,
+            daily=3,
+            start=date(2026, 7, 28),
+            profile="anxia_short",
+            corpus_dir=None,
+        )
+        next_day = generate_calendar(
+            days=1,
+            daily=3,
+            start=date(2026, 7, 29),
+            profile="anxia_short",
+            corpus_dir=None,
+        )
+
+        self.assertFalse({item.sign for item in first_day} & {item.sign for item in next_day})
+
 
 if __name__ == "__main__":
     unittest.main()

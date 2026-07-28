@@ -215,7 +215,7 @@ def detect_article(
         "segments": segments,
         "limitations": (
             "该结果是本地模型的编辑风险信号，不是作者身份证明，"
-            "也不等同于腾讯朱雀的判定。"
+            "不能替代主编的原创度与可读性复核。"
         ),
     }
     if report_path is not None:

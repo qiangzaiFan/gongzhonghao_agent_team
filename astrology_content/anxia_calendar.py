@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from anxia_corpus import DEFAULT_CORPUS_DIR, SIGN_TERMS, load_corpus
+from performance_tracker import DEFAULT_LOG_PATH, load_entries, topic_performance_scores
 
 
 TEMPLATE_POOLS = {
@@ -55,6 +56,24 @@ def _sign_rotation(corpus_dir: Path | None = None) -> list[str]:
     return missing_first or list(FALLBACK_SIGNS)
 
 
+def _choose_balanced_sign(
+    *,
+    signs: list[str],
+    used_today: set[str],
+    scheduled_counts: dict[str, int],
+    theme: str,
+    topic_scores: dict[tuple[str, str], float],
+) -> str:
+    candidates = [sign for sign in signs if sign not in used_today]
+    lowest_count = min(scheduled_counts[sign] for sign in candidates)
+    balanced = [sign for sign in candidates if scheduled_counts[sign] == lowest_count]
+    order = {sign: index for index, sign in enumerate(signs)}
+    return max(
+        balanced,
+        key=lambda sign: (topic_scores.get((sign, theme), 0.0), -order[sign]),
+    )
+
+
 def generate_calendar(
     *,
     days: int,
@@ -62,6 +81,8 @@ def generate_calendar(
     start: date,
     profile: str,
     corpus_dir: Path | None = DEFAULT_CORPUS_DIR,
+    performance_entries: list[dict[str, object]] | None = None,
+    performance_min_samples: int = 3,
 ) -> list[CalendarItem]:
     if days <= 0:
         raise ValueError("--days 必须大于 0")
@@ -71,9 +92,15 @@ def generate_calendar(
         raise ValueError("当前排期生成器只支持 --profile anxia_short")
 
     signs = _sign_rotation(corpus_dir)
+    rotation = (start.toordinal() * daily) % len(signs)
+    signs = signs[rotation:] + signs[:rotation]
+    topic_scores = topic_performance_scores(
+        list(performance_entries or []),
+        min_samples=performance_min_samples,
+    )
     month = MONTH_LABELS[(start.month - 1) % len(MONTH_LABELS)]
     items: list[CalendarItem] = []
-    sign_index = 0
+    scheduled_counts = {sign: 0 for sign in signs}
     for day_offset in range(days):
         day = start + timedelta(days=day_offset)
         used_today: set[str] = set()
@@ -81,12 +108,15 @@ def generate_calendar(
             theme = THEMES[slot % len(THEMES)]
             pool = TEMPLATE_POOLS[theme]
             template, variables = pool[(day_offset + slot) % len(pool)]
-            sign = signs[sign_index % len(signs)]
-            while sign in used_today and len(used_today) < len(signs):
-                sign_index += 1
-                sign = signs[sign_index % len(signs)]
+            sign = _choose_balanced_sign(
+                signs=signs,
+                used_today=used_today,
+                scheduled_counts=scheduled_counts,
+                theme=theme,
+                topic_scores=topic_scores,
+            )
             used_today.add(sign)
-            sign_index += 1
+            scheduled_counts[sign] += 1
             values = {key: options[(day_offset + slot) % len(options)] for key, options in variables.items()}
             title = template.format(sign=sign, month=month, **values)
             angle = {
@@ -118,15 +148,20 @@ def main() -> int:
     parser.add_argument("--profile", default="anxia_short")
     parser.add_argument("--start", default=date.today().isoformat())
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
+    parser.add_argument("--performance-log", type=Path, default=DEFAULT_LOG_PATH)
+    parser.add_argument("--performance-min-samples", type=int, default=3)
     args = parser.parse_args()
     try:
         start = date.fromisoformat(args.start)
+        performance_entries = load_entries(args.performance_log)
         items = generate_calendar(
             days=args.days,
             daily=args.daily,
             start=start,
             profile=args.profile,
             corpus_dir=args.corpus_dir,
+            performance_entries=performance_entries,
+            performance_min_samples=args.performance_min_samples,
         )
     except ValueError as exc:
         parser.error(str(exc))
