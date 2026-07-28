@@ -15,9 +15,11 @@
 2. 给写手下发原创选题卡，包含人数、餐次、预算、时间、食材、当天小场景、菜品组合和互动角度。
 3. 做标题去重，避免连续使用同一表层句式。
 4. 检查稿件是否像真实做饭记录：有食材、有动作、有失败点或临时调整、有吃后感，不是空泛菜谱。
-5. 生成后运行 `python quality_gate.py articles/xxx.md`，先过本地硬规则。
-6. 运行共用中文 AIGC 检测，发布线为 human≥90%、ai≤10%；正文修改后必须重新检测。
-7. 发布前人工确认菜品可复现、成本合理、图片为自有或授权食物图。
+5. 没有自有实拍图时，按 `specs/image_ai_policy.md` 使用 5-8 张 AI 原创示意图或图片占位，不伪装实拍全过程。
+6. 生成后运行 `python quality_gate.py articles/xxx.md --image-mode ai`，先过本地硬规则；若后续使用真实步骤图，可改用默认实拍模式。
+7. 运行共用中文 AIGC 检测，发布线为 human≥90%、ai≤10%；正文修改后必须重新检测。
+8. 发布前人工确认菜品可复现、成本合理、图片为自有、AI 原创、授权或可商用来源。
+9. 本地 ComfyUI 已准备好时，运行 `python generate_article_images.py articles/xxx.md` 生成候选图、自动选图并回填 `../images/ai/` 路径。
 
 ## 内容定位
 
@@ -34,6 +36,7 @@
 - 每篇 2-4 个小标题，按菜品或流程拆分。
 - 每篇至少包含：人数、餐次、1 个时间细节、1 个花费或食材分量、2 个做法细节、1 个口感反馈、1 个临时调整或小问题。
 - 可使用 Markdown 图片占位，真实发布前替换为自有实拍图。
+- 当前无实拍图时，图片采用 AI 示意图模式：每篇 5-8 张，文案不冒充实拍，不从小红书、微博、抖音等平台搬图二改。
 - frontmatter 只包含 `title`。
 
 ## 必读顺序
@@ -43,5 +46,6 @@
 3. `specs/food_track_plan.md`
 4. `specs/topic_card_template.md`
 5. `specs/title_and_dedup_rules.md`
-6. `.claude/agents/home-food-writer.md`
-7. `quality_gate.py`
+6. `specs/image_ai_policy.md`
+7. `.claude/agents/home-food-writer.md`
+8. `quality_gate.py`

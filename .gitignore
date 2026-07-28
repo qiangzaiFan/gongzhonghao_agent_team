@@ -10,6 +10,10 @@
 **/state/current_batch.yaml
 **/*.log
 
+# Local AI image candidates and review artifacts; keep finalized article assets tracked.
+food_home_cooking/images/ai/candidates/
+food_home_cooking/reviews/image_candidates/
+
 # Python
 __pycache__/
 *.pyc

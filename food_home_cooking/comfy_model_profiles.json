@@ -1,0 +1,24 @@
+{
+  "flux2_klein": {
+    "label": "FLUX.2 Klein 4B distilled (FP8)",
+    "workflow": "workflows/food_flux2_klein_api.json",
+    "variables": {
+      "UNET": "flux-2-klein-4b-fp8.safetensors",
+      "CLIP": "qwen_3_4b.safetensors",
+      "VAE": "flux2-vae.safetensors",
+      "UPSCALER": "4x-UltraSharp.pth",
+      "STEPS": 4,
+      "CFG": 1.0
+    }
+  },
+  "sdxl_lightning": {
+    "label": "SDXL Lightning 4-step fallback",
+    "workflow": "workflows/food_sdxl_lightning_api.json",
+    "variables": {
+      "CHECKPOINT": "sdxl_lightning_4step.safetensors",
+      "UPSCALER": "4x-UltraSharp.pth",
+      "STEPS": 4,
+      "CFG": 0.0
+    }
+  }
+}

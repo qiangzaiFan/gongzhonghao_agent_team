@@ -9,6 +9,11 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from PIL import Image
+except ImportError:  # pragma: no cover - reported as a quality-gate error
+    Image = None
+
 
 ROOT = Path(__file__).resolve().parent
 KB_PATH = Path(r"D:\自媒体\知识库\01-公众号文章\美食公众号文章\暖暖小厨")
@@ -18,8 +23,14 @@ MEAL_WORDS = ["早餐", "午餐", "晚餐", "工作餐", "宵夜", "早午餐"]
 MONEY_RE = re.compile(r"\d+\s*元")
 TIME_RE = re.compile(r"\d+\s*分钟")
 IMAGE_RE = re.compile(r"^\s*!\[[^\]]*\]\([^)]+\)\s*$")
+IMAGE_ALT_RE = re.compile(r"^\s*!\[([^\]]*)\]\([^)]+\)\s*$")
+IMAGE_REF_RE = re.compile(r"^\s*!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)\s*$")
 TITLE_RE = re.compile(r"^title:\s*(.+?)\s*$", re.MULTILINE)
 CHINESE_RE = re.compile(r"[\u4e00-\u9fff]")
+AI_ALT_HINTS = ["示意图", "参考图", "搭配图", "步骤示意", "成品参考"]
+MISLEADING_IMAGE_WORDS = ["实拍图", "我拍的", "现场图", "真实厨房全过程", "原图"]
+PLATFORM_WORDS = ["小红书", "微博", "抖音", "公众号截图", "视频号"]
+ALLOWED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def read_text(path: Path) -> str:
@@ -44,6 +55,97 @@ def chinese_len(text: str) -> int:
 
 def image_lines(lines: list[str]) -> list[int]:
     return [i for i, line in enumerate(lines) if IMAGE_RE.match(line)]
+
+
+def image_alts(lines: list[str]) -> list[str]:
+    alts: list[str] = []
+    for line in lines:
+        match = IMAGE_ALT_RE.match(line)
+        if match:
+            alts.append(match.group(1).strip())
+    return alts
+
+
+def image_references(lines: list[str]) -> list[tuple[int, str, str]]:
+    refs: list[tuple[int, str, str]] = []
+    for index, line in enumerate(lines, start=1):
+        match = IMAGE_REF_RE.match(line)
+        if match:
+            refs.append((index, match.group(1).strip(), match.group(2).strip()))
+    return refs
+
+
+def is_within_root(path: Path) -> bool:
+    try:
+        path.resolve().relative_to(ROOT.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def check_image_files(
+    article_path: Path,
+    references: list[tuple[int, str, str]],
+    *,
+    image_mode: str,
+) -> tuple[list[str], list[str], list[dict[str, object]]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    files: list[dict[str, object]] = []
+    if not references:
+        return errors, warnings, files
+
+    if Image is None:
+        return ["缺少 Pillow，无法验证本地图片。请安装 requirements-imagegen.txt"], warnings, files
+
+    min_width, min_height = (1536, 1024) if image_mode == "ai" else (600, 400)
+    for line_number, alt, reference in references:
+        if re.match(r"^[a-z][a-z0-9+.-]*://", reference, flags=re.IGNORECASE):
+            errors.append(f"第 {line_number} 行图片必须是本地文件，不允许远程地址：{reference}")
+            continue
+
+        image_path = (article_path.parent / reference).resolve()
+        if not is_within_root(image_path):
+            errors.append(f"第 {line_number} 行图片路径超出 food_home_cooking：{reference}")
+            continue
+        if image_path.suffix.lower() not in ALLOWED_IMAGE_SUFFIXES:
+            errors.append(f"第 {line_number} 行图片格式不支持：{reference}")
+            continue
+        if not image_path.exists():
+            errors.append(f"第 {line_number} 行图片文件不存在：{reference}")
+            continue
+
+        try:
+            with Image.open(image_path) as image:
+                image.verify()
+            with Image.open(image_path) as image:
+                width, height = image.size
+                image_format = image.format or image_path.suffix.lstrip(".").upper()
+        except Exception as exc:  # noqa: BLE001 - present the damaged local asset
+            errors.append(f"第 {line_number} 行图片无法读取：{reference} ({exc})")
+            continue
+
+        if width < min_width or height < min_height:
+            errors.append(
+                f"第 {line_number} 行图片分辨率不足：{reference} 为 {width}x{height}，"
+                f"至少需要 {min_width}x{min_height}"
+            )
+        if image_mode == "ai" and (width != 1536 or height != 1024):
+            warnings.append(
+                f"第 {line_number} 行 AI 图片建议输出为 1536x1024，当前 {width}x{height}"
+            )
+        files.append(
+            {
+                "line": line_number,
+                "alt": alt,
+                "reference": reference,
+                "path": str(image_path),
+                "width": width,
+                "height": height,
+                "format": image_format,
+            }
+        )
+    return errors, warnings, files
 
 
 def adjacent_image_pairs(lines: list[str]) -> list[tuple[int, int]]:
@@ -85,7 +187,7 @@ def detect_title_type(title: str) -> str:
     return "普通晒餐型"
 
 
-def check(path: Path) -> dict:
+def check(path: Path, image_mode: str = "real") -> dict:
     text = read_text(path)
     body = strip_frontmatter(text)
     lines = text.splitlines()
@@ -117,9 +219,33 @@ def check(path: Path) -> dict:
         if word in body or word in title:
             errors.append(f"出现禁用署名或原博主标识：{word}")
 
-    img_count = len(image_lines(lines))
-    if not 16 <= img_count <= 22:
-        warnings.append(f"图片数建议 16-22 张，当前 {img_count}")
+    refs = image_references(lines)
+    img_count = len(refs)
+    alts = image_alts(lines)
+    image_errors, image_warnings, image_files = check_image_files(
+        path,
+        refs,
+        image_mode=image_mode,
+    )
+    errors.extend(image_errors)
+    warnings.extend(image_warnings)
+    if image_mode == "ai":
+        if not 5 <= img_count <= 8:
+            warnings.append(f"AI 示意图模式建议 5-8 张，当前 {img_count}")
+        if img_count > 12:
+            errors.append(f"AI 示意图模式不建议堆大量步骤图，当前 {img_count} 张，超过 12 张")
+        if alts and not any(any(hint in alt for hint in AI_ALT_HINTS) for alt in alts):
+            warnings.append("AI 示意图模式建议至少部分图片 alt 使用“示意图/参考图/步骤示意”等中性表述")
+        for alt in alts:
+            for word in MISLEADING_IMAGE_WORDS:
+                if word in alt:
+                    errors.append(f"AI 示意图模式图片 alt 不应冒充实拍：{word}")
+            for word in PLATFORM_WORDS:
+                if word in alt:
+                    errors.append(f"图片 alt 出现平台来源词，确认未搬运二改：{word}")
+    else:
+        if not 16 <= img_count <= 22:
+            warnings.append(f"实拍模式图片数建议 16-22 张，当前 {img_count}")
 
     adjacent = adjacent_image_pairs(lines)
     if adjacent:
@@ -157,8 +283,10 @@ def check(path: Path) -> dict:
         "file": str(path),
         "title": title,
         "title_type": detect_title_type(title),
+        "image_mode": image_mode,
         "score": score,
         "image_count": img_count,
+        "image_files": image_files,
         "numbered_steps": numbered_steps,
         "adjacent_image_pairs": adjacent,
         "errors": errors,
@@ -170,15 +298,21 @@ def check(path: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check home-cooking article quality.")
     parser.add_argument("article", type=Path)
+    parser.add_argument(
+        "--image-mode",
+        choices=["real", "ai"],
+        default="real",
+        help="real=16-22 self-shot images; ai=5-8 AI original reference images",
+    )
     parser.add_argument("--json", action="store_true", help="print JSON report")
     args = parser.parse_args()
 
-    report = check(args.article)
+    report = check(args.article, image_mode=args.image_mode)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
         status = "PASS" if report["passed"] else "FAIL"
-        print(f"{status} score={report['score']} title_type={report['title_type']}")
+        print(f"{status} score={report['score']} title_type={report['title_type']} image_mode={report['image_mode']}")
         print(f"title: {report['title']}")
         print(f"images: {report['image_count']}")
         for error in report["errors"]:
