@@ -38,12 +38,19 @@ NEGATIVE_PROMPT = (
     "text, watermark, logo, brand packaging, social media UI, menu typography, "
     "people, face, hands, fingers, chopsticks held by a hand, multiple cooking actions, "
     "restaurant advertising, luxury plating, distorted food, duplicated food, "
-    "deformed bowls, blurry, overexposed, underexposed, plastic texture"
+    "deformed bowls, blurry, overexposed, underexposed, plastic texture, "
+    "harsh glare, blown-out highlights, mirror-like tabletop reflection, glossy plastic shine, "
+    "distant food, low-angle kitchen background, sink, faucet, window dominating the frame, "
+    "cabinets dominating the frame, huge empty countertop, tiny dish in a wide kitchen scene, "
+    "gray color cast, dull colors, sterile AI kitchen"
 )
 COMMON_PROMPT = (
-    "普通中国家庭厨房里的真实手机随手拍美食照片，普通白瓷碗盘和日常厨房台面，"
-    "自然窗光混合厨房顶灯，真实食物质感，有轻微油光和自然不完美，"
-    "清晰对焦，构图简洁，非餐厅广告摄影。"
+    "公众号家常饭近景照片，普通手机随手拍质感，45度轻俯拍或自然俯拍，"
+    "食物和餐具占画面70%到85%，只保留少量浅色桌面或厨房台面背景，"
+    "不要让水槽、窗户、橱柜和大面积空台面抢主体。普通白瓷或浅色碗盘，"
+    "自然窗光混合柔和室内光，整体明亮干净但不过曝，真实食物质感，"
+    "汤汁、油光和水光柔和自然，不要大片刺眼高光、过曝白斑或镜面桌面反射，"
+    "颜色鲜亮但不荧光，食材纹理清楚，有家常烟火气，非餐厅广告摄影。"
 )
 
 
@@ -296,24 +303,99 @@ def image_kind(alt: str) -> str:
     return "dish"
 
 
-def build_prompt(slot: ImageSlot) -> str:
+def local_object_constraints(subject: str, *, kind: str, article_text: str | None = None) -> str:
+    """Add explicit constraints for small named objects that models often blur or replace."""
+
+    haystack = subject
+    if kind == "cover" and article_text:
+        haystack = f"{subject}\n{article_text}"
+
+    constraints: list[str] = []
+    if kind == "cover" or any(mark in subject for mark in ["整餐", "搭配", "和", "、"]):
+        constraints.append(
+            "局部物体约束：文章或图位点名的主食、配菜和饮品都必须清楚可见，"
+            "不能被替换成相近物，也不能只作为模糊背景或小点缀。"
+            "局部细节要自然、有食欲，能看出食材纹理、火候和调味线索，避免死板摆拍。"
+        )
+
+    if "豆浆" in haystack:
+        constraints.append(
+            "豆浆必须是杯中乳白色或象牙白的不透明饮品，不能画成茶、咖啡、奶茶、可可或透明水。"
+        )
+    elif kind == "cover" and not any(word in haystack for word in ["豆浆", "汤", "粥", "饮品", "水", "茶"]):
+        constraints.append("不要添加文章没有提到的饮品、水杯、茶杯、酒杯或咖啡杯。")
+    if "拌黄瓜" in haystack or ("黄瓜" in haystack and any(word in haystack for word in ["拌", "蒜汁"])):
+        constraints.append(
+            "拌黄瓜必须装在正常浅盘或小菜碟里，份量清楚可见，不能只是几块很小的装饰或边角点缀。"
+            "黄瓜表面要有自然调味细节，例如少量蒜末、醋汁油光、盐渍水光、芝麻或辣椒点缀中的一两种，"
+            "不能画成完全没调味的生黄瓜块，也不要机械堆满佐料。"
+        )
+    elif "黄瓜" in haystack:
+        constraints.append("黄瓜必须作为可辨认食材出现，颜色和形状清楚，不能虚化成绿色背景。")
+    if "玉米" in haystack:
+        constraints.append(
+            "玉米必须是一段或半根清楚可见的煎玉米，玉米粒分明、颜色金黄，只有少量轻微焦痕，"
+            "不能大片糊黑、不能焦到发苦，也不能被替换成黄色点心。"
+        )
+    if any(word in haystack for word in ["汤面", "面条", "捞面"]) and any(
+        word in haystack for word in ["青菜", "鸡蛋"]
+    ):
+        constraints.append("面条、青菜和鸡蛋要在主碗中分辨清楚，不能画成米饭盖浇或肉菜盖饭。")
+    if "捞面" in haystack:
+        constraints.append(
+            "捞面应是少汤汁的拌面或浇卤面，不是汤面；面条表面能看到番茄鸡蛋豆角卤，"
+            "只允许少量番茄卤汁裹在面条和碗底，不能有大面积红汤，不能把面条泡在汤里。"
+        )
+    if all(word in haystack for word in ["番茄", "鸡蛋", "豆角"]):
+        constraints.append(
+            "番茄鸡蛋豆角卤要有红色番茄块、黄色炒鸡蛋块和绿色长豆角段，三种食材都要可辨。"
+        )
+    if "肉末" in haystack and "茄丁" in haystack:
+        constraints.append("番茄肉末茄丁要表现成小块茄丁和细碎肉末裹番茄汁，不能画成大块牛肉或红烧土豆。")
+    if "空心菜" in haystack:
+        constraints.append("空心菜要有细长空心菜梗和绿叶，可带少量蒜末，不能画成普通小白菜或芦笋。")
+    if "绿豆" in haystack and "小米" in haystack:
+        constraints.append("绿豆小米汤要能看到绿豆和小米颗粒，汤色淡黄或浅绿，不能画成浓稠奶油汤。")
+    if "毛豆" in haystack and "茭白" in haystack:
+        constraints.append("毛豆茭白肉丝要有绿色毛豆粒、浅白茭白条和细肉丝，不能画成豆角土豆或大块肉。")
+    if "丝瓜" in haystack and "鸡蛋" in haystack:
+        constraints.append("丝瓜鸡蛋汤要有浅绿色丝瓜片和黄色蛋花，汤色清亮，不能画成浓汤或绿豆汤。")
+    if "藕片" in haystack:
+        constraints.append("藕片必须是带孔的莲藕圆片或半圆片，带自然凉拌调味光泽，不能画成土豆片或白萝卜片。")
+
+    return "".join(constraints)
+
+
+def build_prompt(slot: ImageSlot, article_text: str | None = None) -> str:
     kind = image_kind(slot.alt)
     subject = slot.alt.removeprefix("示意图：").removeprefix("步骤示意：").removeprefix("成品参考：")
     if kind == "cover":
         direction = (
-            "只展示一顿简单家常饭的整餐搭配，最多三种食物，画面有一个明确视觉中心，"
+            "只展示一顿简单家常饭的整餐搭配，按文章或图位点名的主食、配菜和饮品呈现，"
+            "通常 2-4 样，餐盘之间距离自然，画面有一个明确视觉中心，"
+            "主体靠近镜头，像真实公众号配图而不是厨房环境照，"
             "不要拼贴，不要同时出现多个制作步骤。"
         )
     elif kind == "ingredients":
-        direction = "只展示食材准备和普通砧板小碗，不出现成品菜和烹饪动作。"
+        direction = (
+            "只展示食材准备和普通砧板小碗，食材近景平铺或半俯拍，"
+            "颜色和切配状态清楚，不出现成品菜和烹饪动作。"
+        )
     elif kind == "step":
-        direction = "只展示一个锅或一个碗中的单一步骤状态，不出现手部和第二个烹饪动作。"
+        direction = (
+            "只展示一个锅或一个碗中的单一步骤状态，锅中食材占主体，"
+            "近景看清火候、汤汁和食材纹理，不出现手部和第二个烹饪动作。"
+        )
     elif kind == "detail":
-        direction = "只展示一个主菜或一碗主食的近景细节，背景简洁，不出现复杂摆盘。"
+        direction = (
+            "只展示一个主菜或一碗主食的近景细节，菜品占画面主体，"
+            "能看清汤汁、油光、调味和食材纹理，背景简洁，不出现复杂摆盘。"
+        )
     else:
-        direction = "只展示一个明确的菜品状态，构图简洁。"
+        direction = "只展示一个明确的菜品状态，菜品近景占主体，构图简洁。"
+    object_constraints = local_object_constraints(subject, kind=kind, article_text=article_text)
     return (
-        f"{COMMON_PROMPT} 当前画面主题：{subject}。{direction}"
+        f"{COMMON_PROMPT} 当前画面主题：{subject}。{direction}{object_constraints}"
         "不要文字、不要水印、不要商标、不要人物正脸、不要手部。"
     )
 
@@ -413,7 +495,7 @@ def score_candidate(
     else:
         warnings.append(f"尺寸过低：{width}x{height}")
 
-    if 0.28 <= brightness <= 0.78:
+    if 0.30 <= brightness <= 0.84:
         score += 15
     else:
         warnings.append(f"曝光异常：平均亮度 {brightness:.2f}")
@@ -469,8 +551,8 @@ def postprocess_to_final(source_path: Path, target_path: Path) -> None:
             top = (image.height - crop_height) // 2
             image = image.crop((0, top, image.width, top + crop_height))
         image = image.resize((1536, 1024), Image.Resampling.LANCZOS)
-        image = ImageEnhance.Color(image).enhance(1.03)
-        image = ImageEnhance.Contrast(image).enhance(1.02)
+        image = ImageEnhance.Color(image).enhance(1.07)
+        image = ImageEnhance.Contrast(image).enhance(1.03)
         image = image.filter(ImageFilter.UnsharpMask(radius=1.6, percent=105, threshold=3))
         target_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(target_path, format="JPEG", quality=93, optimize=True, progressive=True)
@@ -598,12 +680,13 @@ def generate_candidate(
     candidate_index: int,
     seed: int,
     article_path: Path,
+    article_text: str | None,
     candidate_root: Path,
     max_wait_seconds: int,
     poll_seconds: float,
     semantic_scorer: OptionalSemanticScorer,
 ) -> Candidate:
-    prompt = build_prompt(slot)
+    prompt = build_prompt(slot, article_text=article_text)
     filename_prefix = (
         f"food_home_cooking/{article_slug(article_path)}/"
         f"slot-{slot.index:02d}-candidate-{candidate_index}"
@@ -653,6 +736,7 @@ def generate_slot(
     candidate_count: int,
     base_seed: int | None,
     article_path: Path,
+    article_text: str | None,
     candidate_root: Path,
     max_wait_seconds: int,
     poll_seconds: float,
@@ -677,6 +761,7 @@ def generate_slot(
                     candidate_index=candidate_index,
                     seed=seed,
                     article_path=article_path,
+                    article_text=article_text,
                     candidate_root=candidate_root,
                     max_wait_seconds=max_wait_seconds,
                     poll_seconds=poll_seconds,
@@ -713,7 +798,7 @@ def run(args: argparse.Namespace) -> int:
         print(f"DRY RUN article={article_path.name} slots={len(slots)} profile={args.profile}")
         for slot in slots:
             print(f"#{slot.index} {slot.target_relative}")
-            print(build_prompt(slot))
+            print(build_prompt(slot, article_text=source_text))
         return 0
 
     client = ComfyClient(args.endpoint, timeout=args.request_timeout)
@@ -746,6 +831,7 @@ def run(args: argparse.Namespace) -> int:
             candidate_count=args.candidate_count,
             base_seed=args.seed,
             article_path=article_path,
+            article_text=source_text,
             candidate_root=candidate_root,
             max_wait_seconds=args.max_wait,
             poll_seconds=args.poll_seconds,

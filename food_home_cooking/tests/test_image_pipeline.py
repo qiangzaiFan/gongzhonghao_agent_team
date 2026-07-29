@@ -55,6 +55,55 @@ class ImagePipelineTests(unittest.TestCase):
         self.assertEqual(workflow["66"]["inputs"]["width"], 960)
         self.assertEqual(workflow["82"]["inputs"]["width"], 1536)
 
+    def test_cover_prompt_strengthens_local_object_constraints(self) -> None:
+        slot = pipeline.ImageSlot(
+            index=1,
+            line_number=13,
+            alt="示意图：一个人早餐的整餐搭配",
+            reference="../images/ai/breakfast.jpg",
+            target_relative="../images/ai/breakfast.jpg",
+            target_path=ROOT / "images" / "ai" / "breakfast.jpg",
+        )
+        article_text = "今天做了鸡蛋青菜汤面、煎半根玉米、拌黄瓜和一杯豆浆。"
+
+        prompt = pipeline.build_prompt(slot, article_text=article_text)
+
+        self.assertIn("局部物体约束", prompt)
+        self.assertIn("食物和餐具占画面70%到85%", prompt)
+        self.assertIn("不要让水槽、窗户、橱柜和大面积空台面抢主体", prompt)
+        self.assertIn("真实公众号配图而不是厨房环境照", prompt)
+        self.assertIn("乳白色或象牙白", prompt)
+        self.assertIn("不能画成茶、咖啡、奶茶、可可或透明水", prompt)
+        self.assertIn("食材纹理、火候和调味线索", prompt)
+        self.assertIn("避免死板摆拍", prompt)
+        self.assertIn("正常浅盘或小菜碟", prompt)
+        self.assertIn("不能只是几块很小的装饰或边角点缀", prompt)
+        self.assertIn("少量蒜末、醋汁油光、盐渍水光、芝麻或辣椒点缀", prompt)
+        self.assertIn("不要机械堆满佐料", prompt)
+        self.assertIn("半根清楚可见的煎玉米", prompt)
+        self.assertIn("玉米粒分明、颜色金黄", prompt)
+        self.assertIn("不能大片糊黑", prompt)
+        self.assertIn("不能画成米饭盖浇或肉菜盖饭", prompt)
+        self.assertNotIn("最多三种食物", prompt)
+
+    def test_noodle_prompt_keeps_henan_noodles_from_becoming_soup(self) -> None:
+        slot = pipeline.ImageSlot(
+            index=1,
+            line_number=13,
+            alt="示意图：河南家常番茄鸡蛋豆角捞面整餐",
+            reference="../images/ai/noodles.jpg",
+            target_relative="../images/ai/noodles.jpg",
+            target_path=ROOT / "images" / "ai" / "noodles.jpg",
+        )
+        article_text = "主食是番茄鸡蛋豆角卤捞面，旁边配了一小碗蒜汁黄瓜。"
+
+        prompt = pipeline.build_prompt(slot, article_text=article_text)
+
+        self.assertIn("捞面应是少汤汁的拌面或浇卤面，不是汤面", prompt)
+        self.assertIn("红色番茄块、黄色炒鸡蛋块和绿色长豆角段", prompt)
+        self.assertIn("正常浅盘或小菜碟", prompt)
+        self.assertIn("不要添加文章没有提到的饮品", prompt)
+
     def test_score_candidate_accepts_sharp_final_image(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             image_path = Path(tmp) / "candidate.jpg"
