@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-30T08:33:26+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_body-borrowed-away.md",
+  "article_sha256": "a7aa1208adffbf505cd5740139240d33d6d63f705e29d48380de05e40a7c3ae4",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.15,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 155,
+      "category": "human",
+      "ai_probability": 1.12,
+      "preview": "人到后半生，别再把身体借给别人 人到后半生，最怕的不是忙一点，累一点，而是你明明已经撑不住了，还总觉得别人比你更要紧。孩子一句“妈，你帮我一下”，亲戚一句“就这"
+    },
+    {
+      "order": 2,
+      "chars": 164,
+      "category": "human",
+      "ai_probability": 1.14,
+      "preview": "白天忙完，夜里躺在床上，脑子还在转。床头的药盒越放越满，水杯里的水凉了又热，手机亮一下，你还是忍不住拿起来看。你以为自己只是睡得浅，饭吃得少，胸口偶尔堵一下。其"
+    },
+    {
+      "order": 3,
+      "chars": 127,
+      "category": "human",
+      "ai_probability": 1.1,
+      "preview": "你不是谁的万能药。别把命用在不值得的事上 人最亏的地方，是把自己累坏以后，还觉得自己做得不够。孩子的日子，你替不了一辈子。亲戚的难处，你也背不完。朋友的一句话，"
+    },
+    {
+      "order": 4,
+      "chars": 169,
+      "category": "human",
+      "ai_probability": 1.25,
+      "preview": "能自己下楼买菜，能自己把饭吃到嘴里，能夜里醒来摸到床头的水杯，这些看起来平常，其实就是晚年的底气。别等到体检单放在桌上，医保卡攥在手里，才想起那些让你整夜睡不着"
+    },
+    {
+      "order": 5,
+      "chars": 109,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "累了就坐一会儿，不舒服就休息，话说不动就不说。这不是冷漠，是你终于知道，自己的命也很贵。今晚就先做一件小事：把手机放远一点，药该吃就吃，灯早点关。睡不着也别再反"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

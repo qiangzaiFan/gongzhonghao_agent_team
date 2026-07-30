@@ -1,0 +1,21 @@
+{
+  "weekly_mix": {
+    "body_restart": 2,
+    "emotion_health": 2,
+    "children_boundary": 1,
+    "money_security": 1,
+    "solitude_self_rescue": 1
+  },
+  "publishing_rules": [
+    "每周至少4张风格卡轮换使用",
+    "连续3篇不能都以人老了开头",
+    "连续3篇不能都写子女边界",
+    "医疗相关强痛点标题每周不超过2篇",
+    "高风险文章必须经过elder-chief-editor二审和人工复核"
+  ],
+  "score_thresholds": {
+    "publish": 90,
+    "usable_after_light_edit": 85,
+    "rewrite": 75
+  }
+}

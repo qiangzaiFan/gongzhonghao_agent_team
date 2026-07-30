@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-07-30T08:33:26+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_children-boundary.md",
+  "article_sha256": "c6cde59b6e0a9dc1dff4650c5aaadd2752b4c4240cef36d111b932fca668b759",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.26,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 139,
+      "category": "human",
+      "ai_probability": 1.28,
+      "preview": "孩子再忙，你也要给自己留条退路 人老了以后，最容易难过的，不是孩子真的不爱你，而是你突然发现，孩子的生活里，已经没有那么多位置留给你。电话打来得越来越短。不是问"
+    },
+    {
+      "order": 2,
+      "chars": 158,
+      "category": "human",
+      "ai_probability": 1.71,
+      "preview": "孩子房贷紧，你想补一点；孩子带娃累，你想过去帮几天；孩子语气急了，你还替他解释，说年轻人压力大。这些都不是错。可到了后半生，你要慢慢明白，爱孩子不是把自己掏空。"
+    },
+    {
+      "order": 3,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.03,
+      "preview": "门钥匙要留在自己手里，银行卡也要留在自己手里。更重要的是，心里的主心骨，也要留在自己这里。你也需要一条退路 真正舒服的亲子关系，不是你随叫随到，也不是孩子事事围"
+    },
+    {
+      "order": 4,
+      "chars": 149,
+      "category": "human",
+      "ai_probability": 1.15,
+      "preview": "人到晚年，最怕的不是少帮一次孩子，而是把自己帮到没有退路。等你真需要人照顾时，才发现钱给出去了，身体累坏了，话也不好开口了。所以，有些事能帮就帮，不能帮就慢一点"
+    },
+    {
+      "order": 5,
+      "chars": 125,
+      "category": "human",
+      "ai_probability": 1.09,
+      "preview": "你的晚饭也要吃，你的药也要按时吃，你楼下那两圈路也要慢慢走。一个家里，父母和孩子最好的样子，不是谁欠谁，也不是谁拖着谁，而是各自把日子过稳，彼此有事时还能好好说"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}
