@@ -2,7 +2,7 @@
   "schema_version": 1,
   "detector": "local-chinese-bert",
   "model": "AnxForever/chinese-ai-detector-bert",
-  "detected_at": "2026-07-30T08:33:26+08:00",
+  "detected_at": "2026-07-30T12:27:54+08:00",
   "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_body-borrowed-away.md",
   "article_sha256": "a7aa1208adffbf505cd5740139240d33d6d63f705e29d48380de05e40a7c3ae4",
   "thresholds": {

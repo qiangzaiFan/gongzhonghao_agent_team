@@ -45,13 +45,14 @@
 6. `specs/style_cards.md`
 7. `specs/production_workflow.md`
 8. `specs/illustration_policy.md`
-9. `specs/topic_calendar_30d.md`
-10. `.claude/agents/elder-title-editor.md`
-11. `.claude/agents/elder-healing-writer.md`
-12. `.claude/agents/elder-chief-editor.md`
-13. `templates/topic_card.md`
-14. `templates/article_template.md`
-15. `quality_gate.py`
+9. `references/illustration_reference_analysis.md`
+10. `specs/topic_calendar_30d.md`
+11. `.claude/agents/elder-title-editor.md`
+12. `.claude/agents/elder-healing-writer.md`
+13. `.claude/agents/elder-chief-editor.md`
+14. `templates/topic_card.md`
+15. `templates/article_template.md`
+16. `quality_gate.py`
 
 ## 推荐工作流
 

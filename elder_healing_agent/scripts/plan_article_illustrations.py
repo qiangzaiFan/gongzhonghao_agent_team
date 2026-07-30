@@ -175,6 +175,34 @@ PILLAR_KEYWORDS = [
     ("solitude_self_rescue", ["独处", "一个人", "清净", "自渡"]),
 ]
 
+QUOTE_LIBRARY: dict[str, dict[str, list[str]]] = {
+    "body_restart": {
+        "opening": ["后半生别再\n把身体借给别人", "身体撑不住时\n先把自己收回来"],
+        "conflict": ["别把命\n用在不值得的人和事上", "身体是晚年\n最大的本钱"],
+        "closing": ["今晚早点关灯\n把命放回自己手里", "先吃饭先睡觉\n日子才会慢慢稳"],
+    },
+    "children_boundary": {
+        "opening": ["孩子再忙\n你也要留条退路", "爱孩子\n也要有分寸"],
+        "conflict": ["钱和身体\n都要留在自己手里", "帮孩子之前\n先看看自己的退路"],
+        "closing": ["爱还在\n日子要先稳住自己", "孩子有路\n你也要过好自己"],
+    },
+    "money_security": {
+        "opening": ["晚年的底气\n藏在手里的钱里", "钱不是贪心\n是晚年的退路"],
+        "conflict": ["看清一个人\n有时要谈钱", "该留的钱\n别轻易拿出去"],
+        "closing": ["守住选择权\n心里才安稳", "钱留一点\n日子就稳一点"],
+    },
+    "emotion_health": {
+        "opening": ["最伤身体的\n是长期生闷气", "别人的脸色\n别放进自己心里"],
+        "conflict": ["情绪堵久了\n身体会提醒你", "少争一口气\n多睡一个好觉"],
+        "closing": ["洗把脸睡一觉\n心就慢慢松了", "少想一点\n今晚先好好睡"],
+    },
+    "solitude_self_rescue": {
+        "opening": ["一个人吃饭\n也能把日子过暖", "清净不是孤独\n是把心收回来"],
+        "conflict": ["朋友圈变小\n日子反而安静", "不合群没关系\n别委屈自己"],
+        "closing": ["把饭吃热\n把心放稳", "一个人也要\n好好过日子"],
+    },
+}
+
 
 def read_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
     if not path.exists():
@@ -231,21 +259,50 @@ def choose_scene(pillar: str, slot: str, used_keys: set[str]) -> dict[str, str]:
     return scenes[0] if scenes else fallback_scenes[0]
 
 
-def build_prompt(title: str, scene: dict[str, str], slot: str) -> str:
-    return f"""Original illustration brief for 晴川黄鹤.
+def choose_quote(pillar: str, slot: str, used_quotes: set[str], title: str) -> str:
+    quotes = QUOTE_LIBRARY.get(pillar, QUOTE_LIBRARY["body_restart"]).get(slot, [])
+    for quote in quotes:
+        if quote not in used_quotes:
+            return quote
+    compact_title = re.sub(r"[，。、“”\"'：:；;！？!\?\s]+", "\n", title).strip()
+    parts = [part for part in compact_title.splitlines() if part]
+    if len(parts) >= 2:
+        return "\n".join(parts[:2])
+    return title[:14]
+
+
+def build_prompt(title: str, scene: dict[str, str], slot: str, quote: str) -> str:
+    return f"""Original illustration quote-card brief for 晴川黄鹤.
 
 Article title: {title}
 Image slot: {slot}
 Scene summary: {scene['summary']}
+Final card quote text:
+{quote}
 
-Prompt:
-Original gentle watercolor comic illustration for a Chinese WeChat article.
-Warm off-white textured rice-paper background, soft ink line art, muted watercolor colors.
-Scene: {scene['scene']}.
-Mood: quiet, healing, clear, warm, not sentimental, not frightening.
-Composition: centered subject, generous blank paper margin, readable on mobile, no crowded details.
-Brand feeling: calm later-life healing, a little classical Chinese warmth, original visual identity.
-Avoid: no Chinese characters, no calligraphy, no captions, no logo, no watermark, no red stamp, no signature, no Yue Man mark, no copied composition, no scary hospital scene, no exaggerated tears.
+Target effect:
+Square Chinese WeChat watercolor comic quote-card, similar category to a hand-painted collectible article illustration card, but fully original to 晴川黄鹤.
+
+Canvas and layout:
+- 1:1 square card.
+- Full warm off-white rough rice-paper texture background.
+- Upper/middle 55%-65%: detailed hand-drawn watercolor comic scene.
+- Bottom 30%-40%: large dark gray / ink-black Chinese brush-calligraphy quote area.
+- Lower right: small original red seal for 晴川黄鹤 only. Do not use Yue Man or any copied mark.
+
+Illustration scene:
+{scene['scene']}.
+
+Visual style:
+Hand-drawn ink outline, visible watercolor wash, paper grain, warm muted colors, gentle humor, mature healing feeling, not childish, not flat vector, not PowerPoint icon style.
+
+Typography instruction:
+The final Chinese card text must read exactly:
+"{quote.replace(chr(10), ' / ')}"
+If the image model cannot render Chinese perfectly, generate the illustration without text but reserve the bottom quote area for post-production text overlay.
+
+Avoid:
+No Yue Man mark, no Yue Man signature, no copied composition from reference images, no copied red stamp, no watermark, no garbled Chinese, no random extra characters, no frightening hospital scene, no exaggerated tears, no low-quality flat vector placeholder.
 """
 
 
@@ -258,7 +315,13 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
     title, body = extract_article(article_path)
     pillar = infer_pillar(title, body)
     manifest = read_manifest()
-    used_keys = {item.get("scene_key", "") for item in manifest.get("assignments", [])}
+    existing = [
+        item
+        for item in manifest.get("assignments", [])
+        if Path(item.get("article", "")).resolve() != article_path
+    ]
+    used_keys = {item.get("scene_key", "") for item in existing}
+    used_quotes = {item.get("quote", "") for item in existing}
     date = datetime.now().strftime("%Y%m%d")
     base_slug = short_slug(title, article_path.stem)
     slots = [("01", "opening"), ("02", "conflict"), ("03", "closing")]
@@ -267,10 +330,12 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
     for number, slot in slots:
         scene = choose_scene(pillar, slot, used_keys)
         used_keys.add(scene["key"])
+        quote = choose_quote(pillar, slot, used_quotes, title)
+        used_quotes.add(quote)
         filename = f"{date}_{base_slug}_{number}_{slot}.png"
         target = IMAGE_DIR / filename
         prompt_path = PROMPT_DIR / f"{Path(filename).stem}.prompt.md"
-        prompt = build_prompt(title, scene, slot)
+        prompt = build_prompt(title, scene, slot, quote)
         PROMPT_DIR.mkdir(parents=True, exist_ok=True)
         IMAGE_DIR.mkdir(parents=True, exist_ok=True)
         prompt_path.write_text(prompt, encoding="utf-8")
@@ -283,6 +348,7 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
             "number": number,
             "scene_key": scene["key"],
             "summary": scene["summary"],
+            "quote": quote,
             "target": str(target),
             "article_relative_target": f"../images/illustrations/{filename}",
             "prompt_path": str(prompt_path),
@@ -290,9 +356,6 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         }
         assignments.append(assignment)
-
-    existing = manifest.get("assignments", [])
-    existing = [item for item in existing if Path(item.get("article", "")).resolve() != article_path]
 
     if apply:
         insert_illustrations(article_path, assignments, force=force)

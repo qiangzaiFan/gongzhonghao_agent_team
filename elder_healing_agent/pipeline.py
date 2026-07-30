@@ -112,11 +112,7 @@ def build_runbook(topic: str, pillar: str, article_path: Path, run_dir: Path) ->
 python elder_healing_agent/scripts/plan_article_illustrations.py {article_path} --apply
 ```
 
-5. 按 `images/illustrations/prompts/` 的 prompt 生成 3 张原创图片，保存到文章引用的本地路径。没有 AI 出图工具时，先运行本地原创占位图渲染：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File elder_healing_agent/scripts/render_manifest_illustrations.ps1
-```
+5. 按 `images/illustrations/prompts/` 的 prompt 生成 3 张原创图片，保存到文章引用的本地路径。没有 AI 出图或手绘成图时，停在 prompt 阶段，不生成低质占位图冒充成品。
 
 6. 运行质检：
 

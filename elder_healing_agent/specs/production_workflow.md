@@ -47,11 +47,7 @@ python elder_healing_agent/ai_detector.py elder_healing_agent/articles/ARTICLE.m
 python elder_healing_agent/scripts/plan_article_illustrations.py elder_healing_agent/articles/ARTICLE.md --apply
 ```
 
-无 AI 出图工具时，先生成原创占位插图：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File elder_healing_agent/scripts/render_manifest_illustrations.ps1
-```
+没有 AI 出图或手绘成图时，停在 prompt 阶段，不生成低质占位图冒充成品。
 
 发布前严格检查图片文件：
 

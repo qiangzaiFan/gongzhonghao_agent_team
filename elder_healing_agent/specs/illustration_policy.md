@@ -1,16 +1,17 @@
-# 原创漫画插图规范
+# 原创漫画金句卡规范
 
 ## 目标
 
-每篇文章固定 3 张原创插图，要求图文高度贴合、温柔、清醒、有生活场景，整体服务“晴川黄鹤”的后半生疗愈定位。
+每篇文章固定 3 张原创插图，成品不是普通配图，而是可收藏、可转发的“水彩漫画金句卡”。要求图文高度贴合、温柔、清醒、有生活场景，整体服务“晴川黄鹤”的后半生疗愈定位。
 
 参考悦漫先生的是高层方法：
 
-- 纸张纹理背景。
-- 漫画/水彩质感。
-- 一个清楚的情绪场景。
-- 插图和文章主题强绑定。
-- 图像有温柔幽默感，不冰冷。
+- 1:1 正方形卡片。
+- 满版米白/宣纸/粗纸纹理背景。
+- 上半部或中上部是一组水彩漫画主体，主体细节足够丰富。
+- 下半部是 1-2 行大号毛笔字/手写感金句。
+- 右下角有小红章和品牌署名感。
+- 漫画主体和文章主题强绑定，有温柔幽默感，不冰冷。
 
 不能复用的是具体资产：
 
@@ -23,21 +24,38 @@
 
 关键词：
 
-- 温柔水彩漫画。
-- 米白色纸纹背景。
-- 细黑线稿，淡彩上色。
+- 温柔水彩漫画金句卡。
+- 米白色粗纸纹/宣纸纹背景，整张图都有纸感。
+- 细黑线稿，淡彩上色，局部有水彩晕染和手绘笔触。
+- 下半部大号深灰/墨黑毛笔字，字要厚、稳、有手写感。
+- 右下角使用自有小红章，可写“晴”或“晴川”，旁边可有小号“晴川黄鹤”。
 - 中老年生活物件：药盒、水杯、饭碗、手机、体检单、医保卡、退休金短信、厨房灯、楼下路灯。
-- 可选品牌意象：淡金色小鹤、晴川水面、暖日、窗边小灯。
+- 可选品牌意象：淡金色小鹤、温柔小猫、小熊/小狗等拟人动物、晴川水面、暖日、窗边小灯。
 - 情绪：安静、清醒、松一口气、终于把自己放回前面。
 
 避免：
 
-- 大段图中文字。
-- 书法标题字。
-- 红色印章和签名。
+- AI 直接生成长中文导致乱码。
+- 低质扁平矢量图、PPT 图标感、儿童贴纸感。
+- 空白太多、主体太小、细节太少。
+- Yue Man 红章、签名、Yue Man 字样或可识别构图。
 - 夸张病痛、医院恐惧、哭泣卖惨。
 - 低幼卡通、过度可爱、网红表情包。
 - AI 感强的复杂细节和错误文字。
+
+## 参考图效果拆解
+
+用户提供的参考图不是“文章里插一张小画”那么简单，而是以下组合：
+
+1. 画布：正方形，米白粗纸纹满版背景，整体干净。
+2. 主体：中上部有水彩漫画主体，例如生病的动物、抱钱的动物、星空下的人、沙漏与花枝。
+3. 线稿：外轮廓有明显手绘黑线，边缘不完全机械，颜色有水彩渗化。
+4. 字体：下方大字是深灰毛笔字，字重很大，通常占画面 25%-40%。
+5. 品牌：右下角红色小印章加小署名，形成固定记忆点。
+6. 情绪：画面有一点幽默，但不是幼稚；有疗愈感，但不是空泛风景。
+7. 主题：每张图必须能一眼对应文章判断，例如“生病提醒你停下”“谈钱看清关系”“躺在病床上才懂输赢可以放下”。
+
+之前本地脚本生成的扁平小鹤图不符合本规范，不能作为发布成品。
 
 ## 每篇 3 图结构
 
@@ -82,19 +100,30 @@
 - 文章对应情绪。
 - 具体物件。
 - 构图。
-- 水彩漫画纸纹风格。
-- 禁止文字、水印、签名、印章。
+- 水彩漫画金句卡风格。
+- 金句文字内容。
+- 自有红章/署名规则。
+- 禁止 Yue Man、水印、搬运构图。
 
 推荐英文提示词框架：
 
 ```text
-Original gentle watercolor comic illustration for a Chinese WeChat article.
-Warm off-white textured paper background, soft ink line art, muted watercolor colors.
-Scene: ...
-Mood: quiet, healing, clear, not sentimental.
-Composition: centered subject, generous blank paper margin, readable on mobile.
-No text, no calligraphy, no logo, no watermark, no stamp, no signature, no Yue Man mark.
+Original square watercolor comic quote-card for a Chinese WeChat article.
+Warm off-white rough rice-paper texture across the whole background.
+Upper/middle illustration: ...
+Style: hand-drawn ink outline, watercolor wash, soft paper grain, warm and healing, slightly humorous but mature.
+Bottom typography area: reserve 30%-40% of the canvas for large bold Chinese brush-calligraphy text.
+Final Chinese text overlay: "..."
+Brand mark: use only Qingchuan Huanghe's own small red seal, not Yue Man.
+Avoid: no Yue Man mark, no copied composition, no watermark, no garbled Chinese, no flat vector icon style, no PowerPoint illustration, no childish sticker style.
 ```
+
+为了避免 AI 生成中文乱码，正式生产建议采用“两步法”：
+
+1. 出图模型只生成无文字主体插画和纸纹背景，底部预留大字区域。
+2. 后期用本地排版脚本或设计软件叠加准确中文金句、自有红章和“晴川黄鹤”小署名。
+
+如果使用的出图模型中文能力很强，也可以直接生成文字版，但必须人工逐字核对。
 
 ## 去重规则
 
@@ -108,7 +137,9 @@ No text, no calligraphy, no logo, no watermark, no stamp, no signature, no Yue M
 
 - 每篇正好 3 张图。
 - 图像必须为原创、自有或明确授权。
-- 图片无文字、无水印、无印章、无签名。
+- 图片大字必须准确，无乱码、错字、断句错误。
+- 只能使用晴川黄鹤自有红章/署名，不能使用悦漫先生红章、签名或 Yue Man 字样。
+- 成品不能是本地扁平矢量占位图。
 - 图片主题与段落内容一致。
 - 图片之间有文字承接，不连续堆图。
 - 文件路径存在，能被发布流程读取。
