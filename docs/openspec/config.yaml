@@ -1,0 +1,45 @@
+schema: spec-driven
+
+context: |
+  项目类型：多赛道公众号内容生产工作区。
+  主要语言：Python 脚本 + Markdown 内容草稿 + 本地图片/图表资产。
+  核心赛道目录：
+    - astrology_content：安夏星座短文号，含选题排期、生成、质检、日运卡片和表现复盘。
+    - emotion_women：情感女性公众号，含链接原创转化、人设图、图池、AIGC 检测和草稿箱发布。
+    - food_home_cooking：家常美食公众号，含暖暖小厨风格规范、本地配图和质检。
+    - media_agent：AI 科技资讯公众号，含近 24 小时热点生成与草稿箱发布。
+    - investment_insights：投资财经内容与图表脚本，事实和风险提示需要人工复核。
+    - military_frontier：军事前沿内容脚本，事实来源和平台合规需要人工复核。
+  协作约定：
+    - 需求、行为变化和验收标准必须进入 docs/openspec/。
+    - 设计、计划、执行报告必须进入 docs/superpowers/。
+    - 变更阶段、当前 change 和恢复状态由 .comet/ 与每个 change 的 .comet.yaml 管理。
+    - 业务目录已有 README、CLAUDE.md、specs/ 时，优先遵守本地规则。
+    - 带 --publish 的流程只推送到微信公众号草稿箱，不等于正式群发。
+    - 凭证、API Key、.mcp.json、虚拟环境、日志、输出缓存和临时图不应提交。
+    - 内容生成后必须根据对应赛道运行质量检查；财经、军事、医疗、法律等高风险内容必须人工核对事实来源和日期。
+
+rules:
+  proposal:
+    - 明确写出目标、非目标、涉及目录、不会触发的发布动作。
+    - 对跨赛道变更说明影响范围；单赛道变更必须限定在对应目录。
+  specs:
+    - Requirements 必须用可验证的 Scenario 描述。
+    - 内容生产相关需求必须覆盖原创边界、质检、复盘或发布前人工审核中的至少一个环节。
+  design:
+    - 优先复用各赛道已有 README、CLAUDE.md、specs/ 和质量门槛。
+    - 说明是否需要新增依赖、凭证、外部网络访问或发布动作。
+  tasks:
+    - 每个任务必须可在一次工作会话内完成，并能说明验证命令或人工验收口径。
+    - 涉及公众号发布、图片生成、财经/军事事实核验的任务必须保留人工确认步骤。
+
+operations:
+  apply:
+    guidance:
+      - 改业务代码前先确认当前 Comet change；不要把无关修改挂到 active change。
+      - 能跑单目录测试就优先跑单目录测试；跨目录改动再扩大验证范围。
+      - 不要提交真实凭证、发布缓存、虚拟环境、临时图或生成日志。
+  archive:
+    guidance:
+      - 归档前总结影响目录、验证证据和仍需人工复核的事项。
+      - 归档后保持 docs/openspec/specs/ 与实际项目规则一致。
