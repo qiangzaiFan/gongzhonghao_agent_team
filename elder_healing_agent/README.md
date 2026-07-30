@@ -34,7 +34,8 @@ elder_healing_agent/
 ├── scripts/
 │   ├── analyze_reference_corpus.py
 │   ├── batch_quality.py
-│   └── plan_article_illustrations.py
+│   ├── plan_article_illustrations.py
+│   └── render_manifest_illustrations.ps1
 ├── references/
 │   └── corpus_report.md
 ├── data/
@@ -110,6 +111,14 @@ python scripts/plan_article_illustrations.py articles/文章名.md --apply
 - 文章中的 3 个 Markdown 插图位。
 - `images/illustrations/prompts/` 下的 3 个出图 prompt。
 - `data/illustration_manifest.json` 下的去重记录。
+
+如果当前环境没有 AI 出图工具，可以先生成一批原创占位插图：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/render_manifest_illustrations.ps1
+```
+
+占位插图会读取 `data/illustration_manifest.json`，按每篇文章的 3 个场景生成本地 PNG。正式发布前仍建议人工审图；有更好的 AI/手绘成图时，可直接替换同名 PNG。
 
 插图边界：
 
