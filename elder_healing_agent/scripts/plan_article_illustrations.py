@@ -16,6 +16,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 ARTICLES_DIR = BASE_DIR / "articles"
 IMAGE_DIR = BASE_DIR / "images" / "illustrations"
 PROMPT_DIR = IMAGE_DIR / "prompts"
+SOURCE_DIR = IMAGE_DIR / "sources"
 MANIFEST_PATH = BASE_DIR / "data" / "illustration_manifest.json"
 
 
@@ -271,7 +272,7 @@ def choose_quote(pillar: str, slot: str, used_quotes: set[str], title: str) -> s
     return title[:14]
 
 
-def build_prompt(title: str, scene: dict[str, str], slot: str, quote: str) -> str:
+def build_prompt(title: str, scene: dict[str, str], slot: str, quote: str, source_name: str) -> str:
     return f"""Original illustration quote-card brief for 晴川黄鹤.
 
 Article title: {title}
@@ -300,6 +301,14 @@ Typography instruction:
 The final Chinese card text must read exactly:
 "{quote.replace(chr(10), ' / ')}"
 If the image model cannot render Chinese perfectly, generate the illustration without text but reserve the bottom quote area for post-production text overlay.
+
+Recommended stable production:
+1. Generate a no-text watercolor base illustration with the same paper texture and bottom empty quote area.
+2. Save that base art as:
+   images/illustrations/sources/{source_name}
+3. Run:
+   python scripts/compose_quote_cards.py
+4. The compositor will overlay exact Chinese brush text and the 晴川黄鹤 red seal into the final PNG.
 
 Avoid:
 No Yue Man mark, no Yue Man signature, no copied composition from reference images, no copied red stamp, no watermark, no garbled Chinese, no random extra characters, no frightening hospital scene, no exaggerated tears, no low-quality flat vector placeholder.
@@ -334,10 +343,12 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
         used_quotes.add(quote)
         filename = f"{date}_{base_slug}_{number}_{slot}.png"
         target = IMAGE_DIR / filename
+        source = SOURCE_DIR / f"{Path(filename).stem}_base.png"
         prompt_path = PROMPT_DIR / f"{Path(filename).stem}.prompt.md"
-        prompt = build_prompt(title, scene, slot, quote)
+        prompt = build_prompt(title, scene, slot, quote, source.name)
         PROMPT_DIR.mkdir(parents=True, exist_ok=True)
         IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+        SOURCE_DIR.mkdir(parents=True, exist_ok=True)
         prompt_path.write_text(prompt, encoding="utf-8")
         assignment = {
             "article": str(article_path),
@@ -350,6 +361,8 @@ def make_plan(article_path: Path, apply: bool = False, force: bool = False) -> l
             "summary": scene["summary"],
             "quote": quote,
             "target": str(target),
+            "source": str(source),
+            "source_relative_target": f"../images/illustrations/sources/{source.name}",
             "article_relative_target": f"../images/illustrations/{filename}",
             "prompt_path": str(prompt_path),
             "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),

@@ -28,5 +28,13 @@ The final Chinese card text must read exactly:
 "钱和身体 / 都要留在自己手里"
 If the image model cannot render Chinese perfectly, generate the illustration without text but reserve the bottom quote area for post-production text overlay.
 
+Recommended stable production:
+1. Generate a no-text watercolor base illustration with the same paper texture and bottom empty quote area.
+2. Save that base art as:
+   images/illustrations/sources/20260730_children_02_conflict_base.png
+3. Run:
+   python scripts/compose_quote_cards.py
+4. The compositor will overlay exact Chinese brush text and the 晴川黄鹤 red seal into the final PNG.
+
 Avoid:
 No Yue Man mark, no Yue Man signature, no copied composition from reference images, no copied red stamp, no watermark, no garbled Chinese, no random extra characters, no frightening hospital scene, no exaggerated tears, no low-quality flat vector placeholder.

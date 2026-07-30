@@ -12,10 +12,12 @@
       "summary": "床头药盒和温水旁，一只淡金色小鹤安静坐着",
       "quote": "后半生别再\n把身体借给别人",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_body_01_opening.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_body_01_opening_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_body_01_opening_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_01_opening.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_01_opening.prompt.md",
-      "prompt_sha256": "1016e1f0da765b2407a14ba394b855adfd56aed1a9981a18d2c462f586f0e15f",
-      "created_at": "2026-07-30T12:26:32+08:00"
+      "prompt_sha256": "c8789715d1b8410238f46ec9de7231c5048af4c14c7e6a8b73276abe75015507",
+      "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
       "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_body-borrowed-away.md",
@@ -28,10 +30,12 @@
       "summary": "亮起的手机旁放着没吃完的饭，情绪有点堵",
       "quote": "别把命\n用在不值得的人和事上",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_body_02_conflict.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_body_02_conflict_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_body_02_conflict_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_02_conflict.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_02_conflict.prompt.md",
-      "prompt_sha256": "ed1ddafe9eb5fde53166b7769c4b934588860be1563fc93771471339ee21f2fe",
-      "created_at": "2026-07-30T12:26:32+08:00"
+      "prompt_sha256": "a460b2f5df78af542e4ad0b374ec3f9e7e6b0b4ac8f22ef3539555339921cef1",
+      "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
       "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_body-borrowed-away.md",
@@ -44,10 +48,12 @@
       "summary": "睡前关灯，床头只留一杯温水",
       "quote": "今晚早点关灯\n把命放回自己手里",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_body_03_closing.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_body_03_closing_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_body_03_closing_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_03_closing.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_03_closing.prompt.md",
-      "prompt_sha256": "d6956acaec4b3b27ea7eabb3897a26d2ed0905b547827b248c73a4f6e4d18897",
-      "created_at": "2026-07-30T12:26:32+08:00"
+      "prompt_sha256": "8421b2c24737a3f7318f687770533751fba276f5fc9bfb437656c9cab0cfbde2",
+      "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
       "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_children-boundary.md",
@@ -60,10 +66,12 @@
       "summary": "厨房小灯下，手机刚挂断，饭碗还放在桌上",
       "quote": "孩子再忙\n你也要留条退路",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_children_01_opening.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_children_01_opening_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_children_01_opening_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_01_opening.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_01_opening.prompt.md",
-      "prompt_sha256": "f63d5c72121d01821faf2802fe0e231e62de73db378c19ce191de80b63d62542",
-      "created_at": "2026-07-30T12:26:48+08:00"
+      "prompt_sha256": "9d1025742543b09803169c09e42d3e7b99360f367af830afb65f53b0187974ec",
+      "created_at": "2026-07-30T12:45:48+08:00"
     },
     {
       "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_children-boundary.md",
@@ -76,10 +84,12 @@
       "summary": "银行卡、药盒和饭碗放在同一张桌上",
       "quote": "钱和身体\n都要留在自己手里",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_children_02_conflict.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_children_02_conflict_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_children_02_conflict_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_02_conflict.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_02_conflict.prompt.md",
-      "prompt_sha256": "be15c2f8aae8f9a343857026c863104d97ff98d42aee9b049154c379ec163c0b",
-      "created_at": "2026-07-30T12:26:48+08:00"
+      "prompt_sha256": "08b6c4617c58a9503530e778b00a7748a0ce7be9d4504c9920e056556a2a07d0",
+      "created_at": "2026-07-30T12:45:48+08:00"
     },
     {
       "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\articles\\20260730_children-boundary.md",
@@ -92,10 +102,12 @@
       "summary": "手机放桌边，一顿简单晚饭还热着",
       "quote": "爱还在\n日子要先稳住自己",
       "target": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\20260730_children_03_closing.png",
+      "source": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\sources\\20260730_children_03_closing_base.png",
+      "source_relative_target": "../images/illustrations/sources/20260730_children_03_closing_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_03_closing.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_03_closing.prompt.md",
-      "prompt_sha256": "e053e322e08a5eaa5837e5f14bbbbcc26bf6c2762891407262964c81083176e4",
-      "created_at": "2026-07-30T12:26:48+08:00"
+      "prompt_sha256": "a085564f938a24bcd48ddc54ea3f8cb064b28057583a80227e12c00ac15a3d3f",
+      "created_at": "2026-07-30T12:45:48+08:00"
     }
   ]
 }

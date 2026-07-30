@@ -121,7 +121,7 @@ Avoid: no Yue Man mark, no copied composition, no watermark, no garbled Chinese,
 为了避免 AI 生成中文乱码，正式生产建议采用“两步法”：
 
 1. 出图模型只生成无文字主体插画和纸纹背景，底部预留大字区域。
-2. 后期用本地排版脚本或设计软件叠加准确中文金句、自有红章和“晴川黄鹤”小署名。
+2. 后期运行 `scripts/compose_quote_cards.py`，叠加准确中文金句、自有红章和“晴川黄鹤”小署名。
 
 如果使用的出图模型中文能力很强，也可以直接生成文字版，但必须人工逐字核对。
 

@@ -34,6 +34,7 @@ elder_healing_agent/
 ├── scripts/
 │   ├── analyze_reference_corpus.py
 │   ├── batch_quality.py
+│   ├── compose_quote_cards.py
 │   └── plan_article_illustrations.py
 ├── references/
 │   └── corpus_report.md
@@ -110,6 +111,11 @@ python scripts/plan_article_illustrations.py articles/文章名.md --apply
 - 文章中的 3 个 Markdown 插图位。
 - `images/illustrations/prompts/` 下的 3 个出图 prompt。
 - `data/illustration_manifest.json` 下的去重记录。
+
+推荐两步生产：
+
+1. 按 prompt 生成无字水彩主体图，保存到 `images/illustrations/sources/xxx_base.png`。
+2. 运行 `python scripts/compose_quote_cards.py`，自动叠加准确中文大字、自有红章和署名，生成文章引用的最终 PNG。
 
 正式图片必须用 AI 出图或手绘方式生成，不能用本地扁平占位图冒充。发布前运行 `quality_gate.py --require-image-files`，缺少成品 PNG 时不得发布。
 

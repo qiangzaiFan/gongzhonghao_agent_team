@@ -112,22 +112,28 @@ def build_runbook(topic: str, pillar: str, article_path: Path, run_dir: Path) ->
 python elder_healing_agent/scripts/plan_article_illustrations.py {article_path} --apply
 ```
 
-5. 按 `images/illustrations/prompts/` 的 prompt 生成 3 张原创图片，保存到文章引用的本地路径。没有 AI 出图或手绘成图时，停在 prompt 阶段，不生成低质占位图冒充成品。
+5. 按 `images/illustrations/prompts/` 的 prompt 生成 3 张无字水彩主体图，保存到 manifest 指定的 `images/illustrations/sources/*_base.png`。
+6. 运行金句卡合成器，叠加准确中文大字、自有红章和署名：
 
-6. 运行质检：
+```bash
+python elder_healing_agent/scripts/compose_quote_cards.py
+```
+
+7. 没有 AI 出图或手绘成图时，停在 prompt 阶段，不生成低质占位图冒充成品。
+8. 运行质检：
 
 ```bash
 python elder_healing_agent/quality_gate.py {article_path}
 python elder_healing_agent/ai_detector.py {article_path}
 ```
 
-7. 发布前严格确认图片文件存在：
+9. 发布前严格确认图片文件存在：
 
 ```bash
 python elder_healing_agent/quality_gate.py {article_path} --require-image-files
 ```
 
-8. 若分数低于 85，按错误和警告返工；90 分以上且本地中文 AIGC 检测通过，才进入人工发布前复核。
+10. 若分数低于 85，按错误和警告返工；90 分以上且本地中文 AIGC 检测通过，才进入人工发布前复核。
 
 ## 发布前人工看三眼
 
