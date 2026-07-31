@@ -20,5 +20,9 @@ __pycache__/
 .venv/
 venv/
 
+# Local implementation workspaces
+.worktrees/
+.superpowers/
+
 # 系统
 .DS_Store
