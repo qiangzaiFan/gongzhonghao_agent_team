@@ -104,6 +104,7 @@
 - 金句文字内容。
 - 自有红章/署名规则。
 - 禁止 Yue Man、水印、搬运构图。
+- Negative prompt：blurry, low resolution, ugly, deformed, messy lines, oversimplified details, rough sketch, 3d, photorealistic, text, watermark, extra limbs, harsh shadows, high contrast, gloomy tone
 
 推荐英文提示词框架：
 
@@ -112,6 +113,7 @@ Original square watercolor comic quote-card for a Chinese WeChat article.
 Warm off-white rough rice-paper texture across the whole background.
 Upper/middle illustration: ...
 Style: hand-drawn ink outline, watercolor wash, soft paper grain, warm and healing, slightly humorous but mature.
+Negative prompt: blurry, low resolution, ugly, deformed, messy lines, oversimplified details, rough sketch, 3d, photorealistic, text, watermark, extra limbs, harsh shadows, high contrast, gloomy tone
 Bottom typography area: reserve 30%-40% of the canvas for large bold Chinese brush-calligraphy text.
 Final Chinese text overlay: "..."
 Brand mark: use only Qingchuan Huanghe's own small red seal, not Yue Man.

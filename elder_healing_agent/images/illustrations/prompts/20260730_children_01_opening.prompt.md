@@ -23,6 +23,9 @@ under a small kitchen lamp, a phone call has just ended, a simple rice bowl sits
 Visual style:
 Hand-drawn ink outline, visible watercolor wash, paper grain, warm muted colors, gentle humor, mature healing feeling, not childish, not flat vector, not PowerPoint icon style.
 
+Negative prompt:
+blurry, low resolution, ugly, deformed, messy lines, oversimplified details, rough sketch, 3d, photorealistic, text, watermark, extra limbs, harsh shadows, high contrast, gloomy tone
+
 Typography instruction:
 The final Chinese card text must read exactly:
 "孩子再忙 / 你也要留条退路"

@@ -16,7 +16,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_body_01_opening_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_01_opening.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_01_opening.prompt.md",
-      "prompt_sha256": "c8789715d1b8410238f46ec9de7231c5048af4c14c7e6a8b73276abe75015507",
+      "prompt_sha256": "dcb38e25ba659f9eabbd911810be76dc5cd9bfcfb7a2ee1900468f10dcf6d8d6",
       "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
@@ -34,7 +34,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_body_02_conflict_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_02_conflict.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_02_conflict.prompt.md",
-      "prompt_sha256": "a460b2f5df78af542e4ad0b374ec3f9e7e6b0b4ac8f22ef3539555339921cef1",
+      "prompt_sha256": "e5b00a87c230b7f7a6e57691cb06c50de6022ff08e121645475233a4afa379ee",
       "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
@@ -52,7 +52,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_body_03_closing_base.png",
       "article_relative_target": "../images/illustrations/20260730_body_03_closing.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_body_03_closing.prompt.md",
-      "prompt_sha256": "8421b2c24737a3f7318f687770533751fba276f5fc9bfb437656c9cab0cfbde2",
+      "prompt_sha256": "33958f00880e2913615f5b3372f329578d188d187aeccf3825aab183da5ff36b",
       "created_at": "2026-07-30T12:45:38+08:00"
     },
     {
@@ -70,7 +70,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_children_01_opening_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_01_opening.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_01_opening.prompt.md",
-      "prompt_sha256": "9d1025742543b09803169c09e42d3e7b99360f367af830afb65f53b0187974ec",
+      "prompt_sha256": "54c9c6d4068b87f5c6d3a9ec55ad6d79e0986ac7fcd58d347c5a80010604a43f",
       "created_at": "2026-07-30T12:45:48+08:00"
     },
     {
@@ -88,7 +88,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_children_02_conflict_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_02_conflict.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_02_conflict.prompt.md",
-      "prompt_sha256": "08b6c4617c58a9503530e778b00a7748a0ce7be9d4504c9920e056556a2a07d0",
+      "prompt_sha256": "2784ac9fc2054cc3e3aaa5ea44d278a21fe92349733169c28958192d3d03fe44",
       "created_at": "2026-07-30T12:45:48+08:00"
     },
     {
@@ -106,7 +106,7 @@
       "source_relative_target": "../images/illustrations/sources/20260730_children_03_closing_base.png",
       "article_relative_target": "../images/illustrations/20260730_children_03_closing.png",
       "prompt_path": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\elder_healing_agent\\images\\illustrations\\prompts\\20260730_children_03_closing.prompt.md",
-      "prompt_sha256": "a085564f938a24bcd48ddc54ea3f8cb064b28057583a80227e12c00ac15a3d3f",
+      "prompt_sha256": "40b62adbf0c26a3847665273079f0baeee9460b95ecd973015d4ed881ee7e4f1",
       "created_at": "2026-07-30T12:45:48+08:00"
     }
   ]

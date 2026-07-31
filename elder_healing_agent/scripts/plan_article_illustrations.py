@@ -18,6 +18,11 @@ IMAGE_DIR = BASE_DIR / "images" / "illustrations"
 PROMPT_DIR = IMAGE_DIR / "prompts"
 SOURCE_DIR = IMAGE_DIR / "sources"
 MANIFEST_PATH = BASE_DIR / "data" / "illustration_manifest.json"
+NEGATIVE_PROMPT = (
+    "blurry, low resolution, ugly, deformed, messy lines, "
+    "oversimplified details, rough sketch, 3d, photorealistic, text, "
+    "watermark, extra limbs, harsh shadows, high contrast, gloomy tone"
+)
 
 
 SCENE_LIBRARY: dict[str, dict[str, list[dict[str, str]]]] = {
@@ -296,6 +301,9 @@ Illustration scene:
 
 Visual style:
 Hand-drawn ink outline, visible watercolor wash, paper grain, warm muted colors, gentle humor, mature healing feeling, not childish, not flat vector, not PowerPoint icon style.
+
+Negative prompt:
+{NEGATIVE_PROMPT}
 
 Typography instruction:
 The final Chinese card text must read exactly:
