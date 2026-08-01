@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from base64 import b64encode
 from html import escape
 import json
 import os
@@ -321,6 +322,7 @@ DAILY_FORTUNE_ACTIONS = (
     "把注意力从比较里收回来",
 )
 DAILY_CARD_ASSET_DIR = Path(__file__).parent / "assets" / "daily_fortune_cards"
+DAILY_CARD_CHARACTER_DIR = Path(__file__).parent / "assets" / "zodiac_characters"
 DAILY_CARD_WIDTH = 960
 DAILY_CARD_HEIGHT = 1280
 DAILY_CARD_SIGN_ORDER = tuple(
@@ -932,6 +934,32 @@ def _daily_action_line_svg(index: int, text: str, theme: DailyCardTheme) -> str:
     )
 
 
+def daily_card_character_path(
+    sign: str,
+    *,
+    character_asset_dir: Path | None = None,
+) -> Path | None:
+    directory = character_asset_dir or DAILY_CARD_CHARACTER_DIR
+    candidate = directory / f"{sign}座.png"
+    return candidate if candidate.is_file() else None
+
+
+def _daily_avatar_asset_svg(
+    sign: str,
+    *,
+    character_asset_dir: Path | None = None,
+) -> str | None:
+    asset_path = daily_card_character_path(sign, character_asset_dir=character_asset_dir)
+    if asset_path is None:
+        return None
+    encoded = b64encode(asset_path.read_bytes()).decode("ascii")
+    return (
+        f'<image x="114" y="220" width="230" height="270" '
+        f'preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarPanelClip)" '
+        f'href="data:image/png;base64,{encoded}"/>'
+    )
+
+
 def _daily_avatar_svg(sign: str, fill: str, accent: str = "#cf5f7a") -> str:
     skin = "#fff0da"
     outline = "#e3bb7a"
@@ -1026,6 +1054,7 @@ def render_daily_fortune_card_svg(
     day: date,
     *,
     card_theme: str = DEFAULT_DAILY_CARD_THEME,
+    character_asset_dir: Path | None = None,
 ) -> str:
     sign_title = f"{card.sign}座"
     match_text = "、".join(f"{sign}座" for sign in card.matches)
@@ -1043,6 +1072,10 @@ def render_daily_fortune_card_svg(
         _daily_action_line_svg(index, text, theme)
         for index, text in enumerate(card.actions)
     )
+    avatar_svg = _daily_avatar_asset_svg(
+        card.sign,
+        character_asset_dir=character_asset_dir,
+    ) or _daily_avatar_svg(card.sign, avatar_fill, accent=theme.avatar_accent)
     info_lines = "\n".join(
         (
             _svg_text_lines(f"今日简述：{card.summary}", x=390, y=254, width=14, size=38, fill=theme.action_text),
@@ -1067,6 +1100,9 @@ def render_daily_fortune_card_svg(
       <stop offset="0" stop-color="{theme.frame_start}"/>
       <stop offset="1" stop-color="{theme.frame_end}"/>
     </linearGradient>
+    <clipPath id="avatarPanelClip">
+      <rect x="114" y="220" width="230" height="270" rx="24"/>
+    </clipPath>
   </defs>
   <rect x="38" y="24" width="884" height="1232" rx="56" fill="url(#cardFrame)"/>
   <rect x="68" y="70" width="824" height="1124" rx="8" fill="url(#stripe)" stroke="{theme.frame_stroke}" stroke-width="4"/>
@@ -1075,7 +1111,7 @@ def render_daily_fortune_card_svg(
   <text x="280" y="134" text-anchor="middle" font-size="42" fill="{theme.title}">✧</text>
   <text x="690" y="150" text-anchor="middle" font-size="42" fill="{theme.title}">✦</text>
   <rect x="110" y="216" width="238" height="278" rx="28" fill="{theme.avatar_panel_bg}" stroke="{theme.avatar_panel_stroke}" stroke-width="4"/>
-  {_daily_avatar_svg(card.sign, avatar_fill, accent=theme.avatar_accent)}
+  {avatar_svg}
   {info_lines}
   {metric_svg}
   {luck_svg}
@@ -1329,6 +1365,7 @@ def write_daily_fortune_cards(
     chrome_path: Path | None = None,
     card_theme: str = DEFAULT_DAILY_CARD_THEME,
     png_renderer: str = "auto",
+    character_asset_dir: Path | None = None,
 ) -> dict[str, Path]:
     extension = _daily_card_extension(image_format)
     paths = daily_fortune_card_paths(
@@ -1341,7 +1378,12 @@ def write_daily_fortune_cards(
         next(iter(paths.values())).parent.mkdir(parents=True, exist_ok=True)
     for sign, path in paths.items():
         card = build_daily_fortune_card(sign, day)
-        svg_text = render_daily_fortune_card_svg(card, day, card_theme=card_theme)
+        svg_text = render_daily_fortune_card_svg(
+            card,
+            day,
+            card_theme=card_theme,
+            character_asset_dir=character_asset_dir,
+        )
         if extension == "svg":
             path.write_text(svg_text, encoding="utf-8")
         else:

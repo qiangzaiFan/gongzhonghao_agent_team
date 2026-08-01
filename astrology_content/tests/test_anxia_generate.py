@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import tempfile
 import struct
 import unittest
@@ -126,6 +127,24 @@ class AnxiaGenerateTests(unittest.TestCase):
 
         default_svg = render_daily_fortune_card_svg(build_daily_fortune_card("天秤", day), day)
         self.assertIn(daily_card_theme("pink").frame_start, default_svg)
+
+    def test_daily_fortune_card_embeds_character_png(self) -> None:
+        character_dir = self.root / "zodiac_characters"
+        character_dir.mkdir()
+        image_bytes = b"test-png-bytes"
+        (character_dir / "\u767d\u7f8a\u5ea7.png").write_bytes(image_bytes)
+
+        svg_text = render_daily_fortune_card_svg(
+            build_daily_fortune_card("\u767d\u7f8a", date(2026, 7, 28)),
+            date(2026, 7, 28),
+            character_asset_dir=character_dir,
+        )
+
+        encoded = base64.b64encode(image_bytes).decode("ascii")
+        self.assertIn(f"data:image/png;base64,{encoded}", svg_text)
+        self.assertIn('x="114" y="220"', svg_text)
+        self.assertIn('preserveAspectRatio="xMidYMid slice"', svg_text)
+        self.assertIn('clip-path="url(#avatarPanelClip)"', svg_text)
 
     def test_cairosvg_png_renderer_writes_full_size_card(self) -> None:
         try:
