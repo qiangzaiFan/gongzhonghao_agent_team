@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-01T10:09:40+08:00",
+  "article": "/Users/wangqiang/workspace/自媒体/autoAirtic/tizhi_content/articles/2026-07-31-体制内最耗人的不是加班而是下班后等通知.md",
+  "article_sha256": "f7b9efc00aa652fb7619d11f64046108aca87337e66359e5ef2073a91a58e12d",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 3.29,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 161,
+      "category": "human",
+      "ai_probability": 16.19,
+      "preview": "我一直觉得，加班本身并不是最难熬的。事情来了，知道要做什么、做到几点，反而好安排。最麻烦的是快下班时收到一句：晚上可能有任务，先等通知。前几天，我们办公室就遇到"
+    },
+    {
+      "order": 2,
+      "chars": 166,
+      "category": "human",
+      "ai_probability": 1.6,
+      "preview": "我到家后先把手机铃声调到最大，后来想下楼买点菜，鞋穿上了，想想又脱了。怕刚进超市任务就来，最后只从冰箱里拿了点剩菜热一热。坐在沙发上也没看进去电视，过几分钟就划"
+    },
+    {
+      "order": 3,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.02,
+      "preview": "这样的晚上多了，他会慢慢放弃安排下班后的生活，免得一次次取消。被打乱的也不只是他一个人。家里做饭的人不知道该不该把菜下锅，等着辅导作业的孩子一遍遍问几点回来，原"
+    },
+    {
+      "order": 4,
+      "chars": 166,
+      "category": "human",
+      "ai_probability": 1.04,
+      "preview": "上面的时间没定，中间环节不敢做准确承诺；任务的范围没定，具体执行的人只能把可能用到的人先留住。比如，只知道晚上可能要补一组数据，却不知道涉及哪个业务口。负责传达"
+    },
+    {
+      "order": 5,
+      "chars": 150,
+      "category": "human",
+      "ai_probability": 1.1,
+      "preview": "表格按时交了，任务也没有耽误，至于谁等了多久，不在记录里。于是下一次遇到同类情况，大家还是会照原来的办法通知。对具体的人来说，结果其实很琐碎：饭菜热了两遍，接孩"
+    },
+    {
+      "order": 6,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.1,
+      "preview": "我需要留在单位，还是保持电话畅通就行？” 不一定每次都能得到确定答案，至少能让对方意识到，一句“等通知”后面，还有人在安排接送、晚饭和回家的时间。对安排工作的人"
+    },
+    {
+      "order": 7,
+      "chars": 171,
+      "category": "human",
+      "ai_probability": 1.22,
+      "preview": "晚上8点10分，群里终于发来消息：任务改到明天，今晚不用等了。我回了个收到，把手机铃声调回原来的音量。折腾了半天，工作没做，电视也没看进去，冰箱里那点剩菜倒是已"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}
