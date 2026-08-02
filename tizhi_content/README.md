@@ -1,6 +1,6 @@
 # 体制内公众号内容工作区
 
-本目录用于参考4位标杆博主的文章，生成具有独立辨识度的体制内公众号原创稿。统一风格已锁定，不再按单一博主切换口吻。
+本目录用于参考4位标杆博主的文章，生成具有独立辨识度的体制内公众号原创稿。统一风格已锁定，不再按单一博主切换口吻。“体制内清醒成长”作为新增题材方向使用，不替代原有账号主轴。
 
 ## 目录结构
 
@@ -27,7 +27,20 @@ tizhi_content/
 3. 收到选题后先生成3至5个标题，用户未指定时可由 Agent 代选最适合的一个。
 4. 成稿保存到 `articles/`，不覆盖参考原文。
 5. 每篇新稿或修改稿必须运行 `ai_detector.py`，通过后才能标记为可发布。
-6. 语料更新后，可运行 `scripts/analyze_corpus.py` 重新校准数据。
+6. 封面图和正文插图统一使用本地 ComfyUI 生成横向风景图，风景地点可来自世界各地，详见 `specs/comfyui_flux2_klein_image_standard.md`。
+7. 发布或进入微信公众号草稿箱前，最后排版统一使用 `wenyan-mcp` 的 `lapis` 主题优化；排版走清爽政务蓝 / 商务简约风：白底、深蓝标题、浅灰分割、少装饰、重留白。
+8. 体制内公众号名称和文章作者统一为“田间里的烟火”。
+9. 语料更新后，可运行 `scripts/analyze_corpus.py` 重新校准数据。
+
+## 排版与发布
+
+`daily_tizhi.py --publish` 和 `publish_existing_article.py` 共用同一套发布默认值：`wenyan-mcp` 的 `lapis` 主题，作者“田间里的烟火”。独立发布现有文章时使用：
+
+```bash
+python tizhi_content/publish_existing_article.py tizhi_content/articles/<article>.md
+```
+
+发布脚本会先执行本地检查和 AIGC 检测，再由 `wenyan-mcp` 完成最终图文排版并写入微信公众号草稿箱。
 
 ## AIGC 检测
 
