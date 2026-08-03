@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T21:38:51+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\tizhi_content\\articles\\2026-07-31-体制内最让人疲惫的不是忙而是事情永远没有准信.md",
+  "article_sha256": "9585117edeff9e879dea0f14b86391f9738f4ae20756df090b06de06a16cb303",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 7.12,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 160,
+      "category": "human",
+      "ai_probability": 21.61,
+      "preview": "下午5点20分，办公室群里来了一句：晚上可能有任务，大家先别走远，等通知。没有人说几点开始，也没有人说需要多久。有人把刚背上的包又放回椅子，有人给家里发消息：晚"
+    },
+    {
+      "order": 2,
+      "chars": 146,
+      "category": "human",
+      "ai_probability": 28.83,
+      "preview": "01 “等通知”最大的成本，不是多加了几个小时的班，而是人无法开始任何一件自己的事。想去超市，怕正排队时电话响；想陪孩子下楼走一圈，又怕走远了赶不回来；想先洗个"
+    },
+    {
+      "order": 3,
+      "chars": 167,
+      "category": "human",
+      "ai_probability": 5.98,
+      "preview": "如果知道要忙到9点，至少可以告诉家人几点到家，也可以把接孩子、买菜和取快递重新安排。最怕的是时间一直往后拖，每隔一会儿就觉得消息快来了，结果始终等不到一句确定的"
+    },
+    {
+      "order": 4,
+      "chars": 155,
+      "category": "human",
+      "ai_probability": 1.38,
+      "preview": "02 为什么这样的通知很难提前说清楚？很多时候，不是某个人故意不让大家回家，而是整件事本身还没有定下来。上面的时间没定，中间环节不敢做准确承诺；任务的范围没定，"
+    },
+    {
+      "order": 5,
+      "chars": 130,
+      "category": "human",
+      "ai_probability": 1.15,
+      "preview": "暂时无法确定谁会被用到，就把所有可能的人都留住；后面真有变化，至少不会出现找不到人的情况。对任务来说，这样做降低了遗漏的风险。可对人来说，就等于用多个人的整段时"
+    },
+    {
+      "order": 6,
+      "chars": 167,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "前面只是一句“晚上有可能”，到了最后一个人那里，就变成了一顿凉掉的饭、一次取消的接送，以及一个不敢静音的手机。这也是为什么，有些人明明一晚上什么都没做，第二天还"
+    },
+    {
+      "order": 7,
+      "chars": 149,
+      "category": "human",
+      "ai_probability": 1.25,
+      "preview": "哪些人必须参加，哪些人只是备用？这些问题不一定每次都能得到确定答案，却能让“所有人一起等”变成更具体的安排。如果同一类临时任务经常出现，还可以把它从“每次全员待"
+    },
+    {
+      "order": 8,
+      "chars": 156,
+      "category": "human",
+      "ai_probability": 1.14,
+      "preview": "有了截止点，大家才知道什么时候该等，什么时候可以回到自己的生活。对管理者来说，也可以在消息里多给一个时间节点。哪怕只是“7点前会再确认一次”，也比没有尽头地等下"
+    },
+    {
+      "order": 9,
+      "chars": 153,
+      "category": "human",
+      "ai_probability": 1.75,
+      "preview": "工作确实没做，但他的一个晚上也已经所剩不多。回到家，饭菜热一热还能吃，错过的时间却不会重新回来。对一个普通人来说，晚上那几个小时也许只用来吃饭、陪孩子和坐着发会"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

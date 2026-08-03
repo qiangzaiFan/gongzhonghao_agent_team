@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260809_01_水瓶本月要停下这场无效解释.md",
+  "article_sha256": "b975a24c0306de0b7a690bbf5596d9fbde8b550099db34a62558374617e7c9d6",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-09",
+    "slot": 1,
+    "sign": "水瓶",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "水瓶本月要停下这场无效解释",
+    "candidates": [
+      "水瓶本月要停下这场无效解释",
+      "8月，给水瓶一个重要提醒！",
+      "水瓶本月必须警惕的一个情绪消耗",
+      "水瓶注意：本月这个习惯必须改！",
+      "水瓶下半年这个转折很关键！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "水瓶本月要停下这场无效解释",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "8月，给水瓶一个重要提醒！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "水瓶本月必须警惕的一个情绪消耗",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "水瓶注意：本月这个习惯必须改！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "水瓶下半年这个转折很关键！",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "水瓶本月最耗情绪的事，是反复向一个并不想理解你的人解释。你换了好几种说法，对方却只挑自己愿意听的部分回应。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从直接点出近期变化，再拆成生活、事业或情绪中的两个表现。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "水瓶本月最耗情绪的事，是反复向一个并不想理解你的人解释。你换了好几种说法，对方却只挑自己愿意听的部分回应。",
+    "focus": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。",
+    "closing": "水瓶真正需要保护的是注意力。离开无效争辩，你会重新听见心里那个清楚的答案。"
+  }
+}

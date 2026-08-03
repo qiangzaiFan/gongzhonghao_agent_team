@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T08:38:02+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260802_02_能让摩羯瞬间清醒的一个细节.md",
+  "article_sha256": "6c4b70e2b3894942dacef931d82ce619f11c2a3a118a46fffd3fc62bb5573d51",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-02",
+    "slot": 2,
+    "sign": "摩羯",
+    "theme": "关系/性格",
+    "angle": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。"
+  },
+  "titles": {
+    "selected": "能让摩羯瞬间清醒的一个细节",
+    "candidates": [
+      "能让摩羯瞬间清醒的一个细节",
+      "摩羯这辈子最该珍惜的一个贵人",
+      "摩羯这辈子最该珍惜的贵人",
+      "真正懂摩羯的人，藏不住了"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "能让摩羯瞬间清醒的一个细节",
+          "formula": "关系洞察型"
+        },
+        {
+          "key": "title-2",
+          "text": "摩羯这辈子最该珍惜的一个贵人",
+          "formula": "关系洞察型"
+        },
+        {
+          "key": "title-3",
+          "text": "摩羯这辈子最该珍惜的贵人",
+          "formula": "关系洞察型"
+        },
+        {
+          "key": "title-4",
+          "text": "真正懂摩羯的人，藏不住了",
+          "formula": "关系洞察型"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "direct-alert",
+      "variants": [
+        {
+          "key": "direct-alert",
+          "text": "摩羯最近在关系里要留意：总是你先解释和缓和的关系，会慢慢让人疲惫。",
+          "label": "直接提醒"
+        },
+        {
+          "key": "detail-observation",
+          "text": "摩羯这段时间会慢慢看清：总是你先解释和缓和的关系，会慢慢让人疲惫，你的感受已经在给答案。",
+          "label": "细节观察"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "stop-explaining",
+    "hook": "总是你先解释和缓和的关系，会慢慢让人疲惫",
+    "focus": "停止替对方补全态度，把注意力放回真实行动",
+    "closing": "别再替沉默找借口"
+  }
+}

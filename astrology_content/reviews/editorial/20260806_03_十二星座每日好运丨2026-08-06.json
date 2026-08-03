@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_03_十二星座每日好运丨2026-08-06.md",
+  "article_sha256": "c9670994568b090c67e5a5de2989e3ca46f66e29d234a1875287c43c46d2ef1f",
+  "source": {
+    "mode": "independent"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-06",
+    "slot": 3,
+    "sign": "十二星座",
+    "theme": "每日运势",
+    "angle": "按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。"
+  },
+  "titles": {
+    "selected": "十二星座每日好运丨2026.08.06",
+    "candidates": [
+      "十二星座每日好运丨2026.08.06",
+      "十二星座今日好运指南丨2026.08.06",
+      "2026.08.06 十二星座日运提醒"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "十二星座每日好运丨2026.08.06",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "十二星座今日好运指南丨2026.08.06",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "2026.08.06 十二星座日运提醒",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "8月6日，很多答案藏在实际回应里。与其揣测别人怎么想，不如看他有没有行动；自己的事，也从最容易落地的一步开始。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "8月6日，很多答案藏在实际回应里。与其揣测别人怎么想，不如看他有没有行动；自己的事，也从最容易落地的一步开始。",
+    "focus": "按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。",
+    "closing": "今天的关键词是“有来有回”。愿意回应的人认真珍惜，没有回音的事先放一放，你的时间也需要被好好对待。"
+  }
+}

@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
+import math
 from base64 import b64encode
 from html import escape
 import json
@@ -14,8 +17,34 @@ import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
+
+try:
+    from PIL import Image, ImageDraw, ImageFont, ImageOps
+except ImportError:  # pragma: no cover - surfaced with a useful message at runtime
+    Image = None
+    ImageDraw = None
+    ImageFont = None
+    ImageOps = None
+
+BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent
+FOOD_DIR = ROOT_DIR / "food_home_cooking"
+
+
+def load_comfy_image_module():
+    module_path = FOOD_DIR / "generate_article_images.py"
+    spec = importlib.util.spec_from_file_location("food_home_cooking_generate_article_images", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"无法加载 ComfyUI 图片模块：{module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+comfy_images = load_comfy_image_module()
 
 from ai_detector import ANXIA_SHORT_MIN_TOTAL_CHARS, DetectorUnavailable, default_report_path, detect_article
 from anxia_calendar import CalendarItem, generate_calendar
@@ -33,13 +62,44 @@ from quality_gate import (
 )
 
 
-ARTICLES_DIR = Path(__file__).parent / "articles"
+ARTICLES_DIR = BASE_DIR / "articles"
 DEFAULT_DAILY_SHORT_ARTICLES = 2
 RECENT_DRAFT_DAYS = 30
 RECENT_DRAFT_LONGEST_MATCH = 55
 RECENT_DRAFT_OVERLAP = 0.14
 DAILY_RECENT_DRAFT_LONGEST_MATCH = 75
 DAILY_RECENT_DRAFT_OVERLAP = 0.35
+PET_COVER_ASSET_DIR = BASE_DIR / "assets" / "pet_covers"
+PET_COVER_SIZE = (1200, 800)
+DEFAULT_COMFY_ENDPOINT = "http://127.0.0.1:8188"
+DEFAULT_COMFY_PROFILE = "flux2_klein"
+PET_COVER_BASE_PROMPT = (
+    "healing cute pet editorial cover for a Chinese horoscope WeChat short article, "
+    "warm and soothing mood, adorable companion animal, clean cozy scene, soft natural light, "
+    "gentle pastel accents, realistic photography, high detail fur texture, bright clear eyes, "
+    "calm expression, uncluttered background, horizontal 3:2 composition, generous quiet negative space, "
+    "premium lifestyle magazine photo, no text, no watermark, no logo"
+)
+PET_COVER_NEGATIVE_PROMPT = (
+    "text, watermark, logo, typography, Chinese characters, zodiac symbols, horoscope wheel, tarot cards, "
+    "crystal ball, poster, collage, social media UI, human, face, hands, scary, aggressive, dirty, cage, "
+    "medical scene, deformed animal, extra legs, extra eyes, distorted paws, blurry, low quality, overexposed, "
+    "underexposed, oversaturated neon color, harsh flash, messy background, anime, cartoon, illustration"
+)
+PET_COVER_PETS = {
+    "白羊": "a fluffy white puppy sitting on a soft blanket, curious and bright",
+    "金牛": "a golden retriever puppy resting beside a warm window, peaceful and loyal",
+    "双子": "two tiny kittens leaning together on a clean sofa, lively but gentle",
+    "巨蟹": "a cream-colored kitten curled near a cushion, safe and comforting",
+    "狮子": "a fluffy orange kitten sitting proudly in soft sunlight, cute and confident",
+    "处女": "a small white rabbit on a tidy linen blanket, delicate and clean",
+    "天秤": "a graceful ragdoll kitten beside simple flowers, soft and balanced",
+    "天蝎": "a black kitten with bright eyes in warm low light, mysterious but sweet",
+    "射手": "a corgi puppy looking toward a sunlit doorway, cheerful and free",
+    "摩羯": "a calm shiba puppy resting on a simple rug, steady and warm",
+    "水瓶": "a silver-gray kitten near a pale blue cushion, fresh and clever",
+    "双鱼": "a tiny lop-eared rabbit beside a soft blue blanket, dreamy and healing",
+}
 
 
 @dataclass(frozen=True)
@@ -325,6 +385,18 @@ DAILY_CARD_ASSET_DIR = Path(__file__).parent / "assets" / "daily_fortune_cards"
 DAILY_CARD_CHARACTER_DIR = Path(__file__).parent / "assets" / "zodiac_characters"
 DAILY_CARD_WIDTH = 960
 DAILY_CARD_HEIGHT = 1280
+DAILY_FORTUNE_COVER_ASSET_DIR = BASE_DIR / "assets" / "daily_fortune_covers"
+DAILY_FORTUNE_COVER_WIDTH = 900
+DAILY_FORTUNE_COVER_HEIGHT = 380
+DAILY_FORTUNE_COVER_EXPORT_SCALE = 2
+DAILY_FORTUNE_FOLLOW_ASSET_DIR = BASE_DIR / "assets" / "daily_fortune_follow"
+DAILY_FORTUNE_FOLLOW_WIDTH = 900
+DAILY_FORTUNE_FOLLOW_HEIGHT = 360
+DAILY_FORTUNE_FOLLOW_EXPORT_SCALE = 2
+DAILY_FORTUNE_FOLLOW_LINES = (
+    "运势早知晓，好运常相伴。",
+    "点击关注，每日为您解锁专属好运～",
+)
 DAILY_CARD_SIGN_ORDER = tuple(
     sign
     for _, group_signs in DAILY_FORTUNE_GROUPS
@@ -446,7 +518,7 @@ DAILY_CARD_SLOGANS = (
     "别急着证明，慢慢来也是答案~",
     "把能掌控的小事先做好~",
 )
-DEFAULT_DAILY_CARD_THEME = "pink"
+DEFAULT_DAILY_CARD_THEME = "mint"
 PNG_RENDERERS = ("auto", "resvg", "rsvg-convert", "cairosvg", "chrome")
 DAILY_CARD_THEMES = {
     "pink": DailyCardTheme(
@@ -507,6 +579,34 @@ DAILY_CARD_THEMES = {
     ),
 }
 
+ZODIAC_CHARACTER_BASE_PROMPT = (
+    "Use case: stylized-concept. Asset type: zodiac daily-fortune card character. "
+    "Create one original full-body Chinese anime chibi character, polished 2D illustration, "
+    "clean linework, expressive bright eyes, natural hands, clear silhouette, centered pose, "
+    "soft mint-green and white studio backdrop, gentle daylight, premium editorial finish, "
+    "portrait 2:3 composition with generous padding around the complete character"
+)
+ZODIAC_CHARACTER_NEGATIVE_PROMPT = (
+    "text, letters, Chinese characters, caption, watermark, logo, zodiac glyph, horoscope wheel, "
+    "tarot card, photorealistic, 3d render, multiple people, duplicate character, cropped head, "
+    "cropped feet, extra arms, extra legs, extra fingers, malformed hands, distorted face, blurry, "
+    "low quality, dark background, neon background, cluttered scene, weapon, violence, suggestive pose"
+)
+ZODIAC_CHARACTER_VISUALS = {
+    "白羊": "energetic young adventurer with short coral hair and subtle ram-horn hair ornaments, confident warm smile",
+    "金牛": "calm elegant gardener with chestnut hair, small golden horn-shaped hair clips and a green cream outfit",
+    "双子": "lively clever character with two-tone lavender hair ribbons and a playful layered outfit suggesting duality",
+    "巨蟹": "gentle caretaker with moon-silver hair, shell-shaped accessories and a pale aqua capelet",
+    "狮子": "radiant confident character with fluffy golden hair like a soft mane and a warm amber outfit",
+    "处女": "refined book-loving character with neat rose-brown hair, tiny flower pin and clean ivory outfit",
+    "天秤": "graceful diplomatic character with balanced symmetrical accessories, pearl-white hair and mint-gold outfit",
+    "天蝎": "mysterious sweet character with dark plum hair, subtle curved tail motif and deep violet accents",
+    "射手": "cheerful explorer with high ponytail, small star compass accessory and practical teal travel outfit",
+    "摩羯": "steady composed character with charcoal hair, subtle curved horn hair ornaments and tailored earth-tone outfit",
+    "水瓶": "inventive airy character with silver-blue bob hair, translucent water-ribbon accessory and modern aqua outfit",
+    "双鱼": "dreamy gentle character with long sea-blue hair, twin fish-shaped hair clips and flowing mint-lilac outfit",
+}
+
 
 def daily_card_theme(theme: str) -> DailyCardTheme:
     try:
@@ -519,6 +619,174 @@ def daily_card_theme(theme: str) -> DailyCardTheme:
 def slugify(text: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9\u4e00-\u9fff]+", "-", text).strip("-")
     return slug[:48] or "anxia-draft"
+
+
+def pet_cover_prompt(draft: Draft) -> str:
+    pet_scene = PET_COVER_PETS.get(draft.item.sign, "an adorable fluffy kitten in soft natural light")
+    return (
+        f"{PET_COVER_BASE_PROMPT}. Main pet: {pet_scene}. "
+        f"Article mood: {draft.item.sign} {draft.item.theme}, {draft.item.angle}. "
+        "The image should feel comforting, cute, clean, and suitable as a WeChat cover."
+    )
+
+
+def stable_seed(text: str) -> int:
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return int(digest[:12], 16) % 1_000_000_000
+
+
+def zodiac_character_prompt(sign: str) -> str:
+    return (
+        f"{ZODIAC_CHARACTER_BASE_PROMPT}. Sign concept: {sign}; "
+        f"{ZODIAC_CHARACTER_VISUALS[sign]}. "
+        "The character must remain the only subject and must contain no written text or symbol."
+    )
+
+
+def resize_zodiac_character(image_path: Path, size: tuple[int, int] = (640, 960)) -> None:
+    if Image is None or ImageOps is None:
+        raise RuntimeError("缺少 Pillow，无法裁切十二星座动漫人物")
+    with Image.open(image_path) as source:
+        image = ImageOps.fit(
+            source.convert("RGB"),
+            size,
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+        image.save(image_path, format="PNG", optimize=True)
+
+
+def refresh_zodiac_characters_with_comfyui(
+    *,
+    asset_dir: Path,
+    endpoint: str,
+    model_profile: str,
+    max_wait: int,
+    poll_seconds: float,
+) -> dict[str, Path]:
+    profiles = comfy_images.load_profiles()
+    client = comfy_images.ComfyClient(endpoint, timeout=30)
+    client.preflight()
+    asset_dir.parent.mkdir(parents=True, exist_ok=True)
+    batch_id = datetime.now().strftime("%Y%m%d%H%M%S")
+    generated: dict[str, Path] = {}
+
+    with tempfile.TemporaryDirectory(prefix="zodiac-characters-", dir=asset_dir.parent) as tmpdir:
+        staging_dir = Path(tmpdir)
+        for sign in DAILY_CARD_SIGN_ORDER:
+            prompt = zodiac_character_prompt(sign)
+            previous_negative = comfy_images.NEGATIVE_PROMPT
+            comfy_images.NEGATIVE_PROMPT = ZODIAC_CHARACTER_NEGATIVE_PROMPT
+            try:
+                workflow = comfy_images.render_workflow(
+                    profiles,
+                    model_profile,
+                    prompt=prompt,
+                    seed=stable_seed(f"zodiac-character:{sign}:{batch_id}"),
+                    filename_prefix=f"astrology_content/zodiac_characters/{batch_id}/{sign}",
+                )
+            finally:
+                comfy_images.NEGATIVE_PROMPT = previous_negative
+
+            print(f"生成十二星座动漫人物 {len(generated) + 1}/12：{sign}座")
+            prompt_id = client.queue(workflow)
+            images = client.wait_for_images(
+                prompt_id,
+                max_wait_seconds=max_wait,
+                poll_seconds=poll_seconds,
+            )
+            staged_path = staging_dir / f"{sign}座.png"
+            client.download_image(images[-1], staged_path)
+            resize_zodiac_character(staged_path)
+            generated[sign] = staged_path
+
+        asset_dir.mkdir(parents=True, exist_ok=True)
+        final_paths: dict[str, Path] = {}
+        for sign, staged_path in generated.items():
+            final_path = asset_dir / f"{sign}座.png"
+            os.replace(staged_path, final_path)
+            final_paths[sign] = final_path
+
+    print(f"已刷新十二星座动漫人物：{asset_dir}（批次 {batch_id}）")
+    return final_paths
+
+
+def require_pillow_for_pet_cover() -> None:
+    if Image is None:
+        raise RuntimeError("缺少 Pillow，无法裁切萌宠封面。请运行 python -m pip install Pillow")
+
+
+def resize_center_crop(image_path: Path, size: tuple[int, int]) -> None:
+    require_pillow_for_pet_cover()
+    assert Image is not None
+    with Image.open(image_path) as image:
+        image = image.convert("RGB")
+        target_w, target_h = size
+        src_w, src_h = image.size
+        scale = max(target_w / src_w, target_h / src_h)
+        resized = image.resize((round(src_w * scale), round(src_h * scale)), Image.Resampling.LANCZOS)
+        left = (resized.width - target_w) // 2
+        top = (resized.height - target_h) // 2
+        cropped = resized.crop((left, top, left + target_w, top + target_h))
+        cropped.save(image_path, format="JPEG", quality=94, optimize=True, progressive=True)
+
+
+def pet_cover_path(asset_dir: Path, draft: Draft) -> Path:
+    return asset_dir / draft.item.day.strftime("%Y%m%d") / f"{draft.item.slot:02d}_{slugify(draft.title)}.jpg"
+
+
+def markdown_ref(image_path: Path, *, article_dir: Path) -> str:
+    return Path(os.path.relpath(image_path, article_dir)).as_posix()
+
+
+def pet_cover_markdown_ref(image_path: Path, *, article_dir: Path) -> str:
+    return markdown_ref(image_path, article_dir=article_dir)
+
+
+def write_pet_cover_with_comfyui(
+    draft: Draft,
+    *,
+    asset_dir: Path,
+    endpoint: str,
+    model_profile: str,
+    max_wait: int,
+    poll_seconds: float,
+) -> Path:
+    output_path = pet_cover_path(asset_dir, draft)
+    if output_path.is_file() and output_path.stat().st_size > 0:
+        return output_path
+
+    profiles = comfy_images.load_profiles()
+    prompt = pet_cover_prompt(draft)
+    client = comfy_images.ComfyClient(endpoint, timeout=30)
+    client.preflight()
+    previous_negative = comfy_images.NEGATIVE_PROMPT
+    comfy_images.NEGATIVE_PROMPT = PET_COVER_NEGATIVE_PROMPT
+    try:
+        workflow = comfy_images.render_workflow(
+            profiles,
+            model_profile,
+            prompt=prompt,
+            seed=stable_seed(f"{draft.item.day}:{draft.item.slot}:{draft.title}:{prompt}"),
+            filename_prefix=f"astrology_content/pet_covers/{draft.item.day:%Y%m%d}/{slugify(draft.title)}",
+        )
+    finally:
+        comfy_images.NEGATIVE_PROMPT = previous_negative
+
+    print(f"生成治愈系萌宠封面：{output_path.name}")
+    print("正向 Prompt：")
+    print(prompt)
+    print("反向 Prompt：")
+    print(PET_COVER_NEGATIVE_PROMPT)
+    prompt_id = client.queue(workflow)
+    images = client.wait_for_images(
+        prompt_id,
+        max_wait_seconds=max_wait,
+        poll_seconds=poll_seconds,
+    )
+    client.download_image(images[-1], output_path)
+    resize_center_crop(output_path, PET_COVER_SIZE)
+    return output_path
 
 
 def title_for_item(item: CalendarItem, mode: str) -> str:
@@ -922,13 +1190,14 @@ def _daily_luck_row_svg(index: int, label: str, value: str, theme: DailyCardThem
 
 
 def _daily_action_line_svg(index: int, text: str, theme: DailyCardTheme) -> str:
-    y = 984 + index * 48
+    center_y = 974 + index * 48
+    text_y = center_y + 10
     return "\n".join(
         (
-            f'<circle cx="282" cy="{y - 10}" r="14" fill="none" stroke="{theme.action_stroke}" stroke-width="4"/>',
-            f'<path d="M274 {y - 12} L281 {y - 4} L295 {y - 21}" fill="none" '
+            f'<circle cx="282" cy="{center_y}" r="14" fill="none" stroke="{theme.action_stroke}" stroke-width="4"/>',
+            f'<path d="M274 {center_y - 2} L281 {center_y + 6} L295 {center_y - 11}" fill="none" '
             f'stroke="{theme.action_stroke}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
-            f'<text x="316" y="{y}" font-size="31" font-weight="700" '
+            f'<text x="316" y="{text_y}" font-size="31" font-weight="700" '
             f'fill="{theme.action_text}">{escape(text)}</text>',
         )
     )
@@ -1116,8 +1385,8 @@ def render_daily_fortune_card_svg(
   {metric_svg}
   {luck_svg}
   <rect x="94" y="928" width="772" height="188" rx="18" fill="{theme.action_bg}" stroke="{theme.action_stroke}" stroke-width="4"/>
-  <text x="168" y="1002" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">今日</text>
-  <text x="168" y="1058" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">必做</text>
+  <text x="168" y="1004" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">今日</text>
+  <text x="168" y="1072" text-anchor="middle" font-size="44" font-weight="900" fill="{theme.action_text}">必做</text>
   <path d="M242 952 V1092" stroke="{theme.action_stroke}" stroke-width="4"/>
   {action_svg}
   <text x="94" y="1182" font-size="39" font-weight="900" fill="{theme.action_text}">好运口号：</text>
@@ -1125,6 +1394,528 @@ def render_daily_fortune_card_svg(
   <text x="480" y="1226" text-anchor="middle" font-size="24" fill="{theme.footer}">······  ✧  ······</text>
 </svg>
 """
+
+
+def render_daily_fortune_cover_svg(
+    day: date,
+    *,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+) -> str:
+    theme = daily_card_theme(card_theme)
+    palette = daily_fortune_cover_palette(theme)
+    date_text = day.strftime("%Y.%m.%d")
+    ticks = []
+    for index in range(12):
+        angle = math.radians(index * 30 - 90)
+        outer = 98
+        inner = 84 if index % 3 else 80
+        x1 = 724 + math.cos(angle) * inner
+        y1 = 190 + math.sin(angle) * inner
+        x2 = 724 + math.cos(angle) * outer
+        y2 = 190 + math.sin(angle) * outer
+        color = palette["gold"] if index == 0 else palette["ink"] if index % 3 == 0 else palette["mint"]
+        ticks.append(
+            f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" '
+            f'stroke="{color}" stroke-width="{3 if index % 3 == 0 else 2}" stroke-linecap="round"/>'
+        )
+    tick_svg = "\n  ".join(ticks)
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{DAILY_FORTUNE_COVER_WIDTH}" height="{DAILY_FORTUNE_COVER_HEIGHT}" viewBox="0 0 {DAILY_FORTUNE_COVER_WIDTH} {DAILY_FORTUNE_COVER_HEIGHT}" role="img" aria-label="夏野日运 十二星座每日好运封面">
+  <defs>
+    <style>
+      text {{
+        font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      }}
+    </style>
+  </defs>
+  <rect width="900" height="380" fill="{palette['background']}"/>
+  <rect x="604" y="24" width="268" height="332" fill="{palette['panel']}"/>
+  <path d="M604 24 V356" stroke="{palette['highlight']}" stroke-width="2"/>
+  <rect x="28" y="24" width="844" height="332" fill="none" stroke="{palette['border']}" stroke-width="1"/>
+  <path d="M28 62 V24 H66 M834 356 H872 V318" fill="none" stroke="{palette['gold']}" stroke-width="2"/>
+  <path d="M628 78 L658 60 L686 76 M790 298 L820 316 L848 290" fill="none" stroke="{palette['border']}" stroke-width="1"/>
+  <circle cx="628" cy="78" r="3" fill="{palette['gold']}"/><circle cx="658" cy="60" r="2" fill="{palette['mint']}"/><circle cx="686" cy="76" r="2" fill="{palette['gold']}"/>
+  <circle cx="790" cy="298" r="2" fill="{palette['gold']}"/><circle cx="820" cy="316" r="3" fill="{palette['mint']}"/><circle cx="848" cy="290" r="2" fill="{palette['gold']}"/>
+  <circle cx="82" cy="83" r="4" fill="{palette['gold']}"/>
+  <text x="98" y="93" font-size="25" font-weight="700" fill="{palette['muted']}">十二星座 · 每日好运</text>
+  <text x="76" y="218" font-family="SimSun, Songti SC, serif" font-size="100" font-weight="700" fill="{palette['ink']}">夏野日运</text>
+  <path d="M80 250 H172" stroke="{palette['gold']}" stroke-width="4"/>
+  <text x="80" y="296" font-size="30" font-weight="700" fill="{palette['muted']}">{date_text}</text>
+  <circle cx="724" cy="190" r="72" fill="none" stroke="{palette['border']}" stroke-width="2"/>
+  <circle cx="724" cy="190" r="54" fill="none" stroke="{palette['mint']}" stroke-width="2"/>
+  <circle cx="724" cy="190" r="66" fill="none" stroke="{palette['gold']}" stroke-width="3" stroke-dasharray="86 329" transform="rotate(-72 724 190)"/>
+  {tick_svg}
+  <text x="724" y="190" text-anchor="middle" font-size="45" font-weight="800" fill="{palette['ink']}">12</text>
+  <text x="724" y="220" text-anchor="middle" font-size="18" font-weight="700" fill="{palette['muted']}">星座</text>
+  <path d="M80 326 H820" stroke="{palette['border']}" stroke-width="1"/>
+  <circle cx="820" cy="326" r="3" fill="{palette['gold']}"/>
+</svg>
+"""
+
+
+def daily_fortune_cover_path(
+    day: date,
+    *,
+    asset_dir: Path = DAILY_FORTUNE_COVER_ASSET_DIR,
+    image_format: str = "png",
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+) -> Path:
+    extension = _daily_card_extension(image_format)
+    daily_card_theme(card_theme)
+    dirname = day.strftime("%Y%m%d")
+    if card_theme != DEFAULT_DAILY_CARD_THEME:
+        dirname = f"{dirname}_{card_theme}"
+    return asset_dir / dirname / f"夏野日运.{extension}"
+
+
+def daily_fortune_follow_path(
+    *,
+    asset_dir: Path = DAILY_FORTUNE_FOLLOW_ASSET_DIR,
+) -> Path:
+    return asset_dir / "夏野星座关注指引.png"
+
+
+def _hex_to_rgb(value: str) -> tuple[int, int, int]:
+    clean = value.lstrip("#")
+    return tuple(int(clean[index : index + 2], 16) for index in (0, 2, 4))
+
+
+def _blend_color(a: tuple[int, int, int], b: tuple[int, int, int], ratio: float) -> tuple[int, int, int]:
+    return tuple(round(a[index] * (1 - ratio) + b[index] * ratio) for index in range(3))
+
+
+def _cover_font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    if ImageFont is None:
+        raise RuntimeError("缺少 Pillow，无法绘制日运封面")
+    candidates = (
+        "C:/Windows/Fonts/msyhbd.ttc" if bold else "C:/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/simhei.ttf",
+        "/System/Library/Fonts/PingFang.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc" if bold else "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    )
+    for candidate in candidates:
+        try:
+            if candidate and Path(candidate).is_file():
+                return ImageFont.truetype(candidate, size=size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def _cover_display_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    if ImageFont is None:
+        raise RuntimeError("缺少 Pillow，无法绘制日运封面")
+    candidates = (
+        "C:/Windows/Fonts/simsun.ttc",
+        "/System/Library/Fonts/Supplemental/Songti.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc",
+    )
+    for candidate in candidates:
+        try:
+            if Path(candidate).is_file():
+                return ImageFont.truetype(candidate, size=size)
+        except OSError:
+            continue
+    return _cover_font(size, bold=True)
+
+
+def render_daily_fortune_follow_png(output_path: Path) -> None:
+    if Image is None or ImageDraw is None:
+        raise RuntimeError("缺少 Pillow，无法绘制日运关注指引。请运行 python -m pip install Pillow")
+
+    scale = DAILY_FORTUNE_FOLLOW_EXPORT_SCALE
+    width = DAILY_FORTUNE_FOLLOW_WIDTH * scale
+    height = DAILY_FORTUNE_FOLLOW_HEIGHT * scale
+    background = _hex_to_rgb("#edf8f1")
+    ink = _hex_to_rgb("#24483a")
+    muted = _hex_to_rgb("#526f62")
+    mint = _hex_to_rgb("#70ad8b")
+    border = _hex_to_rgb("#a9cbbc")
+    gold = _hex_to_rgb("#ad8d58")
+    image = Image.new("RGB", (width, height), background)
+    draw = ImageDraw.Draw(image)
+
+    def p(value: int) -> int:
+        return value * scale
+
+    frame_points = (
+        (p(72), p(96)),
+        (p(72), p(56)),
+        (p(790), p(56)),
+        (p(828), p(94)),
+        (p(828), p(304)),
+        (p(110), p(304)),
+        (p(72), p(266)),
+    )
+    draw.line(frame_points, fill=border, width=p(2), joint="curve")
+    draw.line((p(790), p(48), p(838), p(96)), fill=mint, width=p(2))
+    draw.line((p(62), p(256), p(120), p(314)), fill=mint, width=p(2))
+    draw.line((p(392), p(124), p(508), p(124)), fill=gold, width=p(2))
+    draw.ellipse((p(445), p(119), p(455), p(129)), fill=gold)
+    draw.ellipse((p(92), p(76), p(98), p(82)), fill=mint)
+    draw.ellipse((p(802), p(278), p(808), p(284)), fill=gold)
+
+    title_font = _cover_display_font(p(37))
+    subtitle_font = _cover_font(p(28), bold=False)
+    title, subtitle = DAILY_FORTUNE_FOLLOW_LINES
+    title_bbox = draw.textbbox((0, 0), title, font=title_font)
+    subtitle_bbox = draw.textbbox((0, 0), subtitle, font=subtitle_font)
+    draw.text(
+        ((width - (title_bbox[2] - title_bbox[0])) / 2, p(148)),
+        title,
+        font=title_font,
+        fill=ink,
+    )
+    draw.text(
+        ((width - (subtitle_bbox[2] - subtitle_bbox[0])) / 2, p(211)),
+        subtitle,
+        font=subtitle_font,
+        fill=muted,
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(output_path, format="PNG", optimize=True)
+
+
+def write_daily_fortune_follow(
+    *,
+    asset_dir: Path = DAILY_FORTUNE_FOLLOW_ASSET_DIR,
+) -> Path:
+    output_path = daily_fortune_follow_path(asset_dir=asset_dir)
+    render_daily_fortune_follow_png(output_path)
+    return output_path
+
+
+def daily_fortune_cover_palette(theme: DailyCardTheme) -> dict[str, str]:
+    if theme.key == "mint":
+        return {
+            "background": "#dfeee5",
+            "panel": "#d3e7db",
+            "highlight": "#edf7f1",
+            "ink": "#24483a",
+            "muted": "#526f62",
+            "mint": "#70ad8b",
+            "gold": "#ad8d58",
+            "border": "#a9cbbc",
+        }
+    return {
+        "background": "#fbf7f8",
+        "panel": "#f3e8eb",
+        "highlight": "#fffafb",
+        "ink": "#573641",
+        "muted": "#82646e",
+        "mint": "#d39aaa",
+        "gold": "#b59a68",
+        "border": "#e3d2d7",
+    }
+
+
+def render_daily_fortune_cover_png(
+    day: date,
+    output_path: Path,
+    *,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+) -> None:
+    if Image is None or ImageDraw is None:
+        raise RuntimeError("缺少 Pillow，无法绘制日运封面。请运行 python -m pip install Pillow")
+    theme = daily_card_theme(card_theme)
+    palette = daily_fortune_cover_palette(theme)
+    width = DAILY_FORTUNE_COVER_WIDTH
+    height = DAILY_FORTUNE_COVER_HEIGHT
+    image = Image.new("RGB", (width, height), _hex_to_rgb(palette["background"]))
+    draw = ImageDraw.Draw(image)
+    ink = _hex_to_rgb(palette["ink"])
+    muted = _hex_to_rgb(palette["muted"])
+    mint = _hex_to_rgb(palette["mint"])
+    gold = _hex_to_rgb(palette["gold"])
+    border = _hex_to_rgb(palette["border"])
+    panel = _hex_to_rgb(palette["panel"])
+    highlight = _hex_to_rgb(palette["highlight"])
+
+    draw.rectangle((604, 24, 872, 356), fill=panel)
+    draw.line((604, 24, 604, 356), fill=highlight, width=2)
+    draw.rectangle((28, 24, 872, 356), outline=border, width=1)
+    draw.line((28, 62, 28, 24, 66, 24), fill=gold, width=2)
+    draw.line((834, 356, 872, 356, 872, 318), fill=gold, width=2)
+    for points in (
+        ((628, 78), (658, 60), (686, 76)),
+        ((790, 298), (820, 316), (848, 290)),
+    ):
+        draw.line((*points[0], *points[1], *points[2]), fill=border, width=1)
+    for x, y, radius, color in (
+        (628, 78, 3, gold),
+        (658, 60, 2, mint),
+        (686, 76, 2, gold),
+        (790, 298, 2, gold),
+        (820, 316, 3, mint),
+        (848, 290, 2, gold),
+    ):
+        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color)
+    draw.ellipse((78, 79, 86, 87), fill=gold)
+    subtitle_font = _cover_font(25, bold=True)
+    title_font = _cover_display_font(100)
+    date_font = _cover_font(30, bold=True)
+    draw.text((98, 64), "十二星座 · 每日好运", font=subtitle_font, fill=muted)
+    draw.text((76, 112), "夏野日运", font=title_font, fill=ink)
+    draw.line((80, 250, 172, 250), fill=gold, width=4)
+    draw.text((80, 258), f"{day:%Y.%m.%d}", font=date_font, fill=muted)
+
+    center_x, center_y = 724, 190
+    draw.ellipse((652, 118, 796, 262), outline=border, width=2)
+    draw.ellipse((670, 136, 778, 244), outline=mint, width=2)
+    draw.arc((658, 124, 790, 256), start=198, end=276, fill=gold, width=3)
+    for index in range(12):
+        angle = math.radians(index * 30 - 90)
+        outer = 98
+        inner = 84 if index % 3 else 80
+        start = (
+            round(center_x + math.cos(angle) * inner),
+            round(center_y + math.sin(angle) * inner),
+        )
+        end = (
+            round(center_x + math.cos(angle) * outer),
+            round(center_y + math.sin(angle) * outer),
+        )
+        color = gold if index == 0 else ink if index % 3 == 0 else mint
+        draw.line((*start, *end), fill=color, width=3 if index % 3 == 0 else 2)
+
+    number_font = _cover_font(45, bold=True)
+    sign_font = _cover_font(18, bold=True)
+    number_bbox = draw.textbbox((0, 0), "12", font=number_font)
+    draw.text((center_x - (number_bbox[2] - number_bbox[0]) / 2, 153), "12", font=number_font, fill=ink)
+    sign_bbox = draw.textbbox((0, 0), "星座", font=sign_font)
+    draw.text((center_x - (sign_bbox[2] - sign_bbox[0]) / 2, 207), "星座", font=sign_font, fill=muted)
+
+    draw.line((80, 326, 820, 326), fill=border, width=1)
+    draw.ellipse((817, 323, 823, 329), fill=gold)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    export_size = (
+        DAILY_FORTUNE_COVER_WIDTH * DAILY_FORTUNE_COVER_EXPORT_SCALE,
+        DAILY_FORTUNE_COVER_HEIGHT * DAILY_FORTUNE_COVER_EXPORT_SCALE,
+    )
+    image.resize(export_size, Image.Resampling.LANCZOS).save(
+        output_path,
+        format="PNG",
+        optimize=True,
+    )
+
+
+def _fit_card_font(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    *,
+    max_width: int,
+    size: int,
+    min_size: int = 22,
+    bold: bool = True,
+) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    while size > min_size:
+        font = _cover_font(size, bold=bold)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        if bbox[2] - bbox[0] <= max_width:
+            return font
+        size -= 2
+    return _cover_font(min_size, bold=bold)
+
+
+def _draw_centered_card_text(
+    draw: ImageDraw.ImageDraw,
+    center_x: int,
+    y: int,
+    text: str,
+    *,
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
+    fill: str,
+) -> None:
+    bbox = draw.textbbox((0, 0), text, font=font)
+    draw.text((center_x - (bbox[2] - bbox[0]) / 2, y), text, font=font, fill=fill)
+
+
+def _paste_daily_card_character(
+    image: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    sign: str,
+    *,
+    character_asset_dir: Path | None,
+    theme: DailyCardTheme,
+) -> None:
+    panel_box = (114, 220, 344, 490)
+    character_path = daily_card_character_path(sign, character_asset_dir=character_asset_dir)
+    if character_path is not None and ImageOps is not None:
+        with Image.open(character_path) as source:
+            character = ImageOps.fit(
+                source.convert("RGB"),
+                (230, 270),
+                method=Image.Resampling.LANCZOS,
+            )
+        mask = Image.new("L", character.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, 229, 269), radius=24, fill=255)
+        image.paste(character, panel_box[:2], mask)
+        return
+
+    draw.rounded_rectangle(panel_box, radius=24, fill=DAILY_CARD_AVATAR_FILL[sign])
+    fallback_font = _cover_font(54, bold=True)
+    _draw_centered_card_text(
+        draw,
+        229,
+        320,
+        f"{sign}座",
+        font=fallback_font,
+        fill=theme.pill_label_text,
+    )
+
+
+def render_daily_fortune_card_png(
+    card: DailyFortuneCard,
+    day: date,
+    output_path: Path,
+    *,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+    character_asset_dir: Path | None = None,
+) -> None:
+    if Image is None or ImageDraw is None or ImageFont is None:
+        raise RuntimeError("缺少 Pillow，无法绘制日运卡。请运行 python -m pip install Pillow")
+
+    theme = daily_card_theme(card_theme)
+    width = DAILY_CARD_WIDTH
+    height = DAILY_CARD_HEIGHT
+    image = Image.new("RGB", (width, height), _hex_to_rgb(theme.stripe_base))
+
+    frame = Image.new("RGB", (884, 1232), _hex_to_rgb(theme.frame_start))
+    frame_draw = ImageDraw.Draw(frame)
+    frame_start = _hex_to_rgb(theme.frame_start)
+    frame_end = _hex_to_rgb(theme.frame_end)
+    for y in range(frame.height):
+        ratio = y / max(frame.height - 1, 1)
+        frame_draw.line((0, y, frame.width, y), fill=_blend_color(frame_start, frame_end, ratio))
+    frame_mask = Image.new("L", frame.size, 0)
+    ImageDraw.Draw(frame_mask).rounded_rectangle((0, 0, 883, 1231), radius=56, fill=255)
+    image.paste(frame, (38, 24), frame_mask)
+
+    panel = Image.new("RGB", (824, 1124), _hex_to_rgb(theme.stripe_base))
+    panel_draw = ImageDraw.Draw(panel)
+    for offset in range(-panel.height, panel.width, 36):
+        panel_draw.line(
+            (offset, panel.height, offset + panel.height, 0),
+            fill=_hex_to_rgb(theme.stripe_band),
+            width=10,
+        )
+    panel_mask = Image.new("L", panel.size, 0)
+    ImageDraw.Draw(panel_mask).rounded_rectangle((0, 0, 823, 1123), radius=8, fill=255)
+    image.paste(panel, (68, 70), panel_mask)
+
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle((68, 70, 892, 1194), radius=8, outline=theme.frame_stroke, width=4)
+    draw.line((70, 128, 890, 128), fill="#ffffff", width=8)
+
+    title_font = _cover_font(84, bold=True)
+    _draw_centered_card_text(draw, 480, 73, f"{card.sign}座", font=title_font, fill=theme.title)
+    for cx, cy in ((280, 118), (690, 136)):
+        draw.ellipse((cx - 7, cy - 7, cx + 7, cy + 7), fill=theme.title)
+        draw.line((cx - 18, cy, cx + 18, cy), fill=theme.title, width=3)
+        draw.line((cx, cy - 18, cx, cy + 18), fill=theme.title, width=3)
+
+    draw.rounded_rectangle(
+        (110, 216, 348, 494),
+        radius=28,
+        fill=theme.avatar_panel_bg,
+        outline=theme.avatar_panel_stroke,
+        width=4,
+    )
+    _paste_daily_card_character(
+        image,
+        draw,
+        card.sign,
+        character_asset_dir=character_asset_dir,
+        theme=theme,
+    )
+
+    match_text = "、".join(f"{sign}座" for sign in card.matches)
+    info_rows = (
+        f"今日简述：{card.summary}",
+        f"今日分数：{card.score}",
+        f"合拍星座：{match_text}",
+        f"建议：{card.advice}",
+        f"避免：{card.avoid}",
+    )
+    for index, text in enumerate(info_rows):
+        font = _fit_card_font(draw, text, max_width=470, size=38, min_size=26)
+        draw.text((390, 222 + index * 60), text, font=font, fill=theme.action_text)
+
+    for index, (label, value) in enumerate(card.metrics):
+        column = index % 2
+        row = index // 2
+        x = 94 + column * 392
+        y = 548 + row * 76
+        draw.rounded_rectangle((x, y, x + 342, y + 56), radius=22, fill=theme.pill_bg, outline=theme.pill_stroke, width=3)
+        draw.rounded_rectangle((x, y, x + 110, y + 56), radius=22, fill=theme.pill_label_bg)
+        label_font = _fit_card_font(draw, label, max_width=96, size=33, min_size=25)
+        value_font = _fit_card_font(draw, value, max_width=210, size=31, min_size=23)
+        _draw_centered_card_text(draw, x + 55, y + 8, label, font=label_font, fill=theme.pill_label_text)
+        _draw_centered_card_text(draw, x + 226, y + 9, value, font=value_font, fill=theme.pill_value_text)
+
+    for index, (label, value) in enumerate(card.luck_rows):
+        y = 712 + index * 76
+        draw.rounded_rectangle((94, y, 866, y + 56), radius=22, fill=theme.bar_fill)
+        draw.rounded_rectangle((94, y, 242, y + 56), radius=22, fill=theme.bar_label_bg, outline=theme.action_stroke, width=3)
+        label_font = _fit_card_font(draw, label, max_width=132, size=34, min_size=25)
+        value_font = _fit_card_font(draw, value, max_width=570, size=30, min_size=21)
+        _draw_centered_card_text(draw, 168, y + 7, label, font=label_font, fill=theme.bar_label_text)
+        draw.text((270, y + 9), value, font=value_font, fill=theme.bar_text)
+
+    draw.rounded_rectangle((94, 928, 866, 1116), radius=18, fill=theme.action_bg, outline=theme.action_stroke, width=4)
+    action_label_font = _cover_font(44, bold=True)
+    for label, center_y in (("今日", 988), ("必做", 1056)):
+        bbox = draw.textbbox((0, 0), label, font=action_label_font)
+        label_x = 168 - (bbox[2] - bbox[0]) / 2 - bbox[0]
+        label_y = center_y - (bbox[3] - bbox[1]) / 2 - bbox[1]
+        draw.text((label_x, label_y), label, font=action_label_font, fill=theme.action_text)
+    draw.line((242, 952, 242, 1092), fill=theme.action_stroke, width=4)
+    for index, text in enumerate(card.actions):
+        center_y = 974 + index * 48
+        draw.ellipse((268, center_y - 14, 296, center_y + 14), outline=theme.action_stroke, width=4)
+        draw.line((274, center_y - 2, 281, center_y + 6), fill=theme.action_stroke, width=5)
+        draw.line((281, center_y + 6, 295, center_y - 11), fill=theme.action_stroke, width=5)
+        font = _fit_card_font(draw, text, max_width=520, size=31, min_size=23)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_y = center_y - (bbox[3] - bbox[1]) / 2 - bbox[1]
+        draw.text((316, text_y), text, font=font, fill=theme.action_text)
+
+    slogan_label_font = _cover_font(39, bold=True)
+    slogan_font = _fit_card_font(draw, card.slogan, max_width=560, size=36, min_size=23)
+    draw.text((94, 1138), "好运口号：", font=slogan_label_font, fill=theme.action_text)
+    draw.text((292, 1141), card.slogan, font=slogan_font, fill=theme.action_text)
+    footer_font = _cover_font(24)
+    _draw_centered_card_text(draw, 480, 1200, "······  +  ······", font=footer_font, fill=theme.footer)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(output_path, format="PNG", optimize=True)
+
+
+def write_daily_fortune_cover(
+    day: date,
+    *,
+    asset_dir: Path = DAILY_FORTUNE_COVER_ASSET_DIR,
+    image_format: str = "png",
+    chrome_path: Path | None = None,
+    card_theme: str = DEFAULT_DAILY_CARD_THEME,
+    png_renderer: str = "auto",
+) -> Path:
+    extension = _daily_card_extension(image_format)
+    path = daily_fortune_cover_path(
+        day,
+        asset_dir=asset_dir,
+        image_format=extension,
+        card_theme=card_theme,
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    svg_text = render_daily_fortune_cover_svg(day, card_theme=card_theme)
+    if extension == "svg":
+        path.write_text(svg_text, encoding="utf-8")
+    else:
+        render_daily_fortune_cover_png(day, path, card_theme=card_theme)
+    return path
 
 
 def daily_fortune_card_paths(
@@ -1181,6 +1972,8 @@ def render_svg_to_png(
     *,
     chrome_path: Path | None = None,
     renderer: str = "auto",
+    width: int = DAILY_CARD_WIDTH,
+    height: int = DAILY_CARD_HEIGHT,
 ) -> None:
     if renderer not in PNG_RENDERERS:
         raise ValueError(f"不支持的 PNG 渲染器：{renderer}")
@@ -1190,13 +1983,13 @@ def render_svg_to_png(
     for candidate in renderers:
         try:
             if candidate == "resvg":
-                _render_svg_to_png_resvg(svg_text, png_path)
+                _render_svg_to_png_resvg(svg_text, png_path, width=width, height=height)
             elif candidate == "rsvg-convert":
-                _render_svg_to_png_rsvg_convert(svg_text, png_path)
+                _render_svg_to_png_rsvg_convert(svg_text, png_path, width=width, height=height)
             elif candidate == "cairosvg":
-                _render_svg_to_png_cairosvg(svg_text, png_path)
+                _render_svg_to_png_cairosvg(svg_text, png_path, width=width, height=height)
             elif candidate == "chrome":
-                _render_svg_to_png_chrome(svg_text, png_path, chrome_path=chrome_path)
+                _render_svg_to_png_chrome(svg_text, png_path, chrome_path=chrome_path, width=width, height=height)
             return
         except FileNotFoundError as exc:
             if renderer != "auto":
@@ -1210,7 +2003,13 @@ def render_svg_to_png(
     raise RuntimeError(detail or f"PNG 导出失败：{png_path.resolve()}")
 
 
-def _render_svg_to_png_cairosvg(svg_text: str, png_path: Path) -> None:
+def _render_svg_to_png_cairosvg(
+    svg_text: str,
+    png_path: Path,
+    *,
+    width: int,
+    height: int,
+) -> None:
     try:
         import cairosvg  # type: ignore[import-not-found]
     except (ImportError, OSError) as exc:
@@ -1219,15 +2018,21 @@ def _render_svg_to_png_cairosvg(svg_text: str, png_path: Path) -> None:
         cairosvg.svg2png(
             bytestring=svg_text.encode("utf-8"),
             write_to=str(png_path.resolve()),
-            output_width=DAILY_CARD_WIDTH,
-            output_height=DAILY_CARD_HEIGHT,
+            output_width=width,
+            output_height=height,
         )
     except Exception as exc:
         raise RuntimeError(f"CairoSVG PNG 导出失败：{exc}") from exc
     _ensure_png_created(png_path, renderer="cairosvg")
 
 
-def _render_svg_to_png_resvg(svg_text: str, png_path: Path) -> None:
+def _render_svg_to_png_resvg(
+    svg_text: str,
+    png_path: Path,
+    *,
+    width: int,
+    height: int,
+) -> None:
     resvg = shutil.which("resvg")
     if not resvg:
         raise FileNotFoundError("未找到 resvg，跳过 resvg PNG 渲染器")
@@ -1238,9 +2043,9 @@ def _render_svg_to_png_resvg(svg_text: str, png_path: Path) -> None:
             [
                 resvg,
                 "--width",
-                str(DAILY_CARD_WIDTH),
+                str(width),
                 "--height",
-                str(DAILY_CARD_HEIGHT),
+                str(height),
                 str(svg_path),
                 str(png_path.resolve()),
             ],
@@ -1249,7 +2054,13 @@ def _render_svg_to_png_resvg(svg_text: str, png_path: Path) -> None:
         )
 
 
-def _render_svg_to_png_rsvg_convert(svg_text: str, png_path: Path) -> None:
+def _render_svg_to_png_rsvg_convert(
+    svg_text: str,
+    png_path: Path,
+    *,
+    width: int,
+    height: int,
+) -> None:
     rsvg_convert = shutil.which("rsvg-convert")
     if not rsvg_convert:
         raise FileNotFoundError("未找到 rsvg-convert，跳过 rsvg-convert PNG 渲染器")
@@ -1260,9 +2071,9 @@ def _render_svg_to_png_rsvg_convert(svg_text: str, png_path: Path) -> None:
             [
                 rsvg_convert,
                 "-w",
-                str(DAILY_CARD_WIDTH),
+                str(width),
                 "-h",
-                str(DAILY_CARD_HEIGHT),
+                str(height),
                 "-o",
                 str(png_path.resolve()),
                 str(svg_path),
@@ -1310,6 +2121,8 @@ def _render_svg_to_png_chrome(
     png_path: Path,
     *,
     chrome_path: Path | None = None,
+    width: int,
+    height: int,
 ) -> None:
     browser = chrome_binary(chrome_path)
     with tempfile.TemporaryDirectory(prefix="daily-fortune-card-") as tmpdir:
@@ -1327,7 +2140,7 @@ def _render_svg_to_png_chrome(
             f"--user-data-dir={profile_dir}",
             "--force-device-scale-factor=1",
             f"--screenshot={png_target}",
-            f"--window-size={DAILY_CARD_WIDTH},{DAILY_CARD_HEIGHT}",
+            f"--window-size={width},{height}",
             svg_path.as_uri(),
         ]
         try:
@@ -1378,20 +2191,21 @@ def write_daily_fortune_cards(
         next(iter(paths.values())).parent.mkdir(parents=True, exist_ok=True)
     for sign, path in paths.items():
         card = build_daily_fortune_card(sign, day)
-        svg_text = render_daily_fortune_card_svg(
-            card,
-            day,
-            card_theme=card_theme,
-            character_asset_dir=character_asset_dir,
-        )
         if extension == "svg":
+            svg_text = render_daily_fortune_card_svg(
+                card,
+                day,
+                card_theme=card_theme,
+                character_asset_dir=character_asset_dir,
+            )
             path.write_text(svg_text, encoding="utf-8")
         else:
-            render_svg_to_png(
-                svg_text,
+            render_daily_fortune_card_png(
+                card,
+                day,
                 path,
-                chrome_path=chrome_path,
-                renderer=png_renderer,
+                card_theme=card_theme,
+                character_asset_dir=character_asset_dir,
             )
     return paths
 
@@ -1539,10 +2353,19 @@ def render_markdown(
     draft: Draft,
     *,
     daily_card_images: dict[str, str] | None = None,
+    daily_fortune_cover_image: str | None = None,
+    daily_fortune_follow_image: str | None = None,
+    pet_cover_image: str | None = None,
 ) -> str:
     body = draft.body
     if draft.item.theme == DAILY_FORTUNE_THEME and daily_card_images:
         body = insert_daily_card_images(body, daily_card_images)
+    if draft.item.theme == DAILY_FORTUNE_THEME and daily_fortune_follow_image:
+        body = f"{body}\n\n![每日好运关注指引]({daily_fortune_follow_image})"
+    if draft.item.theme == DAILY_FORTUNE_THEME and daily_fortune_cover_image:
+        body = f"![夏野日运封面]({daily_fortune_cover_image})\n\n{body}"
+    elif draft.item.theme != DAILY_FORTUNE_THEME and pet_cover_image:
+        body = f"![{draft.item.sign}治愈系萌宠封面]({pet_cover_image})\n\n{body}"
     return f"---\ntitle: {draft.title}\n---\n\n{body}\n"
 
 
@@ -1877,7 +2700,7 @@ def main() -> int:
         "--card-theme",
         choices=tuple(DAILY_CARD_THEMES),
         default=DEFAULT_DAILY_CARD_THEME,
-        help="日运信息卡主题，默认 pink；可用 mint 生成薄荷绿 A/B 版",
+        help="日运信息卡主题，默认 mint；可用 pink 生成桃粉 A/B 版",
     )
     parser.add_argument(
         "--png-renderer",
@@ -1900,6 +2723,65 @@ def main() -> int:
         help="只生成日运正文，不生成或引用信息卡图片",
     )
     parser.set_defaults(daily_card_assets=True)
+    parser.add_argument("--zodiac-character-dir", type=Path, default=DAILY_CARD_CHARACTER_DIR)
+    parser.add_argument(
+        "--refresh-zodiac-characters",
+        action="store_true",
+        help="先用本地 ComfyUI 重新生成完整的十二星座动漫人物，再生成日运卡",
+    )
+    parser.add_argument("--character-comfy-endpoint", default=DEFAULT_COMFY_ENDPOINT)
+    parser.add_argument("--character-comfy-profile", default=DEFAULT_COMFY_PROFILE, choices=("flux2_klein",))
+    parser.add_argument("--character-max-wait", type=int, default=600)
+    parser.add_argument("--character-poll-seconds", type=float, default=1.5)
+    parser.add_argument("--daily-fortune-cover-dir", type=Path, default=DAILY_FORTUNE_COVER_ASSET_DIR)
+    daily_fortune_cover_group = parser.add_mutually_exclusive_group()
+    daily_fortune_cover_group.add_argument(
+        "--daily-fortune-cover-assets",
+        dest="daily_fortune_cover_assets",
+        action="store_true",
+        help="为十二星座每日好运生成夏野日运横向封面，默认开启",
+    )
+    daily_fortune_cover_group.add_argument(
+        "--no-daily-fortune-cover-assets",
+        dest="daily_fortune_cover_assets",
+        action="store_false",
+        help="只生成日运正文和卡片，不生成或引用夏野日运封面",
+    )
+    parser.set_defaults(daily_fortune_cover_assets=True)
+    parser.add_argument("--daily-fortune-follow-dir", type=Path, default=DAILY_FORTUNE_FOLLOW_ASSET_DIR)
+    daily_fortune_follow_group = parser.add_mutually_exclusive_group()
+    daily_fortune_follow_group.add_argument(
+        "--daily-fortune-follow-assets",
+        dest="daily_fortune_follow_assets",
+        action="store_true",
+        help="为十二星座每日好运生成并引用薄荷绿关注指引，默认开启",
+    )
+    daily_fortune_follow_group.add_argument(
+        "--no-daily-fortune-follow-assets",
+        dest="daily_fortune_follow_assets",
+        action="store_false",
+        help="不生成或引用每日好运关注指引",
+    )
+    parser.set_defaults(daily_fortune_follow_assets=True)
+    parser.add_argument("--pet-cover-dir", type=Path, default=PET_COVER_ASSET_DIR)
+    pet_cover_group = parser.add_mutually_exclusive_group()
+    pet_cover_group.add_argument(
+        "--pet-cover-assets",
+        dest="pet_cover_assets",
+        action="store_true",
+        help="为非每日好运的单星座短文生成本地 ComfyUI 治愈系萌宠封面，默认开启",
+    )
+    pet_cover_group.add_argument(
+        "--no-pet-cover-assets",
+        dest="pet_cover_assets",
+        action="store_false",
+        help="只生成单星座正文，不生成或引用萌宠封面",
+    )
+    parser.set_defaults(pet_cover_assets=True)
+    parser.add_argument("--pet-comfy-endpoint", default=DEFAULT_COMFY_ENDPOINT)
+    parser.add_argument("--pet-comfy-profile", default=DEFAULT_COMFY_PROFILE, choices=("flux2_klein",))
+    parser.add_argument("--pet-cover-max-wait", type=int, default=600)
+    parser.add_argument("--pet-cover-poll-seconds", type=float, default=1.5)
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     parser.add_argument("--performance-log", type=Path, default=DEFAULT_LOG_PATH)
     parser.add_argument("--performance-min-samples", type=int, default=3)
@@ -1922,6 +2804,8 @@ def main() -> int:
         parser.error("--performance-min-samples 必须大于 0")
     if args.daily_fortune_only and not args.include_daily_fortune:
         parser.error("--daily-fortune-only 不能与 --no-daily-fortune 同时使用")
+    if args.refresh_zodiac_characters and not args.include_daily_fortune:
+        parser.error("--refresh-zodiac-characters 需要启用十二星座每日好运")
 
     try:
         performance_entries = load_entries(args.performance_log)
@@ -1976,6 +2860,14 @@ def main() -> int:
     batch_paths: list[Path] = []
     if not args.dry_run:
         args.output_dir.mkdir(parents=True, exist_ok=True)
+        if args.refresh_zodiac_characters:
+            refresh_zodiac_characters_with_comfyui(
+                asset_dir=args.zodiac_character_dir,
+                endpoint=args.character_comfy_endpoint,
+                model_profile=args.character_comfy_profile,
+                max_wait=args.character_max_wait,
+                poll_seconds=args.character_poll_seconds,
+            )
     for draft in drafts:
         if draft.recent_conflict:
             print(
@@ -1988,17 +2880,47 @@ def main() -> int:
         path = output_path(args.output_dir, draft)
         if args.dry_run:
             daily_card_images = None
-            if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
-                daily_card_images = daily_card_markdown_refs(
-                    daily_fortune_card_paths(
-                        draft.item.day,
-                        asset_dir=args.card_dir,
-                        image_format=args.card_format,
-                        card_theme=args.card_theme,
-                    ),
+            daily_fortune_cover_image = None
+            daily_fortune_follow_image = None
+            pet_cover_image = None
+            if draft.item.theme == DAILY_FORTUNE_THEME:
+                if args.daily_fortune_cover_assets:
+                    daily_fortune_cover_image = markdown_ref(
+                        daily_fortune_cover_path(
+                            draft.item.day,
+                            asset_dir=args.daily_fortune_cover_dir,
+                            image_format=args.card_format,
+                            card_theme=args.card_theme,
+                        ),
+                        article_dir=path.parent,
+                    )
+                if args.daily_fortune_follow_assets:
+                    daily_fortune_follow_image = markdown_ref(
+                        daily_fortune_follow_path(asset_dir=args.daily_fortune_follow_dir),
+                        article_dir=path.parent,
+                    )
+                if args.daily_card_assets:
+                    daily_card_images = daily_card_markdown_refs(
+                        daily_fortune_card_paths(
+                            draft.item.day,
+                            asset_dir=args.card_dir,
+                            image_format=args.card_format,
+                            card_theme=args.card_theme,
+                        ),
+                        article_dir=path.parent,
+                    )
+            elif draft.item.theme != DAILY_FORTUNE_THEME and args.pet_cover_assets:
+                pet_cover_image = pet_cover_markdown_ref(
+                    pet_cover_path(args.pet_cover_dir, draft),
                     article_dir=path.parent,
                 )
-            content = render_markdown(draft, daily_card_images=daily_card_images)
+            content = render_markdown(
+                draft,
+                daily_card_images=daily_card_images,
+                daily_fortune_cover_image=daily_fortune_cover_image,
+                daily_fortune_follow_image=daily_fortune_follow_image,
+                pet_cover_image=pet_cover_image,
+            )
             print(f"\n# {path.name}\n{content}")
             continue
         if path.exists() and not args.overwrite:
@@ -2007,18 +2929,55 @@ def main() -> int:
             batch_paths.append(path)
             continue
         daily_card_images = None
-        if draft.item.theme == DAILY_FORTUNE_THEME and args.daily_card_assets:
-            card_paths = write_daily_fortune_cards(
-                draft.item.day,
-                asset_dir=args.card_dir,
-                image_format=args.card_format,
-                chrome_path=args.chrome_bin,
-                card_theme=args.card_theme,
-                png_renderer=args.png_renderer,
+        daily_fortune_cover_image = None
+        daily_fortune_follow_image = None
+        pet_cover_image = None
+        if draft.item.theme == DAILY_FORTUNE_THEME:
+            if args.daily_fortune_cover_assets:
+                cover_path = write_daily_fortune_cover(
+                    draft.item.day,
+                    asset_dir=args.daily_fortune_cover_dir,
+                    image_format=args.card_format,
+                    chrome_path=args.chrome_bin,
+                    card_theme=args.card_theme,
+                    png_renderer=args.png_renderer,
+                )
+                daily_fortune_cover_image = markdown_ref(cover_path, article_dir=path.parent)
+                print(f"已生成日运封面：{cover_path}")
+            if args.daily_card_assets:
+                card_paths = write_daily_fortune_cards(
+                    draft.item.day,
+                    asset_dir=args.card_dir,
+                    image_format=args.card_format,
+                    chrome_path=args.chrome_bin,
+                    card_theme=args.card_theme,
+                    png_renderer=args.png_renderer,
+                    character_asset_dir=args.zodiac_character_dir,
+                )
+                daily_card_images = daily_card_markdown_refs(card_paths, article_dir=path.parent)
+                print(f"已生成日运卡图：{next(iter(card_paths.values())).parent}")
+            if args.daily_fortune_follow_assets:
+                follow_path = write_daily_fortune_follow(asset_dir=args.daily_fortune_follow_dir)
+                daily_fortune_follow_image = markdown_ref(follow_path, article_dir=path.parent)
+                print(f"已生成关注指引：{follow_path}")
+        elif draft.item.theme != DAILY_FORTUNE_THEME and args.pet_cover_assets:
+            cover_path = write_pet_cover_with_comfyui(
+                draft,
+                asset_dir=args.pet_cover_dir,
+                endpoint=args.pet_comfy_endpoint,
+                model_profile=args.pet_comfy_profile,
+                max_wait=args.pet_cover_max_wait,
+                poll_seconds=args.pet_cover_poll_seconds,
             )
-            daily_card_images = daily_card_markdown_refs(card_paths, article_dir=path.parent)
-            print(f"已生成日运卡图：{next(iter(card_paths.values())).parent}")
-        content = render_markdown(draft, daily_card_images=daily_card_images)
+            pet_cover_image = pet_cover_markdown_ref(cover_path, article_dir=path.parent)
+            print(f"已生成萌宠封面：{cover_path}")
+        content = render_markdown(
+            draft,
+            daily_card_images=daily_card_images,
+            daily_fortune_cover_image=daily_fortune_cover_image,
+            daily_fortune_follow_image=daily_fortune_follow_image,
+            pet_cover_image=pet_cover_image,
+        )
         path.write_text(content, encoding="utf-8")
         written += 1
         batch_paths.append(path)

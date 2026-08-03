@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_01_金牛下半年会看清三种关系.md",
+  "article_sha256": "fa1cc11ae2e9bffc22fab36ed32022433b2f419f820fe063e7d5070e45a0898a",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-06",
+    "slot": 1,
+    "sign": "金牛",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "金牛下半年会看清三种关系",
+    "candidates": [
+      "金牛下半年会看清三种关系",
+      "金牛整体运势马上开始走高！",
+      "金牛下半年躲不掉的三大关系变化",
+      "金牛注意：本月这个习惯必须改！",
+      "金牛下半年这个转折很关键！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "金牛下半年会看清三种关系",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "金牛整体运势马上开始走高！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "金牛下半年躲不掉的三大关系变化",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "金牛注意：本月这个习惯必须改！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "金牛下半年这个转折很关键！",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "金牛下半年会慢慢看清三种关系：嘴上很近、遇事就躲的人；平时安静、关键时刻肯搭手的人；还有一直消耗你，却被你念旧留下的人。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从直接点出近期变化，再拆成生活、事业或情绪中的两个表现。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "金牛下半年会慢慢看清三种关系：嘴上很近、遇事就躲的人；平时安静、关键时刻肯搭手的人；还有一直消耗你，却被你念旧留下的人。",
+    "focus": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。",
+    "closing": "真正稳的缘分不会让金牛长期猜测。留下让你踏实的人，生活也会跟着松快起来。"
+  }
+}

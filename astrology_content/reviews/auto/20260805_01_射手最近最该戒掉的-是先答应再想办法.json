@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:41:43+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260805_01_射手最近最该戒掉的-是先答应再想办法.md",
+  "article_sha256": "70a004289aadcbf0050e399483d4f213251474983d39939b0dd06988028b617b",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.11,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 181,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "射手，这几天答应事情以前，先翻一眼日历。你很可能前脚回了“没问题”，后脚才想起那天已经约了人，手里还有一件事没收尾。这种情况你太熟了。聊到兴头上不想扫兴，麻烦留"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

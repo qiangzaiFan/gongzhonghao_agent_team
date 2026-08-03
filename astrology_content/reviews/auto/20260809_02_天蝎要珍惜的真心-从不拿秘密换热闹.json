@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:06:34+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260809_02_天蝎要珍惜的真心-从不拿秘密换热闹.md",
+  "article_sha256": "07315f12fc225694b43baa30c2876ddb0e242976ec8f26fd07e22d4378b95f8f",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.28,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 181,
+      "category": "human",
+      "ai_probability": 1.28,
+      "preview": "天蝎判断一个人值不值得深交，会看他怎么对待别人的秘密。喜欢把私事当谈资的人，就算此刻和你亲近，也很难让你真正放心。值得珍惜的人嘴很稳。听见你的脆弱不会四处暗示，"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

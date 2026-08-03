@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:10:41+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260808_01_天秤下半年的好运-从减少选择开始.md",
+  "article_sha256": "4ea3cf8bd1c63ce498a0efd334938d6db15c417344dd275c16f36b5eac999ea8",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.16,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 178,
+      "category": "human",
+      "ai_probability": 1.16,
+      "preview": "天秤下半年会轻松一点。不是事情忽然变少，而是有几个选项，你终于不想再来回比较了。关掉页面，心也跟着安静下来。工作有没有进展，看结果；关系要不要继续，看回应。别再"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260805_03_十二星座每日好运丨2026-08-05.md",
+  "article_sha256": "f90c6a78616400cc2ef93e97012242810781ab9b5206a918fe72b7d4c2b081c2",
+  "source": {
+    "mode": "independent"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-05",
+    "slot": 3,
+    "sign": "十二星座",
+    "theme": "每日运势",
+    "angle": "按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。"
+  },
+  "titles": {
+    "selected": "十二星座每日好运丨2026.08.05",
+    "candidates": [
+      "十二星座每日好运丨2026.08.05",
+      "十二星座今日好运指南丨2026.08.05",
+      "2026.08.05 十二星座日运提醒"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "十二星座每日好运丨2026.08.05",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "十二星座今日好运指南丨2026.08.05",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "2026.08.05 十二星座日运提醒",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "8月5日适合先把速度放慢一点。今天的好运不靠抢先，而在于看清手里的事，挑一件真正重要的做完。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "8月5日适合先把速度放慢一点。今天的好运不靠抢先，而在于看清手里的事，挑一件真正重要的做完。",
+    "focus": "按火土风水四组整理十二星座的原创日运提醒，给出可执行的小动作。",
+    "closing": "今天不需要把所有事情都推到终点。少答应一点，认真完成一点，到了晚上，你会比想象中更踏实。"
+  }
+}

@@ -15,12 +15,18 @@ from anxia_generate import (
     daily_card_markdown_refs,
     daily_card_theme,
     daily_fortune_card_paths,
+    daily_fortune_cover_path,
+    daily_fortune_follow_path,
     hot_source_title_for_item,
     output_path,
+    pet_cover_markdown_ref,
+    pet_cover_path,
     render_daily_fortune_card_svg,
+    render_daily_fortune_cover_svg,
     render_markdown,
     title_formula,
     write_daily_fortune_cards,
+    write_daily_fortune_follow,
 )
 from quality_gate import parse_article, validate_article
 
@@ -41,6 +47,20 @@ class AnxiaGenerateTests(unittest.TestCase):
             path.write_text(render_markdown(draft), encoding="utf-8")
             result = validate_article(parse_article(path))
             self.assertEqual(result.errors, [])
+
+    def test_short_draft_can_include_pet_cover_reference(self) -> None:
+        draft = build_drafts(date(2026, 7, 26), 1, corpus_dir=None)[0]
+        article_dir = self.root / "articles"
+        article_dir.mkdir()
+        cover_path = pet_cover_path(self.root / "assets" / "pet_covers", draft)
+        content = render_markdown(
+            draft,
+            pet_cover_image=pet_cover_markdown_ref(cover_path, article_dir=article_dir),
+        )
+
+        self.assertIn("治愈系萌宠封面", content)
+        self.assertIn("../assets/pet_covers/", content)
+        self.assertEqual(content.count("!["), 1)
 
     def test_builds_three_days_of_daily_three(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=3)
@@ -105,28 +125,88 @@ class AnxiaGenerateTests(unittest.TestCase):
         self.assertEqual(result.errors, [])
         self.assertEqual(result.metrics["image_count"], 12)
 
-    def test_daily_fortune_mint_card_theme_uses_separate_asset_dir(self) -> None:
+    def test_daily_fortune_cover_uses_xiaye_design(self) -> None:
         day = date(2026, 7, 28)
-        mint_paths = daily_fortune_card_paths(
+        svg_text = render_daily_fortune_cover_svg(day, card_theme="mint")
+
+        self.assertIn('width="900"', svg_text)
+        self.assertIn('height="380"', svg_text)
+        self.assertIn("夏野日运", svg_text)
+        self.assertIn("十二星座每日好运", svg_text)
+        self.assertNotIn("coverStripe", svg_text)
+        self.assertNotIn("火土风水", svg_text)
+
+    def test_daily_fortune_cover_is_first_image(self) -> None:
+        day = date(2026, 7, 28)
+        draft = build_daily_fortune_drafts(day, days=1, slot=4)[0]
+        article_dir = self.root / "articles"
+        article_dir.mkdir()
+        cover_ref = daily_fortune_cover_path(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_covers",
+        )
+        card_paths = daily_fortune_card_paths(
             day,
             asset_dir=self.root / "assets" / "daily_fortune_cards",
             image_format="svg",
-            card_theme="mint",
         )
-        self.assertIn("20260728_mint", str(mint_paths["天秤"]))
+        content = render_markdown(
+            draft,
+            daily_fortune_cover_image=str(cover_ref.relative_to(article_dir.parent)).replace("\\", "/"),
+            daily_card_images=daily_card_markdown_refs(card_paths, article_dir=article_dir),
+        )
+
+        self.assertIn("![夏野日运封面]", content.splitlines()[4])
+        self.assertLess(content.index("夏野日运封面"), content.index("白羊座每日好运卡"))
+        self.assertEqual(content.count("!["), 13)
+
+    def test_daily_fortune_follow_guide_is_last_image(self) -> None:
+        day = date(2026, 7, 28)
+        draft = build_daily_fortune_drafts(day, days=1, slot=3)[0]
+        article_dir = self.root / "articles"
+        article_dir.mkdir()
+        follow_path = write_daily_fortune_follow(
+            asset_dir=self.root / "assets" / "daily_fortune_follow"
+        )
+        follow_ref = str(follow_path.relative_to(article_dir.parent)).replace("\\", "/")
+        content = render_markdown(draft, daily_fortune_follow_image=follow_ref)
+
+        self.assertEqual(follow_path, daily_fortune_follow_path(asset_dir=follow_path.parent))
+        self.assertTrue(content.rstrip().endswith(f"![每日好运关注指引]({follow_ref})"))
+        header = follow_path.read_bytes()[:24]
+        self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", header[16:24]), (1800, 720))
+
+    def test_daily_fortune_pink_card_theme_uses_separate_asset_dir(self) -> None:
+        day = date(2026, 7, 28)
+        default_paths = daily_fortune_card_paths(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="svg",
+        )
+        self.assertIn("20260728", str(default_paths["天秤"]))
+        self.assertNotIn("20260728_mint", str(default_paths["天秤"]))
+
+        pink_paths = daily_fortune_card_paths(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="svg",
+            card_theme="pink",
+        )
+        self.assertIn("20260728_pink", str(pink_paths["天秤"]))
 
         card_paths = write_daily_fortune_cards(
             day,
             asset_dir=self.root / "assets" / "daily_fortune_cards",
             image_format="svg",
-            card_theme="mint",
+            card_theme="pink",
         )
         svg_text = card_paths["天秤"].read_text(encoding="utf-8")
-        self.assertIn(daily_card_theme("mint").frame_start, svg_text)
+        self.assertIn(daily_card_theme("pink").frame_start, svg_text)
         self.assertIn("天秤座", svg_text)
 
         default_svg = render_daily_fortune_card_svg(build_daily_fortune_card("天秤", day), day)
-        self.assertIn(daily_card_theme("pink").frame_start, default_svg)
+        self.assertIn(daily_card_theme("mint").frame_start, default_svg)
 
     def test_daily_fortune_card_embeds_character_png(self) -> None:
         character_dir = self.root / "zodiac_characters"
@@ -162,6 +242,22 @@ class AnxiaGenerateTests(unittest.TestCase):
         )
         image_path = card_paths["天秤"]
         self.assertTrue(image_path.is_file())
+        header = image_path.read_bytes()[:24]
+        self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+        width, height = struct.unpack(">II", header[16:24])
+        self.assertEqual((width, height), (960, 1280))
+
+    def test_native_png_renderer_writes_full_size_card(self) -> None:
+        day = date(2026, 7, 28)
+        card_paths = write_daily_fortune_cards(
+            day,
+            asset_dir=self.root / "assets" / "daily_fortune_cards",
+            image_format="png",
+            card_theme="mint",
+        )
+
+        self.assertEqual(len(card_paths), 12)
+        image_path = card_paths["天秤"]
         header = image_path.read_bytes()[:24]
         self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
         width, height = struct.unpack(">II", header[16:24])

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:06:21+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260807_02_处女最该珍惜的-是允许你不完美的人.md",
+  "article_sha256": "ee857f085a8e3d4df3860d993af61a688c6c16e5bc1280eac2190ddf23d61085",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.46,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 177,
+      "category": "human",
+      "ai_probability": 1.46,
+      "preview": "处女习惯把事情整理好，再把最好的一面交出去。久而久之，别人只看见你的可靠，很少有人问你是不是也会累。真正值得珍惜的关系，不会因为你偶尔迟到、说错话或没顾上所有细"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

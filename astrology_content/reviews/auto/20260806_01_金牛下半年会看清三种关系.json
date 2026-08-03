@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:06:11+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_01_金牛下半年会看清三种关系.md",
+  "article_sha256": "fa1cc11ae2e9bffc22fab36ed32022433b2f419f820fe063e7d5070e45a0898a",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.23,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 172,
+      "category": "human",
+      "ai_probability": 1.23,
+      "preview": "金牛下半年会慢慢看清三种关系：嘴上很近、遇事就躲的人；平时安静、关键时刻肯搭手的人；还有一直消耗你，却被你念旧留下的人。你过去不爱轻易改变位置，总觉得相处久了就"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

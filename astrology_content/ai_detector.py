@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -118,7 +119,7 @@ def article_chunks(
     return chunks
 
 
-def load_detector(model_id: str):
+def load_detector(model_id: str, *, local_files_only: bool = True):
     try:
         import torch
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -129,10 +130,19 @@ def load_detector(model_id: str):
         ) from exc
 
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model_id)
-        model = AutoModelForSequenceClassification.from_pretrained(model_id)
+        if local_files_only:
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        tokenizer = AutoTokenizer.from_pretrained(model_id, local_files_only=local_files_only)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_id,
+            local_files_only=local_files_only,
+        )
     except Exception as exc:
-        raise DetectorUnavailable(f"无法加载本地检测模型 {model_id}：{exc}") from exc
+        hint = ""
+        if local_files_only:
+            hint = "。如果这是首次使用，请联网运行一次并添加 --allow-download"
+        raise DetectorUnavailable(f"无法加载本地检测模型 {model_id}{hint}：{exc}") from exc
     model.eval()
     return torch, tokenizer, model
 
@@ -154,8 +164,9 @@ def detect_article(
     ai_max: float = DEFAULT_AI_MAX,
     min_total_chars: int = DEFAULT_MIN_TOTAL_CHARS,
     report_path: Path | None = None,
+    local_files_only: bool = True,
 ) -> DetectionResult:
-    torch, tokenizer, model = load_detector(model_id)
+    torch, tokenizer, model = load_detector(model_id, local_files_only=local_files_only)
     chunks = article_chunks(article_path, min_total_chars=min_total_chars)
     ai_index = find_ai_index(model)
     temperature = DEFAULT_TEMPERATURE if model_id == DEFAULT_MODEL else 1.0
@@ -280,6 +291,11 @@ def main() -> int:
     parser.add_argument("--ai-max", type=float, default=DEFAULT_AI_MAX)
     parser.add_argument("--min-total-chars", type=int, default=DEFAULT_MIN_TOTAL_CHARS)
     parser.add_argument("--report", type=Path)
+    parser.add_argument(
+        "--allow-download",
+        action="store_true",
+        help="允许 transformers 联网下载/刷新检测模型；默认只使用本地缓存",
+    )
     args = parser.parse_args()
 
     if not args.article.is_file():
@@ -293,6 +309,7 @@ def main() -> int:
             ai_max=args.ai_max,
             min_total_chars=args.min_total_chars,
             report_path=report_path,
+            local_files_only=not args.allow_download,
         )
     except (DetectorUnavailable, ValueError) as exc:
         print(str(exc), file=sys.stderr)

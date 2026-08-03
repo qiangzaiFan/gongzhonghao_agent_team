@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-01T23:29:08+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\tizhi_content\\articles\\2026-08-01-体制内别把临时帮忙变成长期兜底.md",
+  "article_sha256": "e80aedf68b935d40065cfc468eea241251c060a2a5435a629cc8376ba2b3770e",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.18,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 171,
+      "category": "human",
+      "ai_probability": 1.39,
+      "preview": "上周二中午，食堂的饭已经送到楼下，隔壁科室的小周抱着几张表进来。他有点不好意思，说下午两点开会，三个乡镇的数还没合上，想请我们这边帮忙看一眼。老陈刚锁好抽屉，又"
+    },
+    {
+      "order": 2,
+      "chars": 140,
+      "category": "human",
+      "ai_probability": 1.28,
+      "preview": "谁都会碰上赶会、催数的时候，能帮便帮一下。老陈也没抱怨，只在吃饭时说了一句：“下次让小周自己来，我教他改，不然老找我也不是办法。” 但下周一早上，那张表又发到了"
+    },
+    {
+      "order": 3,
+      "chars": 167,
+      "category": "human",
+      "ai_probability": 1.18,
+      "preview": "你先把数收齐，十一点拿电脑过来，我告诉你公式怎么填。” 十一点时，小周真的抱着电脑来了。两个人核了一遍，发现最麻烦的也就是中间那行小计。以前往下拖公式会重复计算"
+    },
+    {
+      "order": 4,
+      "chars": 158,
+      "category": "human",
+      "ai_probability": 1.01,
+      "preview": "这种事在单位里不稀奇。临时任务一来，大家先找熟手；熟手怕耽误工作，顺手接过去。一次两次之后，原来的经办人没有机会学，帮忙的人倒成了最离不开的那个。分工表没改，实"
+    },
+    {
+      "order": 5,
+      "chars": 168,
+      "category": "human",
+      "ai_probability": 1.09,
+      "preview": "我以前总觉得，遇到这种情况只有接和不接两种选择。看老陈处理后才发现，还可以只接眼前的急事，不把整个责任一起接走。答应帮忙时把范围说清楚，做完后把模板交回去，下次"
+    },
+    {
+      "order": 6,
+      "chars": 122,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "小周只来问了一处公式，没有再把整个文件丢过来。老陈帮他看完，拿起桌上的茶喝了一口，水还是热的。临时帮忙原本是为了让事情不断档。能帮人把路走通，也让对方学会下一次"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

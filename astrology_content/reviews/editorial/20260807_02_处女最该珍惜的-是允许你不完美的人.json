@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260807_02_处女最该珍惜的-是允许你不完美的人.md",
+  "article_sha256": "ee857f085a8e3d4df3860d993af61a688c6c16e5bc1280eac2190ddf23d61085",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-07",
+    "slot": 2,
+    "sign": "处女",
+    "theme": "关系/性格",
+    "angle": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。"
+  },
+  "titles": {
+    "selected": "处女最该珍惜的，是允许你不完美的人",
+    "candidates": [
+      "处女最该珍惜的，是允许你不完美的人",
+      "处女这辈子最该珍惜的贵人",
+      "处女这辈子最该珍惜的一种关系",
+      "能让处女瞬间清醒的一个细节",
+      "真正懂处女的人，藏不住了"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "处女最该珍惜的，是允许你不完美的人",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "处女这辈子最该珍惜的贵人",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "处女这辈子最该珍惜的一种关系",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "能让处女瞬间清醒的一个细节",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "真正懂处女的人，藏不住了",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "处女习惯把事情整理好，再把最好的一面交出去。久而久之，别人只看见你的可靠，很少有人问你是不是也会累。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从从一个可观察细节进入，解释这个星座为什么会靠近或退开。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "处女习惯把事情整理好，再把最好的一面交出去。久而久之，别人只看见你的可靠，很少有人问你是不是也会累。",
+    "focus": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。",
+    "closing": "处女可以继续认真，但别只允许自己有用。能让你放心做回普通人的关系，才最难得。"
+  }
+}

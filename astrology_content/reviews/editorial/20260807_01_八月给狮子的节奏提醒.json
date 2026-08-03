@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260807_01_八月给狮子的节奏提醒.md",
+  "article_sha256": "62335409058a1e00c406c35f2b3648c00024d522b452c7038a87a40699bc1f01",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-07",
+    "slot": 1,
+    "sign": "狮子",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "8月，给狮子的一个节奏提醒",
+    "candidates": [
+      "8月，给狮子的一个节奏提醒",
+      "狮子注意：本月这个习惯必须改！",
+      "8月，给狮子一个节奏提醒",
+      "狮子下半年这个转折很关键！",
+      "8月，给狮子一个重要提醒！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "8月，给狮子的一个节奏提醒",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "狮子注意：本月这个习惯必须改！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "8月，给狮子一个节奏提醒",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "狮子下半年这个转折很关键！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "8月，给狮子一个重要提醒！",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "狮子8月先给日程留几格空白。别上午排满、下午排满，连晚上也提前答应出去。看着充实，临时来件事就会很狼狈。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从直接点出近期变化，再拆成生活、事业或情绪中的两个表现。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "狮子8月先给日程留几格空白。别上午排满、下午排满，连晚上也提前答应出去。看着充实，临时来件事就会很狼狈。",
+    "focus": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。",
+    "closing": "月初把睡眠拉回来，月底才有力气接住机会。狮子要的不是场场满分，是重要时刻依然有精神。"
+  }
+}

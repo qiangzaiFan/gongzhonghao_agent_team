@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260808_02_摩羯会被这种理所当然瞬间点醒.md",
+  "article_sha256": "80f45ce1e23943bd5447cb146f5f6ce17d6fe6ec5cfb37ebcf226b50330082e3",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-08",
+    "slot": 2,
+    "sign": "摩羯",
+    "theme": "关系/性格",
+    "angle": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。"
+  },
+  "titles": {
+    "selected": "摩羯会被这种“理所当然”瞬间点醒",
+    "candidates": [
+      "摩羯会被这种“理所当然”瞬间点醒",
+      "真正懂摩羯的人，藏不住了",
+      "能让摩羯瞬间清醒的一种态度",
+      "能让摩羯瞬间清醒的一个细节",
+      "摩羯这辈子最该珍惜的贵人"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "摩羯会被这种“理所当然”瞬间点醒",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "真正懂摩羯的人，藏不住了",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "能让摩羯瞬间清醒的一种态度",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "能让摩羯瞬间清醒的一个细节",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "摩羯这辈子最该珍惜的贵人",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "摩羯能扛事，也愿意替重要的人多走一步。但当对方把你的付出说成“你本来就擅长”，连一句商量都省掉，你会忽然清醒。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从从一个可观察细节进入，解释这个星座为什么会靠近或退开。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "摩羯能扛事，也愿意替重要的人多走一步。但当对方把你的付出说成“你本来就擅长”，连一句商量都省掉，你会忽然清醒。",
+    "focus": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。",
+    "closing": "摩羯的可靠很珍贵，不该成为谁偷懒的理由。边界立住以后，留下的关系才会更稳。"
+  }
+}

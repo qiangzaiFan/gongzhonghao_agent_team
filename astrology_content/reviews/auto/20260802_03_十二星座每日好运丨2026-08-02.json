@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:49:51+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260802_03_十二星座每日好运丨2026-08-02.md",
+  "article_sha256": "345d982b475c14b5c070a80d14686a63ebdacd4dac003a637a5392977c7714cd",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 80.37,
+    "suspected": 0.0,
+    "ai": 19.63
+  },
+  "mean_ai_probability": 19.03,
+  "passed": false,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.13,
+      "preview": "8月2日的十二星座日运关键词是“先稳后动”。下面按四象星座整理今天更适合抓住的一件小事。火象星座 白羊：小机会更可能藏在日常邀约里。你本来行动快，今天多看一眼能"
+    },
+    {
+      "order": 2,
+      "chars": 165,
+      "category": "human",
+      "ai_probability": 1.66,
+      "preview": "好运动作：收回一项不必要的支出。射手：今天更适合多看一眼能积累资源的安排。喜欢新方向会让你对外界反馈格外敏感，别为了热闹接下所有事情。好运动作：把未完成的事标出"
+    },
+    {
+      "order": 3,
+      "chars": 170,
+      "category": "ai",
+      "ai_probability": 89.61,
+      "preview": "怕失控会让你对外界反馈格外敏感，不必为了面子把账算得含糊。好运动作：把一个小邀约认真听完。摩羯：人际距离需要跟着真实感受微调。你本来目标感强，今天把回应稳定的人"
+    },
+    {
+      "order": 4,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.3,
+      "preview": "天秤：手上的关键任务适合往前推一点。你本来看重关系平衡，今天先完成最卡的一步会更顺。别让临时消息替你决定优先级。好运动作：先写下今天最重要的一件事。水瓶：减法是"
+    },
+    {
+      "order": 5,
+      "chars": 215,
+      "category": "human",
+      "ai_probability": 2.76,
+      "preview": "你本来人际敏感，今天把需要确认的话说清楚会更顺。不必替沉默找太多理由。好运动作：把注意力从比较里收回来。天蝎：收尾是今天的关键词。你们适合看清真实动机，先把搁置"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

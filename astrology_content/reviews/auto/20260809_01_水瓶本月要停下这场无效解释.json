@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:06:31+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260809_01_水瓶本月要停下这场无效解释.md",
+  "article_sha256": "b975a24c0306de0b7a690bbf5596d9fbde8b550099db34a62558374617e7c9d6",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 46.17,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 165,
+      "category": "human",
+      "ai_probability": 46.17,
+      "preview": "水瓶本月最耗情绪的事，是反复向一个并不想理解你的人解释。你换了好几种说法，对方却只挑自己愿意听的部分回应。 你以为再讲清楚一点，误会就会消失。可有些分歧并非表达"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

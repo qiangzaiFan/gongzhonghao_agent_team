@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:24:21+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260809_03_十二星座每日好运丨2026-08-09.md",
+  "article_sha256": "68ddd7d527fd87eebea4e8c8b4f5ee45bc57b21f683e1825b7f6a770ce6540b9",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.19,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "8月9日适合把一周轻轻收回来。今天不追进度，先看看哪些事已经够好了，哪些念头只是累的时候冒出来的。火象星座 白羊：醒来后别立刻处理工作消息，先吃饭。一个误会在中"
+    },
+    {
+      "order": 2,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 1.18,
+      "preview": "射手：远方的计划又在心里冒头，可以查资料，但今天先不付款。下午适合和家人出门走走。今日小事：记下三个真想去的地方，删掉跟风选项。土象星座 金牛：身体会诚实告诉你"
+    },
+    {
+      "order": 3,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 1.16,
+      "preview": "摩羯：你可能又想提前进入工作状态，先忍住。家里有件实际事情值得今天处理。今日小事：陪家人办一件小事，过程中少看手机。风象星座 双子：今天适合把零散消息集中回复，"
+    },
+    {
+      "order": 4,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.37,
+      "preview": "水瓶：独处时容易想明白一件事，先写下来，周一再行动。别因为一时厌倦就推翻长期计划。今日小事：整理收藏夹，只留下真正会看的内容。水象星座 巨蟹：今天很适合待在熟悉"
+    },
+    {
+      "order": 5,
+      "chars": 96,
+      "category": "human",
+      "ai_probability": 1.17,
+      "preview": "双鱼：梦多或情绪起伏都不奇怪，午后会平稳。少看让人焦虑的内容，多接触真实生活。今日小事：洗好下周要穿的衣服，然后早点休息。今晚把闹钟定好就可以了，不需要在睡前预"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

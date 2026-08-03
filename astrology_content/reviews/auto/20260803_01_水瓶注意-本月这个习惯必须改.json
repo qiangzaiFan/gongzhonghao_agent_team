@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:38:40+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260803_01_水瓶注意-本月这个习惯必须改.md",
+  "article_sha256": "5287a6dff4fde11e8ca906adcc97c95c42a8eccb5a8c5fd74ea2d4c608d22633",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 3.15,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 124,
+      "category": "human",
+      "ai_probability": 3.15,
+      "preview": "水瓶最近要注意：旧问题反复出现，是因为还没有真正收尾。 你们想法跳得快，越是悬着不处理，越容易在心里来回想。工作流程、没说开的承诺、搁置的决定，都该挑一件先落地"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

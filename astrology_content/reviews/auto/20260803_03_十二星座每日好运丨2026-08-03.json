@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:49:54+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260803_03_十二星座每日好运丨2026-08-03.md",
+  "article_sha256": "7cc75ecdbab805b3ac55191a766886590c89c6f67d1b11c84a4965b22f83d972",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 2.12,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.23,
+      "preview": "8月3日，把今天拆成十二个小提醒。先围绕“看清反馈”安排节奏，比急着追答案更有用。火象星座 白羊：收尾是今天的关键词。你们适合先把决定做小，先把搁置的沟通或流程"
+    },
+    {
+      "order": 2,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.19,
+      "preview": "射手：反复出现的旧问题需要一个明确收口。你本来心气会动，今天把搁置的沟通或流程定下来会更顺。少让拖延把情绪越拉越长。好运动作：结束一段重复沟通。土象星座 金牛："
+    },
+    {
+      "order": 3,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 0.96,
+      "preview": "不需要急着证明每一个判断。好运动作：收回一项不必要的支出。摩羯：机会是今天的关键词。你们适合守住边界，先多看一眼能积累资源的安排，再决定要不要加码。别为了热闹接"
+    },
+    {
+      "order": 4,
+      "chars": 144,
+      "category": "human",
+      "ai_probability": 2.91,
+      "preview": "天秤：财务是今天的关键词。你们需要减少无效照顾，先把支出、分摊或回款理清，再决定要不要加码。不必为了面子把账算得含糊。好运动作：把一个小邀约认真听完。水瓶：今天"
+    },
+    {
+      "order": 5,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 4.78,
+      "preview": "你们容易被旧习惯影响，先删掉一件低回报的消耗，再决定要不要加码。别把忙碌误当成进展。好运动作：给自己留二十分钟安静整理。天蝎：今天更适合先完成最卡的一步。不爱说"
+    },
+    {
+      "order": 6,
+      "chars": 62,
+      "category": "human",
+      "ai_probability": 1.14,
+      "preview": "好运动作：给自己留二十分钟安静整理。今日收束：把精力留给稳定的关系和安排。把注意力放回可以行动的部分，稳定一点，今天的状态就会更容易接住。"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

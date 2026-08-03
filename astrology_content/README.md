@@ -9,7 +9,9 @@
 - `specs/anxia_style.md`：安夏短文风格画像。
 - `specs/`：账号定位、文章质量、来源和工作流规则。
 - `articles/`：本地 Markdown 短文草稿。
+- `assets/daily_fortune_covers/`：十二星座每日好运的横向封面图，主视觉文字为“夏野日运”。
 - `assets/daily_fortune_cards/`：十二星座每日好运的信息卡 PNG 图片，每天 12 张。
+- `assets/pet_covers/`：单星座短文的治愈系萌宠封面图，由本地 ComfyUI 生成。
 - `anxia_analyze.py`：分析安夏知识库语料。
 - `anxia_calendar.py`：生成每日 2 篇单星座选题排期。
 - `anxia_generate.py`：默认额外生成一篇“十二星座每日好运”四象日运稿。
@@ -44,34 +46,24 @@ python3 anxia_generate.py --days 3
 
 生成器会同时写入 `reviews/editorial/` 中与文章同名的编辑记录。每篇记录保留 3-4 个标题版本、2 个开头版本和当前默认选项；发布时可在表现录入命令中标记实际采用的版本。记录绑定当前文章摘要，文章修改后需要重新生成或更新记录，避免选题卡、标题备选和实际成稿脱节。
 
+单星座短文默认会用本地 ComfyUI 生成一张横向治愈系萌宠封面图，并写入正文第一张图片位；十二星座每日好运不使用萌宠封面，继续使用 12 张日运信息卡。封面要求温暖、干净、可爱，不出现文字、Logo、星盘、塔罗牌、人物或夸张网红风。若只想调试纯文本，可临时添加 `--no-pet-cover-assets`。
+
 一步生成 7 天文章量（默认每天 2 篇单星座稿 + 1 篇十二星座日运，共 21 篇），并自动质检：
 
 ```bash
 python3 anxia_generate.py --days 7
 ```
 
-日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 12 张粉色信息卡 PNG，并在正文对应四象分组下引用；图片保存在 `assets/daily_fortune_cards/YYYYMMDD/`。需要薄荷绿 A/B 版时添加 `--card-theme mint`，图片会写入 `assets/daily_fortune_cards/YYYYMMDD_mint/`。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
+日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 1 张横向“夏野日运”薄荷绿封面 PNG、12 张薄荷绿信息卡 PNG 和 1 张文末薄荷绿关注指引 PNG；封面写入正文第一张图，信息卡在正文对应四象分组下引用，关注指引固定放在文末。图片分别保存在 `assets/daily_fortune_covers/YYYYMMDD/`、`assets/daily_fortune_cards/YYYYMMDD/` 和 `assets/daily_fortune_follow/`。需要桃粉 A/B 版时添加 `--card-theme pink`，图片会写入对应的 `_pink` 目录。使用 `--refresh-zodiac-characters` 可在生成日运前通过本地 ComfyUI 整套刷新 12 张动漫人物素材。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
 
-稳定导出 PNG 推荐安装 CairoSVG。CairoSVG 依赖系统 `cairo` 动态库，macOS 通常先装：
-
-```bash
-brew install cairo
-```
-
-再安装 Python 渲染依赖：
-
-```bash
-../.venv/bin/pip install -r requirements-card-render.txt
-```
-
-指定薄荷绿主题并强制使用 CairoSVG 导出：
+日运封面和信息卡默认由 Pillow 直接绘制为高清 PNG，不依赖 CairoSVG、Chrome、`resvg` 或 `rsvg-convert`。需要检查矢量布局时，可显式导出 SVG 调试稿：
 
 ```bash
 python3 anxia_generate.py \
   --date 2026-08-01 \
   --daily-fortune-only \
   --card-theme mint \
-  --png-renderer cairosvg
+  --card-format svg
 ```
 
 只生成原有单星座短文时：
@@ -90,6 +82,18 @@ python3 anxia_generate.py --date 2026-07-28 --days 7 --daily-fortune-only
 
 ```bash
 python3 anxia_generate.py --date 2026-07-28 --days 7 --daily-fortune-only --no-daily-card-assets
+```
+
+如果只想生成日运正文和 12 张卡片、不生成横向封面：
+
+```bash
+python3 anxia_generate.py --date 2026-07-28 --days 7 --daily-fortune-only --no-daily-fortune-cover-assets
+```
+
+如果本地 ComfyUI 不在默认地址，可指定萌宠封面生成地址：
+
+```bash
+python3 anxia_generate.py --days 3 --pet-comfy-endpoint http://127.0.0.1:8188
 ```
 
 如果要优先直接使用知识库里重复出现过的热标题：
@@ -137,9 +141,9 @@ python3 preflight.py articles/DAILY_FORTUNE.md \
   --release
 ```
 
-`anxia_short` 面向 120-260 个中文字符的短平快稿件，允许 300-450 字扩展稿；不强制配图和二级小标题。强刺激词允许使用并提示复核；默认拦截普通原标题复用，`--allow-hot-titles` 或 `--mode hot-source` 可放行热标题。连续 30 字相同、18 字分片重合率达到 5% 仍会驳回。
+`anxia_short` 面向 120-260 个中文字符的短平快稿件，允许 300-450 字扩展稿；默认包含 1 张本地 ComfyUI 治愈系萌宠封面，不使用二级小标题。强刺激词允许使用并提示复核；默认拦截普通原标题复用，`--allow-hot-titles` 或 `--mode hot-source` 可放行热标题。连续 30 字相同、18 字分片重合率达到 5% 仍会驳回。
 
-`daily_fortune` 面向十二星座日运：标题 14-36 个可见字符，正文 700-1400 个中文字符，4 个二级小标题（火象、土象、风象、水象）和 14-16 个正文段落；默认包含 12 张本地 PNG 信息卡，质检会校验本地图片是否存在及尺寸是否达标。
+`daily_fortune` 面向十二星座日运：标题 14-36 个可见字符，正文 700-1400 个中文字符，4 个二级小标题（火象、土象、风象、水象）和 14-16 个正文段落；默认包含 1 张本地 PNG 横向封面和 12 张本地 PNG 信息卡，质检会校验本地图片是否存在及尺寸是否达标。
 
 发布级预检默认要求有效的编辑记录，并会让 `corpus_style` 稿件带上 `--source-dir` 做全库原创度检查。历史草稿可临时使用 `--allow-untracked`，但新稿不建议跳过记录。自动 AIGC 检测默认是复核提示；确需把它作为硬门槛时添加 `--strict-ai`。
 

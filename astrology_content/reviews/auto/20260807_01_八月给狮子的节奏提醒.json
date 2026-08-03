@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:10:38+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260807_01_八月给狮子的节奏提醒.md",
+  "article_sha256": "62335409058a1e00c406c35f2b3648c00024d522b452c7038a87a40699bc1f01",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.34,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 174,
+      "category": "human",
+      "ai_probability": 1.34,
+      "preview": "狮子8月先给日程留几格空白。别上午排满、下午排满，连晚上也提前答应出去。看着充实，临时来件事就会很狼狈。你通常能撑住，所以旁人也习惯继续往里加。可忙到说话都急、"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

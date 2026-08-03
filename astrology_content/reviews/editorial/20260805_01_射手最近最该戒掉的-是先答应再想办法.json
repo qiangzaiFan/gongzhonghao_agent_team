@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260805_01_射手最近最该戒掉的-是先答应再想办法.md",
+  "article_sha256": "70a004289aadcbf0050e399483d4f213251474983d39939b0dd06988028b617b",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-05",
+    "slot": 1,
+    "sign": "射手",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "射手最近最该戒掉的，是“先答应再想办法”",
+    "candidates": [
+      "射手最近最该戒掉的，是“先答应再想办法”",
+      "8月，给射手一个重要提醒！",
+      "射手本月必须警惕的一个旧习惯",
+      "射手注意：本月这个习惯必须改！",
+      "射手下半年这个转折很关键！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "射手最近最该戒掉的，是“先答应再想办法”",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "8月，给射手一个重要提醒！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "射手本月必须警惕的一个旧习惯",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "射手注意：本月这个习惯必须改！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "射手下半年这个转折很关键！",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "射手，这几天答应事情以前，先翻一眼日历。你很可能前脚回了“没问题”，后脚才想起那天已经约了人，手里还有一件事没收尾。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从直接点出近期变化，再拆成生活、事业或情绪中的两个表现。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "射手，这几天答应事情以前，先翻一眼日历。你很可能前脚回了“没问题”，后脚才想起那天已经约了人，手里还有一件事没收尾。",
+    "focus": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。",
+    "closing": "你当然可以追新鲜感，只是别再拿休息替冲动买单。空出一点位置，真正想去的方向来了，你才走得动。"
+  }
+}

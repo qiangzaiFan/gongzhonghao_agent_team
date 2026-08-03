@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:38:50+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260804_02_真正懂双子的人-藏不住了.md",
+  "article_sha256": "181d228187694ba9db1e76cd4707a7073c796fcdb68ccab9e10ba1d1727517e8",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.32,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 130,
+      "category": "human",
+      "ai_probability": 1.32,
+      "preview": "双子最近在关系里要留意：总是你先解释和缓和的关系，会慢慢让人疲惫。 你们信息很灵，所以总想给对方留一点余地。但真正重视你的人，不会把回应变成一次次需要你追着要的"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

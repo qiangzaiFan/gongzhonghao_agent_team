@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:24:10+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_03_十二星座每日好运丨2026-08-06.md",
+  "article_sha256": "c9670994568b090c67e5a5de2989e3ca46f66e29d234a1875287c43c46d2ef1f",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 2.89,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 162,
+      "category": "human",
+      "ai_probability": 1.05,
+      "preview": "8月6日，很多答案藏在实际回应里。与其揣测别人怎么想，不如看他有没有行动；自己的事，也从最容易落地的一步开始。火象星座 白羊：早上的脾气来得快，先喝口水再回消息"
+    },
+    {
+      "order": 2,
+      "chars": 164,
+      "category": "human",
+      "ai_probability": 1.32,
+      "preview": "今日小事：主动确认一次分工。射手：外出或临时调整的概率高，钥匙、证件和充电线提前放进包里。一个老朋友带来的消息值得听，但先别急着下注。今日小事：为周末留一笔机动"
+    },
+    {
+      "order": 3,
+      "chars": 152,
+      "category": "human",
+      "ai_probability": 2.17,
+      "preview": "别替粗心的人反复收拾残局，该提醒就提醒。今日小事：把常用文件重新命名归档。摩羯：工作上会遇到一句模糊要求，追问清楚标准，能省掉后面的返工。晚上适合聊家庭安排，别"
+    },
+    {
+      "order": 4,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 1.09,
+      "preview": "天秤：一个人是否可靠，今天会通过小事表现出来。答应你的时间有没有做到，比好听的话更重要。消费方面不跟风。今日小事：把犹豫很久的小决定定下来。水瓶：脑子转得快，上"
+    },
+    {
+      "order": 5,
+      "chars": 169,
+      "category": "human",
+      "ai_probability": 8.59,
+      "preview": "今日小事：问一句“你需要我怎么帮”。天蝎：今天适合核对账目、合同或重要约定，数字里藏着答案。关系上少做试探，对方的自然反应已经很说明问题。今日小事：收好一份重要"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

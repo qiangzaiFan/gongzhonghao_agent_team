@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:38:34+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260802_01_天秤整体运势马上开始走高.md",
+  "article_sha256": "e8118220bab8a06d5aef612d659e7eea61c20032a8da5ea06dcc537eed8cfdd5",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.19,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 146,
+      "category": "human",
+      "ai_probability": 1.19,
+      "preview": "天秤这段时间会慢慢看清：临时请求会变多，别每一件都立刻接下，别把它当成小事。 你们本来就看重关系平衡，别人一句“就差你了”很容易让你多接一份任务。先看这件事能不"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

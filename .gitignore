@@ -8,11 +8,14 @@
 **/output/
 **/sources/
 **/state/current_batch.yaml
+**/logs/
 **/*.log
 
 # Local AI image candidates and review artifacts; keep finalized article assets tracked.
 food_home_cooking/images/ai/candidates/
 food_home_cooking/reviews/image_candidates/
+**/reviews/*.jpg
+**/reviews/*.jpeg
 
 # Python
 __pycache__/
@@ -23,6 +26,8 @@ venv/
 # Local implementation workspaces
 .worktrees/
 .superpowers/
+.codegraph/
+tmp/
 
 # 系统
 .DS_Store

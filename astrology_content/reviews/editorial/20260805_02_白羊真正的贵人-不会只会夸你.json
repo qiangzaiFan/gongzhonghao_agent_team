@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260805_02_白羊真正的贵人-不会只会夸你.md",
+  "article_sha256": "c747eaed36ff4ea40c245d2d9fb81c9a39688f5fde99d7df4a3f5018c8a34d11",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-05",
+    "slot": 2,
+    "sign": "白羊",
+    "theme": "关系/性格",
+    "angle": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。"
+  },
+  "titles": {
+    "selected": "白羊真正的贵人，不会只会夸你",
+    "candidates": [
+      "白羊真正的贵人，不会只会夸你",
+      "白羊别再为这种关系委屈自己",
+      "白羊这辈子最该珍惜的一个贵人",
+      "能让白羊瞬间清醒的一个细节",
+      "白羊这辈子最该珍惜的贵人"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "白羊真正的贵人，不会只会夸你",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "白羊别再为这种关系委屈自己",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "白羊这辈子最该珍惜的一个贵人",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "能让白羊瞬间清醒的一个细节",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "白羊这辈子最该珍惜的贵人",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "白羊做了决定，常常马上就想动起来。这个时候，跟着说“冲就完了”的人很多，愿意拉住你再问两句的人反倒不显眼。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从从一个可观察细节进入，解释这个星座为什么会靠近或退开。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "白羊做了决定，常常马上就想动起来。这个时候，跟着说“冲就完了”的人很多，愿意拉住你再问两句的人反倒不显眼。",
+    "focus": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。",
+    "closing": "所以最近别只听让你开心的话。那个敢说真话、说完还肯陪你想办法的人，更值得白羊留在身边。"
+  }
+}

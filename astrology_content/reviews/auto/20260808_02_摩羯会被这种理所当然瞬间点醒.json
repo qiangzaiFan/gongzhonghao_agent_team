@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:41:47+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260808_02_摩羯会被这种理所当然瞬间点醒.md",
+  "article_sha256": "80f45ce1e23943bd5447cb146f5f6ce17d6fe6ec5cfb37ebcf226b50330082e3",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.16,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 174,
+      "category": "human",
+      "ai_probability": 1.16,
+      "preview": "摩羯能扛事，也愿意替重要的人多走一步。但当对方把你的付出说成“你本来就擅长”，连一句商量都省掉，你会忽然清醒。让你失望的并不是多做一点，而是自己的时间被默认可以"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

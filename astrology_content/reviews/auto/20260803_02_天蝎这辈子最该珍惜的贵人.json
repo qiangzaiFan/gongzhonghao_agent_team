@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:38:44+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260803_02_天蝎这辈子最该珍惜的贵人.md",
+  "article_sha256": "1976b648563d9da513927e65b9933cbd0ae06eace244f452db1b5856fb69d550",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.11,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 139,
+      "category": "human",
+      "ai_probability": 1.11,
+      "preview": "天蝎这段时间会慢慢看清：关系里最消耗人的，不是争执，是默认你会让步，你的感受已经在给答案。 你们不爱说破，很多时候不想把话说重，宁愿自己消化。可一段关系如果总靠"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:10:34+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260805_02_白羊真正的贵人-不会只会夸你.md",
+  "article_sha256": "c747eaed36ff4ea40c245d2d9fb81c9a39688f5fde99d7df4a3f5018c8a34d11",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 4.29,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 169,
+      "category": "human",
+      "ai_probability": 4.29,
+      "preview": "白羊做了决定，常常马上就想动起来。这个时候，跟着说“冲就完了”的人很多，愿意拉住你再问两句的人反倒不显眼。他可能会问：时间够吗，钱算过没有，明天还这么想吗？听着"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

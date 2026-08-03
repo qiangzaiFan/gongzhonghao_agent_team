@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:06:15+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_02_能让巨蟹重新靠近的-是稳定回应.md",
+  "article_sha256": "56461a3b743dcf664559abf5fa2ee2a07e3662c2f81d1b43c5c1cd0c3803daa4",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.48,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.48,
+      "preview": "巨蟹很少因为一句漂亮话重新相信谁。真正让你放下防备的，是对方说晚点联系，后来真的出现；答应处理的小事，也没有装作忘记。你在意的从来不只是结果，而是自己的感受有没"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

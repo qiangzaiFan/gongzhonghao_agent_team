@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T08:38:03+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260803_01_水瓶注意-本月这个习惯必须改.md",
+  "article_sha256": "5287a6dff4fde11e8ca906adcc97c95c42a8eccb5a8c5fd74ea2d4c608d22633",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-03",
+    "slot": 1,
+    "sign": "水瓶",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "水瓶注意：本月这个习惯必须改！",
+    "candidates": [
+      "水瓶注意：本月这个习惯必须改！",
+      "水瓶下半年躲不掉的三大关系变化",
+      "水瓶下半年这个转折很关键！",
+      "8月，给水瓶一个重要提醒！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "水瓶注意：本月这个习惯必须改！",
+          "formula": "提醒型"
+        },
+        {
+          "key": "title-2",
+          "text": "水瓶下半年躲不掉的三大关系变化",
+          "formula": "变化预告型"
+        },
+        {
+          "key": "title-3",
+          "text": "水瓶下半年这个转折很关键！",
+          "formula": "变化预告型"
+        },
+        {
+          "key": "title-4",
+          "text": "8月，给水瓶一个重要提醒！",
+          "formula": "提醒型"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "direct-alert",
+      "variants": [
+        {
+          "key": "direct-alert",
+          "text": "水瓶最近要注意：旧问题反复出现，是因为还没有真正收尾。",
+          "label": "直接提醒"
+        },
+        {
+          "key": "detail-observation",
+          "text": "水瓶这段时间会慢慢看清：旧问题反复出现，是因为还没有真正收尾，别把它当成小事。",
+          "label": "细节观察"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "finish-loops",
+    "hook": "旧问题反复出现，是因为还没有真正收尾",
+    "focus": "把卡住的流程、承诺和沟通逐个落地",
+    "closing": "先完成一件最关键的小事"
+  }
+}

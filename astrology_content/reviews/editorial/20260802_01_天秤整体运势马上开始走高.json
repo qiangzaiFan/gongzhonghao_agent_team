@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T08:38:01+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260802_01_天秤整体运势马上开始走高.md",
+  "article_sha256": "e8118220bab8a06d5aef612d659e7eea61c20032a8da5ea06dcc537eed8cfdd5",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-02",
+    "slot": 1,
+    "sign": "天秤",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "天秤整体运势马上开始走高！",
+    "candidates": [
+      "天秤整体运势马上开始走高！",
+      "天秤本月必须警惕的一个旧习惯",
+      "天秤注意：本月这个习惯必须改！",
+      "天秤下半年这个转折很关键！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "天秤整体运势马上开始走高！",
+          "formula": "变化预告型"
+        },
+        {
+          "key": "title-2",
+          "text": "天秤本月必须警惕的一个旧习惯",
+          "formula": "提醒型"
+        },
+        {
+          "key": "title-3",
+          "text": "天秤注意：本月这个习惯必须改！",
+          "formula": "提醒型"
+        },
+        {
+          "key": "title-4",
+          "text": "天秤下半年这个转折很关键！",
+          "formula": "变化预告型"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "detail-observation",
+      "variants": [
+        {
+          "key": "detail-observation",
+          "text": "天秤这段时间会慢慢看清：临时请求会变多，别每一件都立刻接下，别把它当成小事。",
+          "label": "细节观察"
+        },
+        {
+          "key": "direct-alert",
+          "text": "天秤最近要注意：临时请求会变多，别每一件都立刻接下。",
+          "label": "直接提醒"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "screen-requests",
+    "hook": "临时请求会变多，别每一件都立刻接下",
+    "focus": "先分清真正能推进的合作与无效消耗",
+    "closing": "把时间留给值得推进的方向"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260806_02_能让巨蟹重新靠近的-是稳定回应.md",
+  "article_sha256": "56461a3b743dcf664559abf5fa2ee2a07e3662c2f81d1b43c5c1cd0c3803daa4",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-06",
+    "slot": 2,
+    "sign": "巨蟹",
+    "theme": "关系/性格",
+    "angle": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。"
+  },
+  "titles": {
+    "selected": "能让巨蟹重新靠近的，是稳定回应",
+    "candidates": [
+      "能让巨蟹重新靠近的，是稳定回应",
+      "能让巨蟹瞬间清醒的一个细节",
+      "能让巨蟹重新靠近的一段关系",
+      "巨蟹这辈子最该珍惜的贵人",
+      "真正懂巨蟹的人，藏不住了"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "能让巨蟹重新靠近的，是稳定回应",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "能让巨蟹瞬间清醒的一个细节",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "能让巨蟹重新靠近的一段关系",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "巨蟹这辈子最该珍惜的贵人",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "真正懂巨蟹的人，藏不住了",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "巨蟹很少因为一句漂亮话重新相信谁。真正让你放下防备的，是对方说晚点联系，后来真的出现；答应处理的小事，也没有装作忘记。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从从一个可观察细节进入，解释这个星座为什么会靠近或退开。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "巨蟹很少因为一句漂亮话重新相信谁。真正让你放下防备的，是对方说晚点联系，后来真的出现；答应处理的小事，也没有装作忘记。",
+    "focus": "从一个可观察细节进入，解释这个星座为什么会靠近或退开。",
+    "closing": "巨蟹重新靠近得很慢，却并不软弱。你只是终于学会，把真心交给言行一致的人。"
+  }
+}

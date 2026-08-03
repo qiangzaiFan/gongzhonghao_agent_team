@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02T22:41:29+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260808_01_天秤下半年的好运-从减少选择开始.md",
+  "article_sha256": "4ea3cf8bd1c63ce498a0efd334938d6db15c417344dd275c16f36b5eac999ea8",
+  "source": {
+    "mode": "corpus_style",
+    "corpus_dir": "D:\\自媒体\\知识库\\01-公众号文章\\星座公众号文章\\安夏星座"
+  },
+  "topic": {
+    "scheduled_for": "2026-08-08",
+    "slot": 1,
+    "sign": "天秤",
+    "theme": "运势/提醒",
+    "angle": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。"
+  },
+  "titles": {
+    "selected": "天秤下半年的好运，从减少选择开始",
+    "candidates": [
+      "天秤下半年的好运，从减少选择开始",
+      "天秤下半年这个转折很关键！",
+      "天秤，下半年整体运势开始走高",
+      "天秤注意：本月这个习惯必须改！",
+      "8月，给天秤一个重要提醒！"
+    ]
+  },
+  "distribution": {
+    "title": {
+      "selected_key": "title-1",
+      "variants": [
+        {
+          "key": "title-1",
+          "text": "天秤下半年的好运，从减少选择开始",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-2",
+          "text": "天秤下半年这个转折很关键！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-3",
+          "text": "天秤，下半年整体运势开始走高",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-4",
+          "text": "天秤注意：本月这个习惯必须改！",
+          "formula": "未标注"
+        },
+        {
+          "key": "title-5",
+          "text": "8月，给天秤一个重要提醒！",
+          "formula": "未标注"
+        }
+      ]
+    },
+    "opening": {
+      "selected_key": "opening-default",
+      "variants": [
+        {
+          "key": "opening-default",
+          "text": "天秤下半年会轻松一点。不是事情忽然变少，而是有几个选项，你终于不想再来回比较了。关掉页面，心也跟着安静下来。",
+          "label": "默认开头"
+        },
+        {
+          "key": "opening-alternate",
+          "text": "从直接点出近期变化，再拆成生活、事业或情绪中的两个表现。切入",
+          "label": "补充开头"
+        }
+      ]
+    }
+  },
+  "body_variant": {
+    "key": "manual-weekly",
+    "hook": "天秤下半年会轻松一点。不是事情忽然变少，而是有几个选项，你终于不想再来回比较了。关掉页面，心也跟着安静下来。",
+    "focus": "直接点出近期变化，再拆成生活、事业或情绪中的两个表现。",
+    "closing": "选一个当下最合适的，然后往前走。天秤不需要等到百分之百确定，走起来以后，路会比想象中清楚。"
+  }
+}

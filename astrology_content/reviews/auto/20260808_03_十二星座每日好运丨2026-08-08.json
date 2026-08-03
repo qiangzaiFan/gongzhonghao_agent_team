@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T22:24:17+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260808_03_十二星座每日好运丨2026-08-08.md",
+  "article_sha256": "c2453501c2431d863fef6c64c89fccc2fb105df91d944e7cbdc0ac749b94f4e8",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.23,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 157,
+      "category": "human",
+      "ai_probability": 1.63,
+      "preview": "8月8日适合给生活换一点空气。不用安排昂贵项目，去没走过的街区、换一家早餐店，都能把闷住的心情打开。火象星座 白羊：今天行动力足，适合运动、打扫或处理拖延的小维"
+    },
+    {
+      "order": 2,
+      "chars": 157,
+      "category": "human",
+      "ai_probability": 1.19,
+      "preview": "射手：临时出发会有惊喜，前提是别把行程拉得太长。下午适合户外，晚上留给熟悉的人。今日小事：带水出门，不赶最后一班车。土象星座 金牛：休息日也别一直惦记没完成的工"
+    },
+    {
+      "order": 3,
+      "chars": 158,
+      "category": "human",
+      "ai_probability": 1.19,
+      "preview": "摩羯：有人约你谈正事，时间最好放在下午，上午先把自己照顾好。关于钱的提议要留记录。今日小事：确认费用，再答应后续安排。风象星座 双子：今天的聊天很热闹，消息也多"
+    },
+    {
+      "order": 4,
+      "chars": 161,
+      "category": "human",
+      "ai_probability": 1.01,
+      "preview": "水瓶：一个陌生观点会让你突然想通旧问题。先吸收，不用急着和谁辩论。晚间注意用眼。今日小事：看完一篇长文，而不是十条短消息。水象星座 巨蟹：家里的小聚会比外面的热"
+    },
+    {
+      "order": 5,
+      "chars": 95,
+      "category": "human",
+      "ai_probability": 1.08,
+      "preview": "双鱼：音乐、电影和水边会给你补充能量。消费容易凭感觉，付款前停一下。今日小事：带着耳机散步二十分钟，不边走边回消息。今天的好运有一点生活气。别把快乐留到所有任务"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

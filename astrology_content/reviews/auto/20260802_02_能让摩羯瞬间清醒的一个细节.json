@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-02T08:38:37+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\astrology_content\\articles\\20260802_02_能让摩羯瞬间清醒的一个细节.md",
+  "article_sha256": "6c4b70e2b3894942dacef931d82ce619f11c2a3a118a46fffd3fc62bb5573d51",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 120
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.35,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 132,
+      "category": "human",
+      "ai_probability": 1.35,
+      "preview": "摩羯最近在关系里要留意：总是你先解释和缓和的关系，会慢慢让人疲惫。 你们愿意长期投入，所以总想给对方留一点余地。但真正重视你的人，不会把回应变成一次次需要你追着"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}
