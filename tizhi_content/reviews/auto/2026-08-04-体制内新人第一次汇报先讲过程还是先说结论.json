@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-04T08:08:10+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\tizhi_content\\articles\\2026-08-04-体制内新人第一次汇报先讲过程还是先说结论.md",
+  "article_sha256": "26b1938c07d9f06210395c7aaaf00468caa98e6e71ce4480a9be1a842a47a4ce",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.75,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 160,
+      "category": "human",
+      "ai_probability": 1.2,
+      "preview": "上午8点50分，新人站在办公室门口，把准备了一晚上的汇报又在心里过了一遍。他从接到任务那天开始讲，先说找了哪些文件，又说问了哪几个科室。讲到第三分钟，对面的人抬"
+    },
+    {
+      "order": 2,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.12,
+      "preview": "第一次汇报，到底该先讲过程还是先说结论？多数日常工作里，答案是先把结论放在前面，再决定过程讲到多细。01 新人喜欢从过程讲起，通常有两个原因。一个是怕漏。材料查"
+    },
+    {
+      "order": 3,
+      "chars": 157,
+      "category": "human",
+      "ai_probability": 1.13,
+      "preview": "但听汇报的人首先需要的，往往不是一份工作日记，而是迅速判断现在处于什么状态。事情办完没有？没办完，卡在哪一环？接下来需要他知道、协调或决定什么？这三件事没有说清"
+    },
+    {
+      "order": 4,
+      "chars": 142,
+      "category": "human",
+      "ai_probability": 5.83,
+      "preview": "比如，不要从“周一收到通知后，我先联系了三个业务口”开始，可以先说： “这张表已经收齐8个单位的数据，还差2个。一个承诺10点前发，另一个口径没有确认，可能影响"
+    },
+    {
+      "order": 5,
+      "chars": 151,
+      "category": "human",
+      "ai_probability": 1.15,
+      "preview": "按去年的口径可以先合表，但后面可能返工；等对方确认更稳，最早要到11点。” 最后说明需要什么： “请您确认是先按旧口径出一版，还是等回复后再报。” 这样汇报，不"
+    },
+    {
+      "order": 6,
+      "chars": 161,
+      "category": "human",
+      "ai_probability": 1.56,
+      "preview": "没有异常的过程，不需要逐步重播。03 当然，并不是所有汇报都只说结论。涉及责任认定、程序合规、重大风险或不同意见时，过程本身就是判断依据。这时仍然可以先给一句结"
+    },
+    {
+      "order": 7,
+      "chars": 152,
+      "category": "human",
+      "ai_probability": 1.08,
+      "preview": "新人还容易犯一个错误：为了显得有把握，把不确定的事说得太满。“肯定没问题”“应该马上能发”“他们一定会配合”，这些话听着利落，后面却容易留下风险。没有确认的内容"
+    },
+    {
+      "order": 8,
+      "chars": 113,
+      "category": "human",
+      "ai_probability": 1.06,
+      "preview": "第二次再进去时，他先说：“材料主体已经完成，现在差一个数据口径。我核了两种处理方式，需要您定一下今天先报哪一版。” 这次不到一分钟，对方就给了意见。汇报不是把自"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

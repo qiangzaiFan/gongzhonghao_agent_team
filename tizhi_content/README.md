@@ -40,6 +40,26 @@ tizhi_content/
 python tizhi_content/publish_existing_article.py tizhi_content/articles/<article>.md
 ```
 
+## Python 与生图环境
+
+体制赛道统一使用仓库虚拟环境，不在检测、发布和生图之间临时切换解释器。
+
+Windows 首次准备：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-imagegen.txt
+.\.venv\Scripts\python.exe -c "import sys; from PIL import Image; print(sys.executable); print(Image.__version__)"
+```
+
+macOS/Linux 首次准备：
+
+```bash
+.venv/bin/python -m pip install -r requirements-imagegen.txt
+.venv/bin/python -c "import sys; from PIL import Image; print(sys.executable); print(Image.__version__)"
+```
+
+只有 `PIL` 预检通过后才启动 ComfyUI 和生图任务。若出现 `ModuleNotFoundError: PIL`，应补齐项目 `.venv` 的已声明依赖，不要改用系统 Python 绕过。
+
 发布脚本会先执行本地检查和 AIGC 检测，再由 `wenyan-mcp` 完成最终图文排版并写入微信公众号草稿箱。
 
 ## AIGC 检测

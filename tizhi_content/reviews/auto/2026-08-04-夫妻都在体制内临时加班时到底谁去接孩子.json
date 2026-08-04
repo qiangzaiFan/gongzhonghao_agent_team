@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-04T08:07:27+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\tizhi_content\\articles\\2026-08-04-夫妻都在体制内临时加班时到底谁去接孩子.md",
+  "article_sha256": "8685fb4be1826d2f1c86994fdbdc60cab122a8ea718335c1cbc5861a2e26f7a5",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.38,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 141,
+      "category": "human",
+      "ai_probability": 1.44,
+      "preview": "下午5点06分，幼儿园群里发来提醒：请家长在5点40分前接孩子。妻子手上有一摞当天要归档的材料，少一页都交不了。丈夫还在乡镇的视频会议里，耳机里刚说到“各单位再"
+    },
+    {
+      "order": 2,
+      "chars": 160,
+      "category": "human",
+      "ai_probability": 1.08,
+      "preview": "真正要讨论的，是两边同时出现临时任务时，一个家庭该按什么顺序作决定。夫妻都在体制内，外人看见的是工作稳定。真正过日子以后才发现，两份稳定工作碰到一起，也可能组成"
+    },
+    {
+      "order": 3,
+      "chars": 158,
+      "category": "human",
+      "ai_probability": 1.04,
+      "preview": "两件事放在各自单位里都很正常，落到一个家庭，却只剩下一个问题：5点40分，到底谁站在幼儿园门口？很多夫妻会在这个时候争起来。“你那个会少坐十分钟不行吗？” “你"
+    },
+    {
+      "order": 4,
+      "chars": 159,
+      "category": "human",
+      "ai_probability": 1.05,
+      "preview": "临时任务最麻烦的地方，也正在这里。单位只需要一个人多留一会儿，家庭却可能没有第三个人接住这段时间。02 处理这类冲突，可以先定一条规矩：不争谁的工作重要，只说三"
+    },
+    {
+      "order": 5,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 1.07,
+      "preview": "第二，这件事能不能有人暂时接手。有的材料原件在自己手里，别人不了解来龙去脉；有的会议只需要本科室留一个人记录，并不要求两个人都坐到最后。能不能交接，比互相猜测更"
+    },
+    {
+      "order": 6,
+      "chars": 154,
+      "category": "human",
+      "ai_probability": 1.16,
+      "preview": "家庭分工不必每天一样，但判断方法要让两个人都服气。那天下午，丈夫在会议间隙问了一句，确认自己不再需要发言，又和同事交接好会议记录。他请假提前离开，赶到幼儿园时晚"
+    },
+    {
+      "order": 7,
+      "chars": 168,
+      "category": "human",
+      "ai_probability": 1.43,
+      "preview": "双职工家庭真正需要的，是提前给那些容易失控的傍晚留一条退路。一个可落地的办法，是把接孩子分成三层安排。正常情况下按星期轮换；一方提前知道要值班或开会，当天中午前"
+    },
+    {
+      "order": 8,
+      "chars": 156,
+      "category": "human",
+      "ai_probability": 3.17,
+      "preview": "在单位里，也可以把固定的家庭时间说得更具体。不是逢事就拿孩子当理由，而是在任务刚出现时及时说明：“我5点20分要去接孩子，这项材料我4点半前先交一版；如果必须继"
+    },
+    {
+      "order": 9,
+      "chars": 170,
+      "category": "human",
+      "ai_probability": 1.04,
+      "preview": "可越是没有现成帮手，夫妻之间越不能只靠谁更能扛。稳定的家庭分工，不是永远一人一半，而是每次变化来时，都有一套双方认可的判断顺序。晚上吃饭时，孩子问爸爸：“今天怎"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}

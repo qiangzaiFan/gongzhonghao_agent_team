@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "detector": "local-chinese-bert",
+  "model": "AnxForever/chinese-ai-detector-bert",
+  "detected_at": "2026-08-04T08:07:49+08:00",
+  "article": "D:\\workSpace\\自媒体\\gongzhonghao_agent_team\\tizhi_content\\articles\\2026-08-04-35岁县直事业编职称没评上还要不要继续等.md",
+  "article_sha256": "3a23b83c07fd26963b72e5ea8fdd7138c23356a7c044a9fc12355814f5f126ff",
+  "thresholds": {
+    "human_min": 90.0,
+    "ai_max": 10.0,
+    "min_total_chars": 200
+  },
+  "ratios": {
+    "human": 100.0,
+    "suspected": 0.0,
+    "ai": 0.0
+  },
+  "mean_ai_probability": 1.35,
+  "passed": true,
+  "segments": [
+    {
+      "order": 1,
+      "chars": 153,
+      "category": "human",
+      "ai_probability": 1.76,
+      "preview": "下午4点多，名单发下来。他先搜索自己的名字，没有结果，又把表格从头看了一遍。隔壁同事问：“有你吗？”他摇了摇头，把文件关了。有人劝他再等一轮，反正才35岁。可这"
+    },
+    {
+      "order": 2,
+      "chars": 152,
+      "category": "human",
+      "ai_probability": 1.21,
+      "preview": "01 第二天中午，他拿了张旧表，把过去一年为这件事花的时间列了一遍。周末参加学习，晚上整理证明，为了补一段工作经历又接了几项任务。单看都不算大事，凑在一起，差不"
+    },
+    {
+      "order": 3,
+      "chars": 158,
+      "category": "human",
+      "ai_probability": 1.08,
+      "preview": "如果明年仍然只是把同一套材料再交一次，这一年等的究竟是机会，还是运气？他以前没有认真算过。对35岁左右的人来说，这几年通常还挤着别的事。孩子上学、老人看病、房贷"
+    },
+    {
+      "order": 4,
+      "chars": 159,
+      "category": "human",
+      "ai_probability": 1.19,
+      "preview": "第一，下一轮还缺什么。是明确缺一项资格、一段年限或一份业绩材料，还是所有条件都满足，只能等待排序？前一种情况至少知道力气该往哪里用；后一种情况更要了解，自己能改"
+    },
+    {
+      "order": 5,
+      "chars": 168,
+      "category": "human",
+      "ai_probability": 1.05,
+      "preview": "有人看重待遇变化，有人需要它打开后续岗位空间，也有人只是觉得同批同事都有了，自己不能落下。原因不同，值得投入的程度也不同。把期待写清楚很重要。如果它关系到下一阶"
+    },
+    {
+      "order": 6,
+      "chars": 163,
+      "category": "human",
+      "ai_probability": 1.58,
+      "preview": "机会成本不是劝人放弃，而是提醒自己：投入职称的每一个晚上，本来还可以用在哪里。03 问完这三个问题，选择通常会清楚一些。如果差距明确、规则可核实、评上后的回报也"
+    },
+    {
+      "order": 7,
+      "chars": 166,
+      "category": "human",
+      "ai_probability": 1.57,
+      "preview": "把手头业务做扎实，留意合适的考试、岗位和学习机会，不让一种结果占满全部职业生活。还有一种情况，是评职称已经变成了证明自己没有落后的方式。这个时候，暂停一轮也不等"
+    },
+    {
+      "order": 8,
+      "chars": 134,
+      "category": "human",
+      "ai_probability": 1.36,
+      "preview": "他发现自己仍然愿意准备，但只愿意再投入一个明确周期。下一轮需要补的材料按时间完成，结果之外，也同步准备另一个可以选择的方向。这不是给自己留退路，而是不再把所有希"
+    }
+  ],
+  "limitations": "该结果是本地模型的编辑风险信号，不是作者身份证明，不能替代主编的原创度与可读性复核。"
+}
