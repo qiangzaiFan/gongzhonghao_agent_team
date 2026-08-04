@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 from collections import Counter, defaultdict
-from datetime import date
+from datetime import date, timedelta
 
 from anxia_calendar import generate_calendar
 
@@ -82,6 +82,21 @@ class AnxiaCalendarTests(unittest.TestCase):
         )
 
         self.assertFalse({item.sign for item in first_day} & {item.sign for item in next_day})
+
+    def test_separate_daily_two_runs_rotate_all_themes(self) -> None:
+        start = date(2026, 8, 10)
+        themes = []
+        for offset in range(3):
+            items = generate_calendar(
+                days=1,
+                daily=2,
+                start=start + timedelta(days=offset),
+                profile="anxia_short",
+                corpus_dir=None,
+            )
+            themes.extend(item.theme for item in items)
+
+        self.assertEqual(set(themes), {"运势/提醒", "关系/性格", "财运/贵人"})
 
 
 if __name__ == "__main__":

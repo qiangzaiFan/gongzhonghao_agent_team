@@ -207,84 +207,84 @@ SIGN_TRAITS = {
 
 VIRAL_TITLES = {
     "运势/提醒": (
-        "{sign}注意：本月这个习惯必须改！",
-        "{sign}下半年这个转折很关键！",
-        "{month}，给{sign}一个重要提醒！",
-        "{sign}整体运势马上开始走高！",
+        "{sign}座下半年躲不掉的三大转折！",
+        "{sign}座本月必须警惕的一个信号！",
+        "{sign}座，{month}有三个变化正在靠近",
+        "{sign}座接下来整体运势开始走高！",
     ),
     "关系/性格": (
-        "能让{sign}瞬间清醒的一个细节",
-        "{sign}这辈子最该珍惜的贵人",
-        "真正懂{sign}的人，藏不住了",
-        "{sign}别再为这种关系委屈自己",
+        "{sign}座这辈子最该珍惜的三种真心！",
+        "能让{sign}座彻底清醒的两种关系！",
+        "{sign}座下半年必须远离的两种消耗！",
+        "真正旺{sign}座的三类人！",
     ),
     "财运/贵人": (
-        "{sign}在{month}有个贵人正在靠近！",
-        "{sign}接下来必定迎来一波收获",
-        "{sign}这个财务信号千万别忽略！",
-        "{sign}最近贵人运开始强了！",
+        "{sign}座，{month}有一个财运机会正在靠近！",
+        "{sign}座下半年躲不掉的三大财务变化！",
+        "{sign}座本月最容易忽略的一个贵人！",
+        "{sign}座接下来事业上会出现的三个机会！",
     ),
 }
 
 BODY_VARIANTS = {
     "运势/提醒": (
         {
-            "key": "restore-priority",
-            "hook": "拖了很久的事已经需要重新整理",
-            "focus": "减少人情和重复沟通带来的注意力消耗",
-            "closing": "把节奏拿回来",
+            "key": "three-areas",
+            "hook": "工作、钱和关系会同时出现新的信号",
+            "focus": "从三个具体变化判断接下来的节奏",
+            "closing": "把三处变化逐一接稳",
         },
         {
-            "key": "screen-requests",
-            "hook": "临时请求会变多，别每一件都立刻接下",
-            "focus": "先分清真正能推进的合作与无效消耗",
-            "closing": "把时间留给值得推进的方向",
+            "key": "career-turn",
+            "hook": "事业上的一次重新分工会带来后续变化",
+            "focus": "看清任务、资源和选择权怎样变化",
+            "closing": "先接住真正能积累的机会",
         },
         {
-            "key": "finish-loops",
-            "hook": "旧问题反复出现，是因为还没有真正收尾",
-            "focus": "把卡住的流程、承诺和沟通逐个落地",
-            "closing": "先完成一件最关键的小事",
+            "key": "momentum-rise",
+            "hook": "前段时间卡住的事会陆续出现反馈",
+            "focus": "从结果、进账和人际支持中确认运势回升",
+            "closing": "把回升的节奏稳稳延续下去",
         },
     ),
     "关系/性格": (
         {
-            "key": "uneven-response",
-            "hook": "一个细节看多了，心里自然会有答案",
-            "focus": "识别只在需要时靠近、平时缺少回应的关系",
-            "closing": "把真心留给稳定回应的人",
+            "key": "steady-support",
+            "hook": "真正值得珍惜的人会在三处细节里给你底气",
+            "focus": "看行动、分寸和低谷时的支持",
+            "closing": "把真心留给经得起时间的人",
         },
         {
-            "key": "stop-explaining",
-            "hook": "总是你先解释和缓和的关系，会慢慢让人疲惫",
-            "focus": "停止替对方补全态度，把注意力放回真实行动",
-            "closing": "别再替沉默找借口",
+            "key": "draining-patterns",
+            "hook": "两种消耗型关系正在变得越来越明显",
+            "focus": "远离只索取和反复否定你的相处模式",
+            "closing": "把位置留给真正尊重你的人",
         },
         {
-            "key": "boundary-reset",
-            "hook": "关系里最消耗人的，不是争执，是默认你会让步",
-            "focus": "把可接受和不可接受的边界说清楚",
-            "closing": "把自己的感受放回优先级",
+            "key": "mutual-growth",
+            "hook": "真正旺你的人会带来三种正向变化",
+            "focus": "靠近愿意分享信息、兑现承诺和鼓励成长的人",
+            "closing": "让好的关系带着彼此向前",
         },
     ),
     "财运/贵人": (
         {
-            "key": "subscription-audit",
-            "hook": "付款前多停十分钟，能避开不少小漏财",
-            "focus": "检查自动续费、拼单和旧会员支出",
-            "closing": "把账算清楚再决定",
+            "key": "income-window",
+            "hook": "旧项目和新邀约里可能出现一笔增量",
+            "focus": "留意结算、合作和可持续的小收入",
+            "closing": "把能落地的财运机会接稳",
         },
         {
-            "key": "small-opportunity",
-            "hook": "真正有价值的小机会，常常藏在不起眼的邀约里",
-            "focus": "分辨能积累资源的合作和一时热闹",
-            "closing": "先接住能沉淀的机会",
+            "key": "resource-person",
+            "hook": "一个低调的贵人会带来信息和资源",
+            "focus": "识别愿意给方法、介绍机会和兑现支持的人",
+            "closing": "珍惜真正帮你打开局面的人",
         },
         {
-            "key": "money-boundary",
-            "hook": "钱的事越含糊，后面越容易尴尬",
-            "focus": "把分摊、借用和回款的边界提前说清楚",
-            "closing": "该收回来的别再拖",
+            "key": "money-reset",
+            "hook": "三处财务变化会让现金流重新变清楚",
+            "focus": "收回旧款、减少漏支出并筛选稳定机会",
+            "closing": "让每一笔钱都回到清楚的位置",
         },
     ),
 }
@@ -878,10 +878,53 @@ def hot_source_title_for_item(item: CalendarItem, corpus_dir: Path | None, *, mi
     return pool[(item.day.toordinal() + item.slot) % len(pool)]
 
 
-def _variant_for_item(item: CalendarItem, *, offset: int = 0) -> dict[str, str]:
-    sign_index = SIGN_TERMS.index(item.sign) if item.sign in SIGN_TERMS else 0
+def _preferred_variant_index(item: CalendarItem, title: str | None) -> int:
+    if not title:
+        sign_index = SIGN_TERMS.index(item.sign) if item.sign in SIGN_TERMS else 0
+        return (item.day.toordinal() + sign_index) % len(BODY_VARIANTS[item.theme])
+    if item.theme == "运势/提醒":
+        if any(term in title for term in ("三大", "三个", "三次")):
+            return 0
+        if any(term in title for term in ("事业", "警惕", "提醒")):
+            return 1
+        return 2
+    if item.theme == "关系/性格":
+        if any(term in title for term in ("两种", "远离", "消耗")):
+            return 1
+        if any(term in title for term in ("旺", "三类")):
+            return 2
+        return 0
+    if "贵人" in title:
+        return 1
+    if any(term in title for term in ("财务", "三大变化")):
+        return 2
+    return 0
+
+
+def _variant_for_item(
+    item: CalendarItem,
+    *,
+    title: str | None = None,
+    offset: int = 0,
+) -> dict[str, str]:
     variants = BODY_VARIANTS[item.theme]
-    return variants[(item.day.toordinal() + sign_index + offset) % len(variants)]
+    return variants[(_preferred_variant_index(item, title) + offset) % len(variants)]
+
+
+def _title_for_body_variant(item: CalendarItem, variant_key: str) -> str:
+    month = f"{item.day.month}月"
+    titles = {
+        "three-areas": f"{item.sign}座，{month}有三个变化正在靠近！",
+        "career-turn": f"{item.sign}座本月必须警惕的一个事业信号！",
+        "momentum-rise": f"{item.sign}座接下来整体运势开始走高！",
+        "steady-support": f"{item.sign}座这辈子最该珍惜的三种真心！",
+        "draining-patterns": f"能让{item.sign}座彻底清醒的两种关系！",
+        "mutual-growth": f"真正旺{item.sign}座的三类人！",
+        "income-window": f"{item.sign}座，{month}有一个财运机会正在靠近！",
+        "resource-person": f"{item.sign}座本月最容易忽略的一个贵人！",
+        "money-reset": f"{item.sign}座下半年躲不掉的三大财务变化！",
+    }
+    return titles[variant_key]
 
 
 def _opening_for_item(
@@ -892,20 +935,21 @@ def _opening_for_item(
 ) -> dict[str, str]:
     style = OPENING_STYLES[(item.day.toordinal() + item.slot + offset) % len(OPENING_STYLES)]
     hook = body_variant["hook"].rstrip("。！？!")
+    sign_label = f"{item.sign}座"
     if style["key"] == "detail-observation":
         suffix = {
-            "运势/提醒": "别把它当成小事",
-            "关系/性格": "你的感受已经在给答案",
-            "财运/贵人": "判断时多给自己十分钟",
+            "运势/提醒": "这些变化会落到具体生活里",
+            "关系/性格": "看行动会比猜态度更准",
+            "财运/贵人": "真正的机会会留下实际线索",
         }[item.theme]
-        text = f"{item.sign}这段时间会慢慢看清：{hook}，{suffix}。"
+        text = f"{sign_label}这段时间会慢慢看清：{hook}，{suffix}。"
     else:
         prefix = {
-            "运势/提醒": "最近要注意",
-            "关系/性格": "最近在关系里要留意",
-            "财运/贵人": "最近在钱和机会上的提醒是",
+            "运势/提醒": "接下来要留意",
+            "关系/性格": "在关系里要看清",
+            "财运/贵人": "最近在钱和机会上的重点是",
         }[item.theme]
-        text = f"{item.sign}{prefix}：{hook}。"
+        text = f"{sign_label}{prefix}：{hook}。"
     return {**style, "text": text}
 
 
@@ -927,85 +971,101 @@ def render_body_with_variant(
     item: CalendarItem,
     *,
     mode: str = "viral-safe",
+    selected_title: str | None = None,
     variant_offset: int = 0,
     opening_offset: int = 0,
 ) -> tuple[str, dict[str, str], dict[str, str]]:
     trait_a, trait_b, trait_c = SIGN_TRAITS.get(item.sign, ("状态敏感", "需要稳住节奏", "适合看清重点"))
     sign = item.sign
-    variant = _variant_for_item(item, offset=variant_offset)
+    sign_label = f"{sign}座"
+    variant = _variant_for_item(item, title=selected_title, offset=variant_offset)
     opening = _opening_for_item(item, variant, offset=opening_offset)
     if item.theme == "运势/提醒":
-        if variant["key"] == "screen-requests":
+        if variant["key"] == "career-turn":
             paragraphs = [
-                f"{sign}最近要注意：临时找上门的事会变多，不是每一件都值得你立刻答应。",
-                f"你们本来就{trait_a}，别人一句“就差你了”很容易让你多接一份任务。先看这件事能不能推进自己，再决定要不要投入。",
-                "真正值得留住的合作，会把方向说清楚；只靠情绪催你的人，多半会继续消耗你的时间。",
-                f"刷到接好运！祝{sign}把时间留给值得推进的方向，稳住自己的节奏。",
+                f"{sign_label}接下来要注意，事业上的一次重新分工会带来后续变化。",
+                f"一是手里的任务会重新排顺序，过去总被打断的事，终于有机会完整推进。{trait_a}是优势，但别把所有临时活都接走。",
+                "二是资源会跟着任务一起出现。愿意把信息、方法和关键联系人告诉你的人，比只会催进度的人更值得靠近。",
+                "三是选择权会变多。先看哪件事能留下成果，再决定把时间压在哪里。",
+                f"刷到接好运！祝{sign_label}接住真正能积累的事业机会，把主动权拿回来。",
             ]
-        elif variant["key"] == "finish-loops":
+        elif variant["key"] == "momentum-rise":
             paragraphs = [
-                f"{sign}这段时间别忽略反复冒出来的旧问题，它提醒你有件事还没有真正收尾。",
-                f"你们{trait_a}，越是悬着不处理，越容易在心里来回想。工作流程、没说开的承诺、搁置的决定，都该挑一件先落地。",
-                "别急着一次解决全部。先完成最关键的那一步，后面的变化才会慢慢顺起来。",
-                f"刷到接好运！祝{sign}稳住心气，先完成一件最关键的小事。",
+                f"{sign_label}前段时间卡住的事，接下来会陆续出现反馈，整体节奏有机会往上走。",
+                f"工作上，搁置的安排会重新启动。你们{trait_a}，收到明确回复后要尽快落下一步，别让机会再次停在讨论里。",
+                "钱的安排也会更清楚，可能是旧款有了进度，或一项合作终于谈到实际回报。先确认细节，不急着把期待算成收入。",
+                "关系里会有人给出更稳定的支持。能兑现承诺、愿意一起解决问题的人，会让你少走弯路。",
+                f"刷到接好运！祝{sign_label}稳稳延续这段回升节奏，把好状态变成真进展。",
             ]
         else:
             paragraphs = [
-                f"{sign}最近别小看一个变化：有些拖了很久的事，已经到了必须整理的时候。",
-                f"你们本来就{trait_a}，但这段时间容易被琐事分走注意力。临时安排、人情请求、重复沟通，都会一点点消耗状态。",
-                "真正要抓住的，是能让你往前走的事。该拒绝的别硬撑，该推进的别再等，先把节奏拿回来。",
-                f"刷到接好运！祝{sign}稳住这口气，把这个月的好状态一点点找回来。",
+                f"{sign_label}接下来会在三个地方看到变化：工作、钱的安排和身边关系。",
+                f"工作上，拖了很久的任务开始出现明确节点。你们{trait_a}，这次要把决定落到行动，不再只等别人通知。",
+                "钱的节奏上，一笔旧支出或待确认的回款会重新进入视线。先核清数字，能省的省，能收的及时跟进。",
+                "关系里，热闹的人会变少，真正愿意提供信息和支持的人会更清楚。把时间留给能一起往前走的人。",
+                f"刷到接好运！祝{sign_label}把三处变化逐一接稳，下半年的路越走越清楚。",
             ]
     elif item.theme == "关系/性格":
-        if variant["key"] == "stop-explaining":
+        if variant["key"] == "draining-patterns":
             paragraphs = [
-                f"{sign}最容易累的关系，不一定是吵得凶，而是每次都要你先解释、先缓和。",
-                f"你们{trait_b}，所以总想给对方留一点余地。但真正重视你的人，不会把回应变成一次次需要你追着要的事。",
-                "别再替沉默找理由，也别把懂事当成只能退让。看行动，比反复猜态度更有用。",
-                f"刷到接好运！祝{sign}少一点内耗，把真心留给愿意回应你的人。",
+                f"{sign_label}下半年要看清两种消耗型关系，越早拉开距离，心里越轻松。",
+                "一种是只在需要帮忙时靠近，平时很少回应。你的时间和能力被当成现成资源，付出却得不到基本尊重。",
+                "另一种是反复否定你的选择。你一有新计划，对方先泼冷水；你做出成绩，他又把它说成运气。",
+                f"你们{trait_b}，容易为旧情分多留一步。但真正适合留下的人，会尊重你的边界，也愿意看见你的成长。",
+                f"刷到接好运！祝{sign_label}远离两种消耗，把位置留给真正尊重你的人。",
             ]
-        elif variant["key"] == "boundary-reset":
+        elif variant["key"] == "mutual-growth":
             paragraphs = [
-                f"{sign}在关系里真正该留意的，是别人是不是默认你会一直让步。",
-                f"你们{trait_b}，很多时候不想把话说重，宁愿自己消化。可一段关系如果总靠你往后退，心里迟早会失衡。",
-                "把可接受和不可接受的部分说清楚，不是冷淡，是让彼此都知道该怎么靠近。",
-                f"刷到接好运！祝{sign}把自己的感受放回优先级，关系也会更轻松。",
+                f"真正旺{sign_label}的人，通常会带来三种正向变化，不只是在嘴上夸你。",
+                "第一类愿意分享信息，让你少走弯路；第二类说到做到，关键时刻能给稳定支持；第三类鼓励你成长，不怕你变得更好。",
+                f"你们{trait_b}，对关系里的细微变化很敏感。别只看一时热情，要看对方能不能长期兑现。",
+                "好的关系不会替你做决定，却会让你更有底气做自己的决定。",
+                f"刷到接好运！祝{sign_label}靠近真正旺你的人，彼此带着对方向前走。",
             ]
         else:
             paragraphs = [
-                f"{sign}不是突然变冷，很多时候是一个细节看多了，心里自然有了答案。",
-                f"你们{trait_b}，一开始会给对方余地，也愿意替关系找理由。但只在需要时靠近、平时很少回应的人，最容易让{sign}慢慢清醒。",
-                "别再把自己的退后解释成小题大做。谁是真心，谁只是顺手消耗，其实你早就感觉到了。",
-                f"刷到接好运！祝{sign}把真心留给稳定回应你的人，少一点内耗。",
+                f"{sign_label}这辈子最该珍惜的真心，往往藏在三处不显眼的细节里。",
+                "一是你低落时不催你表态，愿意给你时间；二是发生分歧也守住分寸，不拿你的脆弱伤你；三是答应的事会尽力做到。",
+                f"你们{trait_b}，很会分辨热闹和真心。真正值得留下的人，不一定天天出现，却会在关键时候站稳。",
+                "关系不必多，能让你安心做自己，比一时的热烈更难得。",
+                f"刷到接好运！祝{sign_label}珍惜三种真心，让信任在时间里慢慢长稳。",
             ]
     else:
-        if variant["key"] == "small-opportunity":
+        if variant["key"] == "resource-person":
             paragraphs = [
-                f"{sign}最近别只盯着大消息，有些不起眼的邀约，反而可能带来新的机会。",
-                f"你们{trait_c}，能很快判断一件事值不值得做。有人介绍的合作、临时出现的项目、一个愿意分享资源的人，都可以多听两句。",
-                "但别为了热闹什么都接。能让你积累经验、人脉或稳定回报的，才值得认真跟进。",
-                f"刷到接好运！祝{sign}先接住能沉淀的机会，把小变化做成真收获。",
+                f"{sign_label}本月容易忽略的贵人，不一定高调，但会给你实际的信息和资源。",
+                "他可能提醒你一个时间节点，介绍一个靠谱的合作，或把自己走过的弯路直接告诉你。这些帮助不热闹，却能打开局面。",
+                f"你们{trait_c}，判断时别只看对方说得多好，要看信息能不能核实、承诺能不能兑现。",
+                "收到帮助后及时反馈结果，也把自己的专业和信用拿出来，贵人关系才能走得长。",
+                f"刷到接好运！祝{sign_label}认出真正的贵人，把新机会稳稳落到行动上。",
             ]
-        elif variant["key"] == "money-boundary":
+        elif variant["key"] == "money-reset":
             paragraphs = [
-                f"{sign}最近在钱上要多一点直接，含糊过去的小事，后面最容易变成尴尬。",
-                f"你们{trait_c}，但分摊、借用、回款这些问题不能只靠默契。该确认金额就确认，该约时间就约时间，别一直替别人留空白。",
-                "把话说清楚不是计较，反而能让关系和合作都更轻松。",
-                f"刷到接好运！祝{sign}把边界讲明白，该收回来的别再拖。",
+                f"{sign_label}下半年会看到三处财务变化，重点不是突然暴富，而是现金流开始变得清楚。",
+                "一是拖着的旧款或报销有机会出现进度，该补的材料及时补；二是自动续费和零碎支出更容易被发现，能关掉的尽快处理。",
+                "三是新合作会谈到具体回报。先确认周期、投入和结算方式，再判断值不值得接。",
+                f"你们{trait_c}，越早把数字写清楚，越不容易被表面的优惠和热闹带偏。",
+                f"刷到接好运！祝{sign_label}接稳三处财务变化，让每一笔钱都回到清楚的位置。",
             ]
         else:
             paragraphs = [
-                f"{sign}今天先别急着付款。看到优惠、链接、群里的临时拼单，停十分钟再点。",
-                f"你们{trait_c}，但最近消息太杂，容易顺手答应。以前说好的分摊、会员、订阅，翻出来看一眼，别让小钱悄悄漏掉。",
-                "少花一笔不丢人，该收回来的也别一直拖。把账说清楚，反而省掉后面的尴尬。",
-                f"刷到接好运！祝{sign}把钱包看稳，接下来该来的小进账别错过。",
+                f"{sign_label}最近的钱和机会，会从旧项目结算、新合作邀约和一项可持续的小收入里出现线索。",
+                "第一个线索是旧项目的待确认款项，该补的材料和该问的进度要及时跟上。",
+                "第二个线索是熟人带来的新合作，有具体需求、周期和回报，才值得继续谈。",
+                f"第三个线索是可持续的小收入。你们{trait_c}，但也要把成本算进去，只讲回报不讲风险的先多核实一步。",
+                f"刷到接好运！祝{sign_label}把能落地的财运机会接稳，慢慢增加自己的底气。",
             ]
     paragraphs[0] = opening["text"]
     return "\n\n".join(paragraphs), variant, opening
 
 
 def render_body(item: CalendarItem, *, mode: str = "viral-safe") -> str:
-    body, _, _ = render_body_with_variant(item, mode=mode)
+    selected_title = title_for_item(item, mode)
+    body, _, _ = render_body_with_variant(
+        item,
+        mode=mode,
+        selected_title=selected_title,
+    )
     return body
 
 
@@ -2443,14 +2503,18 @@ def _select_body_variant(
     item: CalendarItem,
     *,
     mode: str,
+    selected_title: str,
+    lock_to_title: bool,
     recent_drafts: list[tuple[str, str]],
 ) -> tuple[str, dict[str, str], dict[str, str], RecentSimilarity | None]:
     candidates: list[tuple[str, dict[str, str], dict[str, str], RecentSimilarity | None]] = []
-    for offset in range(len(BODY_VARIANTS[item.theme])):
+    variant_offsets = (0,) if lock_to_title else range(len(BODY_VARIANTS[item.theme]))
+    for offset in variant_offsets:
         for opening_offset in range(len(OPENING_STYLES)):
             body, variant, opening = render_body_with_variant(
                 item,
                 mode=mode,
+                selected_title=selected_title,
                 variant_offset=offset,
                 opening_offset=opening_offset,
             )
@@ -2500,8 +2564,15 @@ def build_drafts(
         body, body_variant, opening_variant, similarity = _select_body_variant(
             item,
             mode="viral-safe" if mode == "hot-source" else mode,
+            selected_title=selected_title,
+            lock_to_title=mode in {"balanced", "hot-source"},
             recent_drafts=historical + batch_recent.get((item.sign, item.theme), []),
         )
+        preferred_key = BODY_VARIANTS[item.theme][
+            _preferred_variant_index(item, selected_title)
+        ]["key"]
+        if mode == "viral-safe" and body_variant["key"] != preferred_key:
+            selected_title = _title_for_body_variant(item, body_variant["key"])
         title_variants = title_variants_for_item(item, selected_title)
         drafts.append(
             Draft(

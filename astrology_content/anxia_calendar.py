@@ -14,18 +14,19 @@ from performance_tracker import DEFAULT_LOG_PATH, load_entries, topic_performanc
 
 TEMPLATE_POOLS = {
     "运势/提醒": (
-        ("{sign}本月必须警惕的一个{risk}", {"risk": ("旧习惯", "情绪消耗", "社交误区")}),
-        ("{sign}下半年躲不掉的三大{change}", {"change": ("状态转折", "关系变化", "财务提醒")}),
-        ("{month}，给{sign}一个{reminder}", {"reminder": ("重要提醒", "人际提醒", "节奏提醒")}),
-        ("{sign}，{stage}整体运势开始走高", {"stage": ("下半年", "本月", "这段时间")}),
+        ("{sign}座本月必须警惕的一个{risk}", {"risk": ("节奏信号", "情绪消耗", "社交误区")}),
+        ("{sign}座下半年躲不掉的三大{change}", {"change": ("状态转折", "生活变化", "重要选择")}),
+        ("{month}，给{sign}座一个{reminder}", {"reminder": ("重要提醒", "事业提醒", "节奏提醒")}),
+        ("{sign}座，{stage}整体运势开始走高", {"stage": ("下半年", "本月", "这段时间")}),
     ),
     "关系/性格": (
-        ("能让{sign}{reaction}的{obj}", {"reaction": ("慢慢拉开距离", "瞬间清醒", "重新靠近"), "obj": ("一个细节", "一种态度", "一段关系")}),
-        ("{sign}这辈子最该珍惜的{asset}", {"asset": ("一种关系", "一个贵人", "一类真心")}),
+        ("能让{sign}座{reaction}的{obj}", {"reaction": ("彻底清醒", "重新靠近", "主动珍惜"), "obj": ("两种关系", "一个细节", "三类人")}),
+        ("{sign}座这辈子最该珍惜的{asset}", {"asset": ("三种真心", "一个贵人", "一类关系")}),
     ),
     "财运/贵人": (
-        ("{sign}，{month}有一个{opportunity}正在路上", {"opportunity": ("新机会", "贵人信号", "收入变化")}),
-        ("{sign}最容易忽略的一个{asset}", {"asset": ("贵人", "机会", "财务突破口")}),
+        ("{sign}座，{month}有一个{opportunity}正在路上", {"opportunity": ("财运机会", "贵人信号", "事业机会")}),
+        ("{sign}座最容易忽略的一个{asset}", {"asset": ("贵人", "事业机会", "财务突破口")}),
+        ("{sign}座下半年会出现的三大{change}", {"change": ("财务变化", "事业机会", "贵人信号")}),
     ),
 }
 THEMES = tuple(TEMPLATE_POOLS)
@@ -106,7 +107,8 @@ def generate_calendar(
         day = start + timedelta(days=day_offset)
         used_today: set[str] = set()
         for slot in range(daily):
-            theme = THEMES[slot % len(THEMES)]
+            # Use the absolute date so separate one-day runs keep rotating all three themes.
+            theme = THEMES[(day.toordinal() * daily + slot) % len(THEMES)]
             pool = TEMPLATE_POOLS[theme]
             template, variables = pool[(day_offset + slot) % len(pool)]
             sign = _choose_balanced_sign(

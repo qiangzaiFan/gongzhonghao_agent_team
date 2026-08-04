@@ -21,6 +21,7 @@ from anxia_generate import (
     output_path,
     pet_cover_markdown_ref,
     pet_cover_path,
+    render_body_with_variant,
     render_daily_fortune_card_svg,
     render_daily_fortune_cover_svg,
     render_markdown,
@@ -66,6 +67,42 @@ class AnxiaGenerateTests(unittest.TestCase):
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=3)
         self.assertEqual(len(drafts), 9)
         self.assertEqual(len({draft.item.day for draft in drafts}), 3)
+
+    def test_body_variant_fulfills_selected_title(self) -> None:
+        cases = (
+            ("运势/提醒", "射手座下半年躲不掉的三大转折", "three-areas", "三处变化"),
+            ("关系/性格", "能让射手座彻底清醒的两种关系", "draining-patterns", "两种"),
+            ("财运/贵人", "射手座本月最容易忽略的一个贵人", "resource-person", "贵人"),
+        )
+        for theme, title, expected_variant, expected_text in cases:
+            with self.subTest(theme=theme):
+                item = CalendarItem(
+                    day=date(2026, 8, 10),
+                    slot=0,
+                    sign="射手",
+                    theme=theme,
+                    title=title,
+                    angle="原创测试角度",
+                )
+                body, variant, _ = render_body_with_variant(
+                    item,
+                    selected_title=title,
+                )
+                self.assertEqual(variant["key"], expected_variant)
+                self.assertIn(expected_text, body)
+
+    def test_daily_two_batch_contains_all_non_daily_themes(self) -> None:
+        drafts = build_drafts(date(2026, 8, 10), 2, corpus_dir=None, days=3)
+
+        self.assertEqual(
+            {draft.item.theme for draft in drafts},
+            {"运势/提醒", "关系/性格", "财运/贵人"},
+        )
+        finance_bodies = [
+            draft.body for draft in drafts if draft.item.theme == "财运/贵人"
+        ]
+        self.assertTrue(finance_bodies)
+        self.assertTrue(all(any(term in body for term in ("财运", "贵人", "事业", "机会")) for body in finance_bodies))
 
     def test_builds_seven_days_of_daily_three(self) -> None:
         drafts = build_drafts(date(2026, 7, 26), 3, corpus_dir=None, days=7)
@@ -284,6 +321,7 @@ class AnxiaGenerateTests(unittest.TestCase):
 
         self.assertNotEqual(drafts[0].body, baseline.body)
         self.assertNotEqual(drafts[0].body_variant["key"], baseline.body_variant["key"])
+        self.assertIn("事业信号", drafts[0].title)
         self.assertIsNone(drafts[0].recent_conflict)
 
     def test_viral_safe_adds_stronger_hooks(self) -> None:
