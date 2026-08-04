@@ -62,7 +62,7 @@ def _normalize_distribution_variants(
         if not text or any(item["key"] == key or item[required_field] == text for item in variants):
             continue
         variant = {"key": key, required_field: text}
-        for optional_field in ("label", "formula"):
+        for optional_field in ("label", "formula", "pattern"):
             value = str(raw_variant.get(optional_field, "")).strip()
             if value:
                 variant[optional_field] = value

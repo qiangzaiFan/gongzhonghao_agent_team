@@ -60,16 +60,19 @@ class PerformanceTrackerTests(unittest.TestCase):
                     "key": "title-1",
                     "text": "天秤别再替沉默找理由",
                     "formula": "关系洞察型",
+                    "pattern": "风险提醒型",
                 },
                 {
                     "key": "title-2",
                     "text": "天秤最累的关系，是总要自己解释",
                     "formula": "关系洞察型",
+                    "pattern": "场景判断型",
                 },
                 {
                     "key": "title-3",
                     "text": "天秤该把感受放回优先级了",
                     "formula": "提醒型",
+                    "pattern": "场景判断型",
                 },
             ),
             opening_variants=(
@@ -117,10 +120,55 @@ class PerformanceTrackerTests(unittest.TestCase):
         self.assertIn("天秤", report)
         self.assertIn("stop-explaining", report)
         self.assertEqual(entries[0]["title_variant"], "title-2")
+        self.assertEqual(entries[0]["title_pattern"], "场景判断型")
         self.assertEqual(entries[0]["opening_variant"], "detail-observation")
         self.assertEqual(entries[0]["published_title"], "天秤最累的关系，是总要自己解释")
         self.assertIn("标题公式", report)
         self.assertIn("开头版本", report)
+        self.assertIn("样本不足", report)
+
+    def test_title_report_uses_weighted_read_rate_and_click_order(self) -> None:
+        entries = [
+            {
+                "title_formula": "高阅读率型",
+                "impressions": 100,
+                "reads": 50,
+                "likes": 0,
+                "shares": 0,
+                "comments": 0,
+                "follows": 0,
+                "read_rate": 0.5,
+                "engagement_rate": 0.0,
+            },
+            {
+                "title_formula": "高阅读率型",
+                "impressions": 900,
+                "reads": 90,
+                "likes": 0,
+                "shares": 0,
+                "comments": 0,
+                "follows": 0,
+                "read_rate": 0.1,
+                "engagement_rate": 0.0,
+            },
+            {
+                "title_formula": "高互动率型",
+                "impressions": 1000,
+                "reads": 100,
+                "likes": 50,
+                "shares": 0,
+                "comments": 0,
+                "follows": 0,
+                "read_rate": 0.1,
+                "engagement_rate": 0.5,
+            },
+        ]
+
+        report = format_report(entries)
+        title_section = report.split("## 标题公式表现", 1)[1].split("## 标题版本表现", 1)[0]
+
+        self.assertLess(title_section.index("高阅读率型"), title_section.index("高互动率型"))
+        self.assertIn("阅读率 14.00%", title_section)
 
     def test_topic_scores_need_enough_samples(self) -> None:
         entry = {

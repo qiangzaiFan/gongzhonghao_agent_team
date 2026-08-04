@@ -26,6 +26,8 @@ from anxia_generate import (
     render_daily_fortune_cover_svg,
     render_markdown,
     title_formula,
+    title_pattern,
+    title_variants_for_item,
     write_daily_fortune_cards,
     write_daily_fortune_follow,
 )
@@ -337,8 +339,35 @@ class AnxiaGenerateTests(unittest.TestCase):
     def test_title_formula_respects_relationship_theme_before_keyword(self) -> None:
         self.assertEqual(
             title_formula("天蝎这辈子最该珍惜的一个贵人", "关系/性格"),
-            "关系洞察型",
+            "关系助力型",
         )
+
+    def test_title_candidates_stay_aligned_with_body_variant(self) -> None:
+        item = CalendarItem(
+            day=date(2026, 8, 12),
+            slot=0,
+            sign="天蝎",
+            theme="财运/贵人",
+            title="天蝎座本月最容易忽略的一个贵人！",
+            angle="贵人带来信息和资源",
+        )
+        variants = title_variants_for_item(
+            item,
+            item.title,
+            body_variant_key="resource-person",
+        )
+
+        self.assertEqual(len(variants), 4)
+        self.assertTrue(
+            all("贵人" in variant["text"] or "关键人物" in variant["text"] for variant in variants)
+        )
+        self.assertEqual({variant["formula"] for variant in variants}, {"贵人资源型"})
+        self.assertGreaterEqual(len({variant["pattern"] for variant in variants}), 2)
+
+    def test_title_pattern_separates_click_hooks(self) -> None:
+        self.assertEqual(title_pattern("天蝎座本月必须警惕的一个信号！"), "风险提醒型")
+        self.assertEqual(title_pattern("天蝎座近期有三个进账线索！"), "数字清单型")
+        self.assertEqual(title_pattern("天蝎座的整体运势慢慢走高！"), "趋势预告型")
 
     def test_hot_source_can_reuse_repeated_title(self) -> None:
         title = "天蝎座7月一定会发生的三件喜事！"

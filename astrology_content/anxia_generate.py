@@ -289,6 +289,63 @@ BODY_VARIANTS = {
     ),
 }
 
+BODY_TITLE_TEMPLATES = {
+    "three-areas": (
+        "{sign}座，{month}有三个变化正在靠近！",
+        "{sign}座接下来最明显的三个变化！",
+        "{month}开始，{sign}座要接住这三次转折！",
+        "{sign}座近期工作、钱和关系都会有变化",
+    ),
+    "career-turn": (
+        "{sign}座本月必须警惕的一个事业信号！",
+        "{sign}座事业上一个关键信号，别忽略！",
+        "{month}，{sign}座要看清这次工作变化！",
+        "{sign}座接下来要把事业主动权拿回来！",
+    ),
+    "momentum-rise": (
+        "{sign}座接下来整体运势开始走高！",
+        "{sign}座最近开始顺了，三个信号很明显！",
+        "{month}起，{sign}座的整体运势慢慢走高！",
+        "{sign}座前段时间卡住的事，开始有回音了！",
+    ),
+    "steady-support": (
+        "{sign}座这辈子最该珍惜的三种真心！",
+        "这三种真心，{sign}座遇到一定要珍惜！",
+        "{sign}座真正需要的关系，都有这三个细节",
+        "能让{sign}座安心做自己的人，别错过！",
+    ),
+    "draining-patterns": (
+        "能让{sign}座彻底清醒的两种关系！",
+        "{sign}座下半年要远离的两种关系！",
+        "这两种人，最容易让{sign}座慢慢心累！",
+        "{sign}座一旦看清这两个细节，就不会再勉强",
+    ),
+    "mutual-growth": (
+        "真正旺{sign}座的三类人！",
+        "{sign}座真正的贵人，往往是这三类人！",
+        "能让{sign}座越过越顺的三种关系！",
+        "{sign}座身边值得长期靠近的三类人",
+    ),
+    "income-window": (
+        "{sign}座，{month}有一个财运机会正在靠近！",
+        "{sign}座近期有三个进账线索，别错过！",
+        "{month}，{sign}座要留意这几个财运机会！",
+        "{sign}座的钱和机会，正在这三处出现变化",
+    ),
+    "resource-person": (
+        "{sign}座本月最容易忽略的一个贵人！",
+        "{sign}座真正的贵人，会给你这三种帮助！",
+        "{month}，{sign}座要认出这个低调贵人！",
+        "{sign}座接下来能打开局面的关键人物",
+    ),
+    "money-reset": (
+        "{sign}座下半年躲不掉的三大财务变化！",
+        "{sign}座下半年现金流会有三个新变化！",
+        "{month}起，{sign}座这三笔钱要重新理清！",
+        "{sign}座接下来最该看清的三个财务信号！",
+    ),
+}
+
 OPENING_STYLES = (
     {"key": "direct-alert", "label": "直接提醒"},
     {"key": "detail-observation", "label": "细节观察"},
@@ -798,15 +855,26 @@ def title_for_item(item: CalendarItem, mode: str) -> str:
     return titles[index].format(sign=item.sign, month=month)
 
 
-def title_candidates_for_item(item: CalendarItem, selected_title: str) -> tuple[str, ...]:
+def title_candidates_for_item(
+    item: CalendarItem,
+    selected_title: str,
+    *,
+    body_variant_key: str,
+) -> tuple[str, ...]:
     month = f"{item.day.month}月"
-    templates = VIRAL_TITLES[item.theme]
+    templates = BODY_TITLE_TEMPLATES[body_variant_key]
     options = [
         selected_title,
-        item.title,
         *(template.format(sign=item.sign, month=month) for template in templates),
     ]
-    candidates = list(dict.fromkeys(option.strip() for option in options if option.strip()))
+    candidates: list[str] = []
+    seen: set[str] = set()
+    for option in options:
+        title = option.strip()
+        key = re.sub(r"[\s，。！？、：；,.!?:;]+", "", title)
+        if title and key not in seen:
+            candidates.append(title)
+            seen.add(key)
     return tuple(candidates[:4])
 
 
@@ -814,20 +882,60 @@ def title_formula(title: str, theme: str) -> str:
     if theme == DAILY_FORTUNE_THEME:
         return "全星座日运型"
     if theme == "关系/性格":
-        return "关系洞察型"
+        if any(term in title for term in ("远离", "消耗", "清醒", "心累", "勉强")):
+            return "关系避坑型"
+        if any(term in title for term in ("旺", "贵人", "越过越顺", "长期靠近")):
+            return "关系助力型"
+        return "真心识别型"
     if theme == "财运/贵人":
-        return "财务提醒型" if any(term in title for term in ("提醒", "忽略", "注意")) else "机会型"
-    return "提醒型" if any(term in title for term in ("注意", "提醒", "忽略", "必须")) else "变化预告型"
+        if "贵人" in title or "关键人物" in title:
+            return "贵人资源型"
+        if any(term in title for term in ("财务", "现金流", "三笔钱")):
+            return "财务变化型"
+        return "财运机会型"
+    if any(term in title for term in ("警惕", "提醒", "忽略", "事业信号")):
+        return "事业警示型"
+    if any(term in title for term in ("运势", "走高", "开始顺", "有回音")):
+        return "运势走高型"
+    return "多点变化型"
 
 
-def title_variants_for_item(item: CalendarItem, selected_title: str) -> tuple[dict[str, str], ...]:
+def title_pattern(title: str) -> str:
+    if any(term in title for term in ("必须", "警惕", "远离", "别", "忽略")):
+        return "风险提醒型"
+    if any(term in title for term in ("一个", "这个", "关键人物")):
+        return "单点悬念型"
+    if any(
+        term in title
+        for term in ("三大", "三个", "三种", "三类", "三笔", "三次", "两种", "两个", "几个")
+    ):
+        return "数字清单型"
+    if any(term in title for term in ("靠近", "开始", "走高", "变化", "回音", "越过越顺")):
+        return "趋势预告型"
+    return "场景判断型"
+
+
+def title_variants_for_item(
+    item: CalendarItem,
+    selected_title: str,
+    *,
+    body_variant_key: str,
+) -> tuple[dict[str, str], ...]:
     return tuple(
         {
             "key": f"title-{index}",
             "text": title,
             "formula": title_formula(title, item.theme),
+            "pattern": title_pattern(title),
         }
-        for index, title in enumerate(title_candidates_for_item(item, selected_title), start=1)
+        for index, title in enumerate(
+            title_candidates_for_item(
+                item,
+                selected_title,
+                body_variant_key=body_variant_key,
+            ),
+            start=1,
+        )
     )
 
 
@@ -838,16 +946,19 @@ def daily_fortune_title_variants(day: date) -> tuple[dict[str, str], ...]:
             "key": "title-1",
             "text": f"十二星座每日好运丨{formatted_day}",
             "formula": "全星座日运型",
+            "pattern": "日期日运型",
         },
         {
             "key": "title-2",
             "text": f"十二星座今日好运指南丨{formatted_day}",
             "formula": "全星座日运型",
+            "pattern": "日期日运型",
         },
         {
             "key": "title-3",
             "text": f"{formatted_day} 十二星座日运提醒",
             "formula": "全星座日运型",
+            "pattern": "日期日运型",
         },
     )
 
@@ -2573,7 +2684,11 @@ def build_drafts(
         ]["key"]
         if mode == "viral-safe" and body_variant["key"] != preferred_key:
             selected_title = _title_for_body_variant(item, body_variant["key"])
-        title_variants = title_variants_for_item(item, selected_title)
+        title_variants = title_variants_for_item(
+            item,
+            selected_title,
+            body_variant_key=body_variant["key"],
+        )
         drafts.append(
             Draft(
                 item=item,

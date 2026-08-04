@@ -45,7 +45,7 @@ def _distribution_variants(
                 if not key or not text:
                     continue
                 variant = {"key": key, "text": text}
-                for field in ("label", "formula"):
+                for field in ("label", "formula", "pattern"):
                     value = str(raw_variant.get(field, "")).strip()
                     if value:
                         variant[field] = value
@@ -144,6 +144,7 @@ def build_entry(
         "body_variant": variant["key"],
         "title_variant": title_choice["key"],
         "title_formula": title_choice.get("formula", "未标注"),
+        "title_pattern": title_choice.get("pattern", "未标注"),
         "published_title": title_choice["text"],
         "opening_variant": opening_choice["key"],
         "opening_label": opening_choice.get("label", "未标注"),
@@ -176,7 +177,12 @@ def load_entries(log_path: Path) -> list[dict[str, Any]]:
     return entries
 
 
-def _group_summary(entries: list[dict[str, Any]], field: str) -> list[tuple[str, int, float, float]]:
+def _group_summary(
+    entries: list[dict[str, Any]],
+    field: str,
+    *,
+    prioritize_read_rate: bool = False,
+) -> list[tuple[str, int, float, float]]:
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for entry in entries:
         value = str(entry.get(field, "")).strip()
@@ -191,15 +197,34 @@ def _group_summary(entries: list[dict[str, Any]], field: str) -> list[tuple[str,
             for item in group
             if item.get("engagement_rate") is not None
         ]
-        summary.append(
-            (
-                value,
-                len(group),
-                sum(read_rates) / len(read_rates) if read_rates else 0.0,
-                sum(engagement_rates) / len(engagement_rates) if engagement_rates else 0.0,
-            )
+        impression_total = sum(int(item.get("impressions") or 0) for item in group)
+        read_total = sum(int(item.get("reads") or 0) for item in group)
+        has_raw_engagement = any(
+            any(metric in item for metric in ("likes", "shares", "comments", "follows"))
+            for item in group
         )
-    return sorted(summary, key=lambda item: (item[3], item[2], item[1]), reverse=True)
+        engagement_total = sum(
+            int(item.get(metric) or 0)
+            for item in group
+            for metric in ("likes", "shares", "comments", "follows")
+        )
+        read_rate = (
+            read_total / impression_total
+            if impression_total
+            else sum(read_rates) / len(read_rates) if read_rates else 0.0
+        )
+        engagement_rate = (
+            engagement_total / read_total
+            if has_raw_engagement and read_total
+            else sum(engagement_rates) / len(engagement_rates) if engagement_rates else 0.0
+        )
+        summary.append((value, len(group), read_rate, engagement_rate))
+    sort_indexes = (2, 3, 1) if prioritize_read_rate else (3, 2, 1)
+    return sorted(
+        summary,
+        key=lambda item: tuple(item[index] for index in sort_indexes),
+        reverse=True,
+    )
 
 
 def topic_performance_scores(
@@ -294,14 +319,23 @@ def format_report(entries: list[dict[str, Any]]) -> str:
         ("theme", "主题"),
         ("sign", "星座"),
         ("title_formula", "标题公式"),
+        ("title_pattern", "标题表达"),
         ("title_variant", "标题版本"),
         ("opening_variant", "开头版本"),
         ("body_variant", "正文变体"),
     ):
-        lines.extend(("", f"## {label}表现"))
-        for value, count, read_rate, engagement_rate in _group_summary(entries, field):
+        prioritize_read_rate = field in {"title_formula", "title_pattern", "title_variant"}
+        order_note = "（按阅读率排序）" if prioritize_read_rate else ""
+        lines.extend(("", f"## {label}表现{order_note}"))
+        for value, count, read_rate, engagement_rate in _group_summary(
+            entries,
+            field,
+            prioritize_read_rate=prioritize_read_rate,
+        ):
+            sample_note = "，样本不足" if count < 3 else ""
             lines.append(
-                f"- {value}：{count} 篇，阅读率 {read_rate:.2%}，互动率 {engagement_rate:.2%}"
+                f"- {value}：{count} 篇{sample_note}，阅读率 {read_rate:.2%}，"
+                f"互动率 {engagement_rate:.2%}"
             )
     return "\n".join(lines)
 
@@ -347,6 +381,7 @@ def format_postmortem(
                 f"正文 {entry.get('body_variant', '未标注')}",
                 (
                     f"- 标题：{entry.get('title_formula', '未标注')} "
+                    f"/ {entry.get('title_pattern', '未标注')} "
                     f"({entry.get('title_variant', '未标注')})"
                 ),
                 (
