@@ -1567,6 +1567,13 @@ def render_daily_fortune_card_svg(
 """
 
 
+def daily_fortune_cover_content(day: date) -> tuple[str, tuple[DailyFortuneCard, ...]]:
+    focus = _daily_fortune_variant(day)["focus"]
+    cards = tuple(build_daily_fortune_card(sign, day) for sign in SIGN_TERMS)
+    ranked = sorted(cards, key=lambda card: card.score, reverse=True)
+    return focus, tuple(ranked[:3])
+
+
 def render_daily_fortune_cover_svg(
     day: date,
     *,
@@ -1574,22 +1581,15 @@ def render_daily_fortune_cover_svg(
 ) -> str:
     theme = daily_card_theme(card_theme)
     palette = daily_fortune_cover_palette(theme)
-    date_text = day.strftime("%Y.%m.%d")
-    ticks = []
-    for index in range(12):
-        angle = math.radians(index * 30 - 90)
-        outer = 98
-        inner = 84 if index % 3 else 80
-        x1 = 724 + math.cos(angle) * inner
-        y1 = 190 + math.sin(angle) * inner
-        x2 = 724 + math.cos(angle) * outer
-        y2 = 190 + math.sin(angle) * outer
-        color = palette["gold"] if index == 0 else palette["ink"] if index % 3 == 0 else palette["mint"]
-        ticks.append(
-            f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" '
-            f'stroke="{color}" stroke-width="{3 if index % 3 == 0 else 2}" stroke-linecap="round"/>'
-        )
-    tick_svg = "\n  ".join(ticks)
+    focus, top_cards = daily_fortune_cover_content(day)
+    date_text = f"{day:%m.%d} · 周{'一二三四五六日'[day.weekday()]}"
+    ranking_svg = "\n".join(
+        f'''  <circle cx="696" cy="{148 + index * 62}" r="18" fill="{palette['gold'] if index == 1 else palette['mint']}"/>
+  <text x="696" y="{156 + index * 62}" text-anchor="middle" font-size="21" font-weight="900" fill="{palette['highlight']}">{index}</text>
+  <text x="730" y="{157 + index * 62}" font-size="27" font-weight="800" fill="{palette['ink']}">{escape(card.sign)}</text>
+  <text x="838" y="{156 + index * 62}" text-anchor="end" font-size="21" font-weight="700" fill="{palette['muted']}">{card.score}分</text>'''
+        for index, card in enumerate(top_cards, start=1)
+    )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{DAILY_FORTUNE_COVER_WIDTH}" height="{DAILY_FORTUNE_COVER_HEIGHT}" viewBox="0 0 {DAILY_FORTUNE_COVER_WIDTH} {DAILY_FORTUNE_COVER_HEIGHT}" role="img" aria-label="夏野日运 十二星座每日好运封面">
   <defs>
     <style>
@@ -1599,26 +1599,27 @@ def render_daily_fortune_cover_svg(
     </style>
   </defs>
   <rect width="900" height="380" fill="{palette['background']}"/>
-  <rect x="604" y="24" width="268" height="332" fill="{palette['panel']}"/>
-  <path d="M604 24 V356" stroke="{palette['highlight']}" stroke-width="2"/>
-  <rect x="28" y="24" width="844" height="332" fill="none" stroke="{palette['border']}" stroke-width="1"/>
-  <path d="M28 62 V24 H66 M834 356 H872 V318" fill="none" stroke="{palette['gold']}" stroke-width="2"/>
-  <path d="M628 78 L658 60 L686 76 M790 298 L820 316 L848 290" fill="none" stroke="{palette['border']}" stroke-width="1"/>
-  <circle cx="628" cy="78" r="3" fill="{palette['gold']}"/><circle cx="658" cy="60" r="2" fill="{palette['mint']}"/><circle cx="686" cy="76" r="2" fill="{palette['gold']}"/>
-  <circle cx="790" cy="298" r="2" fill="{palette['gold']}"/><circle cx="820" cy="316" r="3" fill="{palette['mint']}"/><circle cx="848" cy="290" r="2" fill="{palette['gold']}"/>
-  <circle cx="82" cy="83" r="4" fill="{palette['gold']}"/>
-  <text x="98" y="93" font-size="25" font-weight="700" fill="{palette['muted']}">十二星座 · 每日好运</text>
-  <text x="76" y="218" font-family="SimSun, Songti SC, serif" font-size="100" font-weight="700" fill="{palette['ink']}">夏野日运</text>
-  <path d="M80 250 H172" stroke="{palette['gold']}" stroke-width="4"/>
-  <text x="80" y="296" font-size="30" font-weight="700" fill="{palette['muted']}">{date_text}</text>
-  <circle cx="724" cy="190" r="72" fill="none" stroke="{palette['border']}" stroke-width="2"/>
-  <circle cx="724" cy="190" r="54" fill="none" stroke="{palette['mint']}" stroke-width="2"/>
-  <circle cx="724" cy="190" r="66" fill="none" stroke="{palette['gold']}" stroke-width="3" stroke-dasharray="86 329" transform="rotate(-72 724 190)"/>
-  {tick_svg}
-  <text x="724" y="190" text-anchor="middle" font-size="45" font-weight="800" fill="{palette['ink']}">12</text>
-  <text x="724" y="220" text-anchor="middle" font-size="18" font-weight="700" fill="{palette['muted']}">星座</text>
-  <path d="M80 326 H820" stroke="{palette['border']}" stroke-width="1"/>
-  <circle cx="820" cy="326" r="3" fill="{palette['gold']}"/>
+  <rect x="24" y="24" width="852" height="332" rx="24" fill="{palette['highlight']}" stroke="{palette['border']}" stroke-width="2"/>
+  <rect x="24" y="24" width="218" height="332" rx="24" fill="{palette['panel']}"/>
+  <path d="M218 24 H242 V356 H218" fill="{palette['panel']}"/>
+  <path d="M242 48 V332" stroke="{palette['border']}" stroke-width="2"/>
+  <path d="M650 48 V332" stroke="{palette['border']}" stroke-width="2"/>
+  <circle cx="68" cy="70" r="7" fill="{palette['gold']}"/>
+  <text x="86" y="79" font-size="27" font-weight="900" fill="{palette['ink']}">夏野日运</text>
+  <text x="58" y="151" font-size="23" font-weight="700" fill="{palette['muted']}">感情</text>
+  <text x="58" y="203" font-size="23" font-weight="700" fill="{palette['muted']}">事业</text>
+  <text x="58" y="255" font-size="23" font-weight="700" fill="{palette['muted']}">财运</text>
+  <circle cx="130" cy="143" r="4" fill="{palette['mint']}"/><circle cx="130" cy="195" r="4" fill="{palette['gold']}"/><circle cx="130" cy="247" r="4" fill="{palette['mint']}"/>
+  <text x="58" y="318" font-size="20" font-weight="700" fill="{palette['muted']}">每日 12 星座指南</text>
+  <text x="446" y="78" text-anchor="middle" font-size="25" font-weight="800" fill="{palette['muted']}">{date_text}</text>
+  <text x="446" y="126" text-anchor="middle" font-size="27" font-weight="900" fill="{palette['gold']}">十二星座每日好运</text>
+  <text x="446" y="218" text-anchor="middle" font-size="72" font-weight="900" fill="{palette['ink']}">今日好运</text>
+  <rect x="292" y="251" width="308" height="62" rx="31" fill="{palette['background']}" stroke="{palette['mint']}" stroke-width="2"/>
+  <text x="446" y="291" text-anchor="middle" font-size="28" font-weight="800" fill="{palette['ink']}">关键词 · {escape(focus)}</text>
+  <text x="682" y="91" font-size="27" font-weight="900" fill="{palette['ink']}">好运前三</text>
+  <path d="M682 105 H838" stroke="{palette['gold']}" stroke-width="3"/>
+{ranking_svg}
+  <text x="682" y="329" font-size="18" font-weight="700" fill="{palette['muted']}">完整运势见正文</text>
 </svg>
 """
 
@@ -1802,63 +1803,44 @@ def render_daily_fortune_cover_png(
     border = _hex_to_rgb(palette["border"])
     panel = _hex_to_rgb(palette["panel"])
     highlight = _hex_to_rgb(palette["highlight"])
+    focus, top_cards = daily_fortune_cover_content(day)
+    date_text = f"{day:%m.%d} · 周{'一二三四五六日'[day.weekday()]}"
 
-    draw.rectangle((604, 24, 872, 356), fill=panel)
-    draw.line((604, 24, 604, 356), fill=highlight, width=2)
-    draw.rectangle((28, 24, 872, 356), outline=border, width=1)
-    draw.line((28, 62, 28, 24, 66, 24), fill=gold, width=2)
-    draw.line((834, 356, 872, 356, 872, 318), fill=gold, width=2)
-    for points in (
-        ((628, 78), (658, 60), (686, 76)),
-        ((790, 298), (820, 316), (848, 290)),
-    ):
-        draw.line((*points[0], *points[1], *points[2]), fill=border, width=1)
-    for x, y, radius, color in (
-        (628, 78, 3, gold),
-        (658, 60, 2, mint),
-        (686, 76, 2, gold),
-        (790, 298, 2, gold),
-        (820, 316, 3, mint),
-        (848, 290, 2, gold),
-    ):
-        draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color)
-    draw.ellipse((78, 79, 86, 87), fill=gold)
-    subtitle_font = _cover_font(25, bold=True)
-    title_font = _cover_display_font(100)
-    date_font = _cover_font(30, bold=True)
-    draw.text((98, 64), "十二星座 · 每日好运", font=subtitle_font, fill=muted)
-    draw.text((76, 112), "夏野日运", font=title_font, fill=ink)
-    draw.line((80, 250, 172, 250), fill=gold, width=4)
-    draw.text((80, 258), f"{day:%Y.%m.%d}", font=date_font, fill=muted)
+    draw.rounded_rectangle((24, 24, 876, 356), radius=24, fill=highlight, outline=border, width=2)
+    draw.rounded_rectangle((24, 24, 242, 356), radius=24, fill=panel)
+    draw.rectangle((218, 24, 242, 356), fill=panel)
+    draw.line((242, 48, 242, 332), fill=border, width=2)
+    draw.line((650, 48, 650, 332), fill=border, width=2)
 
-    center_x, center_y = 724, 190
-    draw.ellipse((652, 118, 796, 262), outline=border, width=2)
-    draw.ellipse((670, 136, 778, 244), outline=mint, width=2)
-    draw.arc((658, 124, 790, 256), start=198, end=276, fill=gold, width=3)
-    for index in range(12):
-        angle = math.radians(index * 30 - 90)
-        outer = 98
-        inner = 84 if index % 3 else 80
-        start = (
-            round(center_x + math.cos(angle) * inner),
-            round(center_y + math.sin(angle) * inner),
-        )
-        end = (
-            round(center_x + math.cos(angle) * outer),
-            round(center_y + math.sin(angle) * outer),
-        )
-        color = gold if index == 0 else ink if index % 3 == 0 else mint
-        draw.line((*start, *end), fill=color, width=3 if index % 3 == 0 else 2)
+    draw.ellipse((61, 63, 75, 77), fill=gold)
+    draw.text((86, 50), "夏野日运", font=_cover_font(27, bold=True), fill=ink)
+    small_font = _cover_font(23, bold=True)
+    for index, label in enumerate(("感情", "事业", "财运")):
+        y = 124 + index * 52
+        draw.text((58, y), label, font=small_font, fill=muted)
+        color = gold if index == 1 else mint
+        draw.ellipse((126, y + 15, 134, y + 23), fill=color)
+    draw.text((58, 294), "每日 12 星座指南", font=_cover_font(20, bold=True), fill=muted)
 
-    number_font = _cover_font(45, bold=True)
-    sign_font = _cover_font(18, bold=True)
-    number_bbox = draw.textbbox((0, 0), "12", font=number_font)
-    draw.text((center_x - (number_bbox[2] - number_bbox[0]) / 2, 153), "12", font=number_font, fill=ink)
-    sign_bbox = draw.textbbox((0, 0), "星座", font=sign_font)
-    draw.text((center_x - (sign_bbox[2] - sign_bbox[0]) / 2, 207), "星座", font=sign_font, fill=muted)
+    draw.text((446, 65), date_text, font=_cover_font(25, bold=True), fill=muted, anchor="mm")
+    draw.text((446, 113), "十二星座每日好运", font=_cover_font(27, bold=True), fill=gold, anchor="mm")
+    draw.text((446, 187), "今日好运", font=_cover_font(72, bold=True), fill=ink, anchor="mm")
+    draw.rounded_rectangle((292, 251, 600, 313), radius=31, fill=_hex_to_rgb(palette["background"]), outline=mint, width=2)
+    draw.text((446, 282), f"关键词 · {focus}", font=_cover_font(28, bold=True), fill=ink, anchor="mm")
 
-    draw.line((80, 326, 820, 326), fill=border, width=1)
-    draw.ellipse((817, 323, 823, 329), fill=gold)
+    draw.text((682, 66), "好运前三", font=_cover_font(27, bold=True), fill=ink)
+    draw.line((682, 105, 838, 105), fill=gold, width=3)
+    rank_font = _cover_font(21, bold=True)
+    sign_font = _cover_font(27, bold=True)
+    score_font = _cover_font(21, bold=True)
+    for index, card in enumerate(top_cards, start=1):
+        center_y = 148 + (index - 1) * 62
+        badge = gold if index == 1 else mint
+        draw.ellipse((678, center_y - 18, 714, center_y + 18), fill=badge)
+        draw.text((696, center_y), str(index), font=rank_font, fill=highlight, anchor="mm")
+        draw.text((730, center_y), card.sign, font=sign_font, fill=ink, anchor="lm")
+        draw.text((838, center_y), f"{card.score}分", font=score_font, fill=muted, anchor="rm")
+    draw.text((682, 307), "完整运势见正文", font=_cover_font(18, bold=True), fill=muted)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     export_size = (

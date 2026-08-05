@@ -20,6 +20,11 @@ DEFAULT_THEME = "agentera-mint"
 DEFAULT_AUTHOR = "夏野星座"
 PUBLISH_HISTORY = BASE_DIR / "logs" / "publish_history.jsonl"
 PLACEHOLDER_RE = re.compile(r"(填|你的|AppID|AppSecret)")
+WEEKLY_TABLE_STYLE = (
+    "border-collapse:collapse;border-spacing:0;margin:1.2em auto;width:100%;"
+    "max-width:100%;table-layout:fixed;overflow:visible;"
+)
+WEEKLY_CELL_STYLE = "padding:0 2px;border:0;vertical-align:top;font-size:0;line-height:0;"
 
 
 def load_wenyan_config() -> tuple[str, dict[str, str]]:
@@ -46,7 +51,11 @@ def article_title(article_path: Path) -> str:
 
 
 def profile_for(article_path: Path) -> str:
-    return "daily_fortune" if "十二星座每日好运" in article_path.name else "anxia_short"
+    if "十二星座每日好运" in article_path.name:
+        return "daily_fortune"
+    if "十二星座一周运势" in article_path.name:
+        return "weekly_fortune"
+    return "anxia_short"
 
 
 def preflight(article_path: Path) -> None:
@@ -81,6 +90,8 @@ import {{ dirname, isAbsolute, resolve }} from "path";
 const file = {json.dumps(str(article_path))};
 const theme = {json.dumps(theme)};
 const author = {json.dumps(author)};
+const weeklyTableStyle = {json.dumps(WEEKLY_TABLE_STYLE)};
+const weeklyCellStyle = {json.dumps(WEEKLY_CELL_STYLE)};
 try {{
   const articleDir = dirname(file);
   const markdown = (await readFile(file, "utf-8")).replace(
@@ -92,6 +103,12 @@ try {{
     }}
   );
   const gzhContent = await getGzhContent(markdown, theme, "solarized-light", true, true);
+  if (file.includes("十二星座一周运势")) {{
+    gzhContent.content = gzhContent.content
+      .replace(/<thead>[\\s\\S]*?<\\/thead>/g, "")
+      .replace(/<table style="[^"]*">/g, `<table style="${{weeklyTableStyle}}">`)
+      .replace(/<td[^>]*>/g, `<td style="${{weeklyCellStyle}}">`);
+  }}
   const result = await publishToDraft(
     gzhContent.title ?? "Untitled",
     gzhContent.content,

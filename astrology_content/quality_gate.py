@@ -152,10 +152,27 @@ DAILY_FORTUNE_PROFILE = GateProfile(
     overlap_rewrite_threshold=0.05,
     overlap_reject_threshold=0.05,
 )
+WEEKLY_FORTUNE_PROFILE = GateProfile(
+    name="weekly_fortune",
+    min_cjk=300,
+    max_cjk=1600,
+    extended_max_cjk=None,
+    title_max_visible=36,
+    min_title_visible=14,
+    min_headings=6,
+    max_headings=6,
+    required_images=14,
+    opening_terms_required=False,
+    banned_phrases=BANNED_PHRASES,
+    enumeration_error_at=8,
+    overlap_rewrite_threshold=0.05,
+    overlap_reject_threshold=0.05,
+)
 STRONG_TITLE_TERMS = ABSOLUTE_PREDICTIONS
 PROFILES = {
     ANXIA_SHORT_PROFILE.name: ANXIA_SHORT_PROFILE,
     DAILY_FORTUNE_PROFILE.name: DAILY_FORTUNE_PROFILE,
+    WEEKLY_FORTUNE_PROFILE.name: WEEKLY_FORTUNE_PROFILE,
 }
 DEFAULT_PROFILE = ANXIA_SHORT_PROFILE.name
 
@@ -422,6 +439,8 @@ def validate_article(
         errors.append(f"短文段落为 {paragraphs} 段，要求 3-6 段")
     if gate_profile.name == "daily_fortune" and not 14 <= paragraphs <= 16:
         errors.append(f"日运正文段落为 {paragraphs} 段，要求 14-16 段")
+    if gate_profile.name == "weekly_fortune" and not 11 <= paragraphs <= 32:
+        errors.append(f"周运正文段落为 {paragraphs} 段，要求 11-32 段")
 
     images = image_references(article.body)
     metrics["image_count"] = len(images)

@@ -15,6 +15,7 @@ from anxia_generate import (
     daily_card_markdown_refs,
     daily_card_theme,
     daily_fortune_card_paths,
+    daily_fortune_cover_content,
     daily_fortune_cover_path,
     daily_fortune_follow_path,
     hot_source_title_for_item,
@@ -167,13 +168,25 @@ class AnxiaGenerateTests(unittest.TestCase):
     def test_daily_fortune_cover_uses_xiaye_design(self) -> None:
         day = date(2026, 7, 28)
         svg_text = render_daily_fortune_cover_svg(day, card_theme="mint")
+        focus, top_cards = daily_fortune_cover_content(day)
 
         self.assertIn('width="900"', svg_text)
         self.assertIn('height="380"', svg_text)
         self.assertIn("夏野日运", svg_text)
         self.assertIn("十二星座每日好运", svg_text)
+        self.assertIn("今日好运", svg_text)
+        self.assertIn(f"关键词 · {focus}", svg_text)
+        self.assertIn("好运前三", svg_text)
+        self.assertTrue(all(card.sign in svg_text for card in top_cards))
+        self.assertTrue(all(f"{card.score}分" in svg_text for card in top_cards))
         self.assertNotIn("coverStripe", svg_text)
         self.assertNotIn("火土风水", svg_text)
+
+    def test_daily_fortune_cover_ranking_is_score_ordered(self) -> None:
+        _, top_cards = daily_fortune_cover_content(date(2026, 8, 5))
+
+        self.assertEqual([card.sign for card in top_cards], ["天秤", "金牛", "水瓶"])
+        self.assertEqual([card.score for card in top_cards], sorted((card.score for card in top_cards), reverse=True))
 
     def test_daily_fortune_cover_is_first_image(self) -> None:
         day = date(2026, 7, 28)

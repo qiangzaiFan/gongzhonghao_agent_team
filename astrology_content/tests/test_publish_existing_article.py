@@ -11,6 +11,16 @@ class PublishExistingArticleTests(unittest.TestCase):
     def test_default_author_is_xiaye(self) -> None:
         self.assertEqual(publisher.DEFAULT_AUTHOR, "夏野星座")
 
+    def test_weekly_article_uses_weekly_profile(self) -> None:
+        article = Path("20260810_05_十二星座一周运势丨08-10-08-16.md")
+
+        self.assertEqual(publisher.profile_for(article), "weekly_fortune")
+
+    def test_weekly_table_styles_remove_default_borders(self) -> None:
+        self.assertIn("border:0", publisher.WEEKLY_CELL_STYLE)
+        self.assertIn("table-layout:fixed", publisher.WEEKLY_TABLE_STYLE)
+        self.assertIn("width:100%", publisher.WEEKLY_TABLE_STYLE)
+
     def test_publish_history_records_supplied_author(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

@@ -12,7 +12,10 @@
 - `assets/daily_fortune_covers/`：十二星座每日好运的横向封面图，主视觉文字为“夏野日运”。
 - `assets/daily_fortune_cards/`：十二星座每日好运的信息卡 PNG 图片，每天 12 张。
 - `assets/pet_covers/`：单星座短文的治愈系萌宠封面图，由本地 ComfyUI 生成。
+- `assets/brand/xiaye_wechat_qr.jpg`：周运长卡和文末关注图使用的夏野公众号二维码。
 - `anxia_analyze.py`：分析安夏知识库语料。
+- `baitao_weekly_analyze.py`：分析白桃星座周运知识库的篇幅、图片和重点星象密度。
+- `baitao_weekly.py`：根据人工复核的星象事件生成原创十二星座周运及 14 张配图。
 - `anxia_calendar.py`：生成每日 2 篇单星座选题排期。
 - `anxia_generate.py`：默认额外生成一篇“十二星座每日好运”四象日运稿。
 - `content_record.py`：保存每篇的选题卡、来源模式、标题/开头候选和正文变体。
@@ -54,7 +57,7 @@ python3 anxia_generate.py --days 3
 python3 anxia_generate.py --days 7
 ```
 
-日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 1 张横向“夏野日运”薄荷绿封面 PNG、12 张薄荷绿信息卡 PNG 和 1 张文末薄荷绿关注指引 PNG；封面写入正文第一张图，信息卡在正文对应四象分组下引用，关注指引固定放在文末。图片分别保存在 `assets/daily_fortune_covers/YYYYMMDD/`、`assets/daily_fortune_cards/YYYYMMDD/` 和 `assets/daily_fortune_follow/`。需要桃粉 A/B 版时添加 `--card-theme pink`，图片会写入对应的 `_pink` 目录。使用 `--refresh-zodiac-characters` 可在生成日运前通过本地 ComfyUI 整套刷新 12 张动漫人物素材。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
+日运标题采用 `十二星座每日好运丨YYYY.MM.DD`，按火象、土象、风象、水象分四组覆盖全部 12 个星座。默认会同步生成 1 张横向“夏野日运”薄荷绿封面 PNG、12 张薄荷绿信息卡 PNG 和 1 张文末薄荷绿关注指引 PNG；封面中央安全区显示日期、栏目名、“今日好运”和当日关键词，以适配助推列表方形缩略图，左右显示感情/事业/财运与按当天卡片分数生成的好运前三。封面写入正文第一张图，信息卡在正文对应四象分组下引用，关注指引固定放在文末。图片分别保存在 `assets/daily_fortune_covers/YYYYMMDD/`、`assets/daily_fortune_cards/YYYYMMDD/` 和 `assets/daily_fortune_follow/`。需要桃粉 A/B 版时添加 `--card-theme pink`，图片会写入对应的 `_pink` 目录。使用 `--refresh-zodiac-characters` 可在生成日运前通过本地 ComfyUI 整套刷新 12 张动漫人物素材。该栏目使用独立的 `daily_fortune` 质检 profile，保留 3 个标题版本、2 个开头版本和编辑记录；正文和卡片文案均为原创，不复用外部文章句子、段落或图片。
 
 日运封面和信息卡默认由 Pillow 直接绘制为高清 PNG，不依赖 CairoSVG、Chrome、`resvg` 或 `rsvg-convert`。需要检查矢量布局时，可显式导出 SVG 调试稿：
 
@@ -65,6 +68,22 @@ python3 anxia_generate.py \
   --card-theme mint \
   --card-format svg
 ```
+
+分析白桃星座周运知识库最近 12 篇：
+
+```bash
+..\.venv\Scripts\python.exe baitao_weekly_analyze.py --recent 12
+```
+
+生成一篇十二星座周运。事件文件必须先人工复核，格式见
+`specs/examples/weekly_events.example.json`；生成结果包含 1 张封面、12 张星座长卡、1 张文末关注图和一份复核记录：
+
+```bash
+..\.venv\Scripts\python.exe baitao_weekly.py \
+  --events-file specs/examples/weekly_events.example.json
+```
+
+周运使用独立的 `weekly_fortune` 质检 profile。示例事件只用于验证格式和流程，不能作为当周事实直接发布；生成器只写本地草稿，不会调用公众号发布接口。
 
 只生成原有单星座短文时：
 
